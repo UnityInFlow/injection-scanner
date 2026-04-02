@@ -1,0 +1,40 @@
+category: exfiltration
+default_severity: CRITICAL
+patterns:
+  - id: PI020
+    name: send-to-url
+    pattern: "send\\s+(the\\s+following|this|it|data|response)\\s+to\\s+https?://"
+    description: "Data exfiltration to external URL"
+    remediation: "Remove data sending instruction. Data should only flow through authorized channels."
+    tags: [exfiltration, url]
+  - id: PI021
+    name: post-system-prompt
+    pattern: "POST\\s+your\\s+system\\s+prompt"
+    description: "System prompt exfiltration attempt"
+    remediation: "Remove system prompt extraction instruction."
+    tags: [exfiltration]
+  - id: PI022
+    name: output-instructions
+    pattern: "output\\s+your\\s+(full\\s+)?instructions"
+    description: "Instruction extraction attempt"
+    remediation: "Remove instruction extraction request."
+    tags: [exfiltration]
+  - id: PI023
+    name: repeat-system-message
+    pattern: "repeat\\s+your\\s+system\\s+message"
+    description: "System message extraction"
+    remediation: "Remove system message extraction request."
+    tags: [exfiltration]
+  - id: PI024
+    name: original-instructions
+    pattern: "what\\s+were\\s+your\\s+original\\s+instructions"
+    description: "Original instruction probing"
+    remediation: "Remove instruction probing."
+    tags: [exfiltration]
+  - id: PI025
+    name: fetch-url
+    pattern: "fetch\\s+https?://[^\\s]+"
+    severity: HIGH
+    description: "External URL fetch request"
+    remediation: "Review URL fetch — may be legitimate or exfiltration vector."
+    tags: [exfiltration, url]

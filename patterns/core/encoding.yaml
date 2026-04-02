@@ -1,0 +1,22 @@
+category: encoding
+default_severity: HIGH
+patterns:
+  - id: PI040
+    name: unicode-rtl-override
+    pattern: "\\x{202E}|\\x{202D}|\\x{202C}|\\x{200F}|\\x{200E}"
+    description: "Unicode direction override character — can hide text direction"
+    remediation: "Remove Unicode direction override characters. These make text visually misleading."
+    tags: [encoding, unicode]
+  - id: PI041
+    name: zero-width-chars
+    pattern: "\\x{200B}|\\x{FEFF}|\\x{200C}|\\x{200D}"
+    description: "Zero-width characters — can hide instructions invisible to humans"
+    remediation: "Remove zero-width characters. These can hide instructions that LLMs still process."
+    tags: [encoding, unicode]
+  - id: PI042
+    name: zero-width-sequence
+    pattern: "[\\x{200B}\\x{200C}\\x{200D}\\x{FEFF}]{3,}"
+    severity: CRITICAL
+    description: "Sequence of zero-width characters — likely encoded hidden instruction"
+    remediation: "Remove zero-width character sequence. This is almost certainly an injection attempt."
+    tags: [encoding, unicode, steganography]

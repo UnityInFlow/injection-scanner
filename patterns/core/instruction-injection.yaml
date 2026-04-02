@@ -1,0 +1,34 @@
+category: instruction_injection
+default_severity: HIGH
+patterns:
+  - id: PI010
+    name: new-task-injection
+    pattern: "(?i)^\\s*new\\s+task\\s*:"
+    description: "Injected task instruction"
+    remediation: "Remove injected task. Legitimate tasks should use proper skill format."
+    tags: [injection]
+  - id: PI011
+    name: system-override
+    pattern: "(?i)\\[?SYSTEM\\s*(OVERRIDE|PROMPT|MESSAGE)\\]?"
+    severity: CRITICAL
+    description: "System-level instruction injection"
+    remediation: "Remove system override. Only actual system prompts should use SYSTEM prefix."
+    tags: [injection]
+  - id: PI012
+    name: hidden-html-instruction
+    pattern: "<!--\\s*(HIDDEN|SECRET|INJECT)"
+    description: "Hidden instruction in HTML comment"
+    remediation: "Remove hidden instructions from HTML comments."
+    tags: [injection, html]
+  - id: PI013
+    name: real-purpose
+    pattern: "your\\s+real\\s+purpose\\s+is"
+    description: "Purpose redefinition attempt"
+    remediation: "Remove purpose redefinition."
+    tags: [injection]
+  - id: PI014
+    name: developer-wants
+    pattern: "the\\s+developer\\s+wants\\s+you\\s+to"
+    description: "Authority impersonation via developer claim"
+    remediation: "Remove false developer attribution."
+    tags: [injection, impersonation]

@@ -1,0 +1,58 @@
+category: jailbreak
+default_severity: HIGH
+patterns:
+  - id: PI030
+    name: developer-mode
+    pattern: "developer\\s+mode\\s+(enabled|activated|on)"
+    description: "Developer mode jailbreak"
+    remediation: "Remove developer mode activation."
+    tags: [jailbreak]
+  - id: PI031
+    name: dan-mode
+    pattern: "(?i)\\bDAN\\s+mode\\b"
+    description: "DAN (Do Anything Now) jailbreak"
+    remediation: "Remove DAN mode reference."
+    tags: [jailbreak]
+  - id: PI032
+    name: no-content-policy
+    pattern: "you\\s+have\\s+no\\s+content\\s+policy"
+    description: "Content policy removal attempt"
+    remediation: "Remove content policy override."
+    tags: [jailbreak]
+  - id: PI033
+    name: no-restrictions
+    pattern: "pretend\\s+you\\s+have\\s+no\\s+restrictions"
+    description: "Restriction removal via pretense"
+    remediation: "Remove restriction bypass."
+    tags: [jailbreak]
+  - id: PI034
+    name: hypothetical-scenario
+    pattern: "in\\s+this\\s+hypothetical\\s+scenario\\s+where\\s+you\\s+can"
+    description: "Hypothetical scenario jailbreak"
+    remediation: "Remove hypothetical bypass framing."
+    tags: [jailbreak]
+  - id: PI035
+    name: jailbreak-prompt
+    pattern: "(?i)\\bjailbreak\\s+prompt\\b"
+    severity: CRITICAL
+    description: "Explicit jailbreak prompt reference"
+    remediation: "Remove jailbreak prompt."
+    tags: [jailbreak]
+  - id: PI036
+    name: override-safety
+    pattern: "override\\s+your\\s+safety"
+    description: "Safety override attempt"
+    remediation: "Remove safety override instruction."
+    tags: [jailbreak]
+  - id: PI037
+    name: bypass-content-filter
+    pattern: "bypass\\s+(the\\s+)?content\\s+filter"
+    description: "Content filter bypass attempt"
+    remediation: "Remove content filter bypass."
+    tags: [jailbreak]
+  - id: PI038
+    name: unlimited-mode
+    pattern: "(?i)unlimited\\s+mode"
+    description: "Unrestricted mode activation"
+    remediation: "Remove unlimited mode activation."
+    tags: [jailbreak]

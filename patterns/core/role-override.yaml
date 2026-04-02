@@ -1,0 +1,46 @@
+category: role_override
+default_severity: CRITICAL
+patterns:
+  - id: PI001
+    name: ignore-previous-instructions
+    pattern: "ignore\\s+(all\\s+)?previous\\s+instructions"
+    description: "Attempts to override agent instructions"
+    remediation: "Remove instruction override text. If documenting attacks, use code blocks."
+    tags: [role-override]
+  - id: PI002
+    name: ignore-prior-context
+    pattern: "ignore\\s+(all\\s+)?prior\\s+context"
+    description: "Attempts to discard prior context"
+    remediation: "Remove context override text."
+    tags: [role-override]
+  - id: PI003
+    name: you-are-now
+    pattern: "you\\s+are\\s+now\\s+\\w+"
+    severity: HIGH
+    description: "Role reassignment attempt"
+    remediation: "Remove role override. Use explicit skill scoping instead."
+    tags: [role-override]
+  - id: PI004
+    name: act-as-without-restrictions
+    pattern: "act\\s+as\\s+.*without\\s+restrictions"
+    description: "Unrestricted role assignment"
+    remediation: "Remove unrestricted role assignment."
+    tags: [role-override]
+  - id: PI005
+    name: new-primary-directive
+    pattern: "your\\s+new\\s+primary\\s+directive"
+    description: "Directive replacement attempt"
+    remediation: "Remove directive override."
+    tags: [role-override]
+  - id: PI006
+    name: forget-everything
+    pattern: "forget\\s+everything\\s+you\\s+know"
+    description: "Memory wipe attempt"
+    remediation: "Remove memory wipe instruction."
+    tags: [role-override]
+  - id: PI007
+    name: disregard-training
+    pattern: "disregard\\s+your\\s+(training|instructions|programming)"
+    description: "Training override attempt"
+    remediation: "Remove training override."
+    tags: [role-override]
