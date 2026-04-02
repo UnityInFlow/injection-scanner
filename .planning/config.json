@@ -1,0 +1,8 @@
+{
+  "project_name": "injection-scanner",
+  "workspace": "03-injection-scanner",
+  "workflow": {
+    "discuss_mode": "discuss",
+    "text_mode": false
+  }
+}
