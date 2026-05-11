@@ -82,6 +82,30 @@ Superpowers skills (TDD, code review, debugging) activate automatically during e
 - `regex` — pattern matching engine
 - `serde_json` — JSON output
 
+---
+
+## CI / Self-Hosted Runners
+
+Use UnityInFlow org-level self-hosted runners. Never use `ubuntu-latest`.
+
+```yaml
+# Default (X64)
+runs-on: [arc-runner-unityinflow]
+
+# ARM64 cross-compilation
+runs-on: [orangepi]
+
+# Matrix for both architectures
+strategy:
+  matrix:
+    runner: [arc-runner-unityinflow, orangepi]
+runs-on: ${{ matrix.runner }}
+```
+
+Available runners: `hetzner-runner-1/2/3` (X64), `orangepi-runner` (ARM64).
+
+---
+
 ## Do Not
 
 - Do not start implementation until spec-linter v0.0.1 is published on npm (DONE)
