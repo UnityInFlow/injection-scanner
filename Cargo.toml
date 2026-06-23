@@ -1,6 +1,6 @@
 [package]
 name = "injection-scanner"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 description = "Prompt injection static scanner for AI spec files, skills, and RAG documents"
 license = "MIT"
