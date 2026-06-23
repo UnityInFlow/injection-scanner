@@ -1,63 +1,301 @@
 name: Release
 
+# Trigger: push a v* tag (e.g., git tag v0.0.2 && git push origin v0.0.2).
+#
+# This pipeline mirrors the proven Phase-3 mcp-hub cargo-zigbuild template: ONE
+# self-hosted Linux host cross-compiles ALL targets via cargo-zigbuild (zig is
+# host-arch-independent, so no per-arch runner, no Docker/cross, no macOS runner).
+# Every job runs on org self-hosted runners only -- ZERO GitHub-hosted runners
+# (no ubuntu / macos GitHub-hosted images anywhere) (CI-01).
+#
+# ── ASSET CONTRACT (load-bearing cross-repo coupling) ──────────────────────────
+# The spec-ci-plugin GitHub Action (04-spec-ci-plugin/src/injection-scanner.ts)
+# downloads, with NO extension, and EXECUTES directly:
+#     injection-scanner-<arch>-unknown-linux-musl   (arch = x86_64 | aarch64)
+# So the musl assets MUST be RAW executables (not .tgz/.zip), named EXACTLY by
+# their target-triple. The Action's download URL includes the TAG segment, so
+# these assets must be cut on tag v0.0.2 — the literal Plan 01 sets as the
+# Action's default `injection-scanner-version` (RESEARCH Pitfall 1).
+#
+# ── macOS DISPOSITION (D-01b / CI-03) ──────────────────────────────────────────
+# PRIMARY plan: cross-compile the two apple-darwin targets via cargo-zigbuild.
+# FALLBACK (A4 document-and-defer): no self-hosted macOS runner exists; if the
+# apple-darwin SDK/sysroot build fails under zig, macOS is document-and-deferred
+# to v2 rather than blocking the phase. The two apple-darwin legs are therefore
+# `continue-on-error` (non-blocking) and conditional in the release gate. The
+# four Linux legs — including the consumer-critical musl pair — are HARD-required
+# and always ship. CI-02 is satisfied by the Linux musl+gnu set either way.
+# This comment is the in-repo record that pairs with the root CLAUDE.md
+# Decisions-Log row.
 on:
   push:
-    tags: ['v*']
+    tags:
+      - 'v*'
 
-permissions:
-  contents: write
+env:
+  CARGO_TERM_COLOR: always
+  # Pinned toolchain for cargo-zigbuild cross-compilation (RESEARCH Pitfall 3).
+  # NEVER use "latest" -- zig <-> cargo-zigbuild compatibility is version-coupled.
+  ZIG_VERSION: '0.14.1'
+  CARGO_ZIGBUILD_VERSION: '0.23.0'
 
 jobs:
-  build:
+  # ──────────────────────────────────────────────────────────────────────────
+  # JOB 1: test
+  # Full test gate: cargo test + clippy + fmt check. Build does not start until
+  # this passes. injection-scanner ships binaries only -- there is NO crates.io
+  # publish job and NO Windows target.
+  # ──────────────────────────────────────────────────────────────────────────
+  test:
+    name: Test gate (test + clippy + fmt)
+    # Default org X64 fleet. The Hetzner X64 fleet has been intermittently offline
+    # across Phases 1-2; because zigbuild is host-arch-independent every job here
+    # can also run on the ARM64 orangepi runner -- to flip, change `runs-on` to
+    # [orangepi] (RESEARCH Pitfall 4).
+    runs-on: [arc-runner-unityinflow]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: cargo test
+        run: cargo test --locked
+
+      - name: cargo clippy
+        run: cargo clippy -- -D warnings
+
+      - name: cargo fmt check
+        run: cargo fmt --check
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # JOB 2: build-binaries
+  # ONE self-hosted Linux runner cross-compiles ALL 6 targets via cargo-zigbuild.
+  #
+  # Runner: default [arc-runner-unityinflow]. Because zigbuild is host-arch-
+  # independent the whole matrix can also run on the ARM64 orangepi runner --
+  # to flip, change `runs-on` below to [orangepi] (RESEARCH Pitfall 4).
+  #
+  # Assets are RAW binaries named by target-triple (`injection-scanner-<target>`),
+  # NOT tarballs -- the spec-ci-plugin Action curls + chmods + executes them
+  # directly (src/injection-scanner.ts). The two musl assets are the load-bearing
+  # cross-repo contract.
+  #
+  # The two apple-darwin legs are `experimental: true` + `continue-on-error`
+  # (A4 fallback, D-01b): a macOS SDK/sysroot/licensing failure is surfaced but
+  # NON-blocking, so the four Linux assets always ship.
+  # ──────────────────────────────────────────────────────────────────────────
+  build-binaries:
+    name: Build ${{ matrix.target }}
+    needs: test
+    runs-on: [arc-runner-unityinflow]   # flip to [orangepi] if Hetzner X64 fleet is offline (zigbuild is host-arch-independent)
+    # A darwin SDK/sysroot failure must NOT fail the release (A4 fallback, D-01b).
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
+      # fail-fast disabled: surface ALL target failures in one run. The release
+      # job still hard-requires every Linux target, so a partial Linux set never
+      # ships; darwin is conditional (warn-and-continue).
+      fail-fast: false
       matrix:
         include:
+          # ── REQUIRED: the two musl assets the spec-ci-plugin Action consumes ──
+          - target: x86_64-unknown-linux-musl
+            experimental: false
+          - target: aarch64-unknown-linux-musl
+            experimental: false
+          # ── Preserved prior D-01 gnu targets ──
           - target: x86_64-unknown-linux-gnu
-            os: [self-hosted, arc-runner-unityinflow]
-            artifact: injection-scanner-linux-x86_64
+            experimental: false
           - target: aarch64-unknown-linux-gnu
-            os: [self-hosted, orangepi]
-            artifact: injection-scanner-linux-aarch64
-          - target: aarch64-apple-darwin
-            os: macos-latest
-            artifact: injection-scanner-darwin-arm64
+            experimental: false
+          # ── Cross-compiled apple-darwin (A4 document-and-defer to v2 if it fails) ──
           - target: x86_64-apple-darwin
-            os: macos-latest
-            artifact: injection-scanner-darwin-x86_64
-
-    runs-on: ${{ matrix.os }}
+            experimental: true
+          - target: aarch64-apple-darwin
+            experimental: true
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
 
-      - name: Install Rust
+      - name: Install Rust stable + target
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
-      - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
+      - name: Install pinned zig + cargo-zigbuild
+        run: |
+          # Pinned versions (RESEARCH Pitfall 3): zig 0.14.1, cargo-zigbuild 0.23.0.
+          # Install zig from the official tarball matched to the HOST arch (the
+          # self-hosted runners have no pip3 -- orangepi is ARM64; a Hetzner X64
+          # runner would be x86_64). zig itself cross-compiles to all targets, so
+          # only the host arch matters here. Pin BOTH versions -- never `latest`.
+          set -euo pipefail
+          case "$(uname -m)" in
+            aarch64|arm64) ZIG_ARCH=aarch64 ;;
+            x86_64|amd64)  ZIG_ARCH=x86_64 ;;
+            *) echo "unsupported host arch: $(uname -m)" >&2; exit 1 ;;
+          esac
+          # zig 0.14.0+ uses arch-first artifact naming: zig-<arch>-linux-<ver>.
+          ZIG_DIR="zig-${ZIG_ARCH}-linux-${ZIG_VERSION}"
+          curl -fsSL "https://ziglang.org/download/${ZIG_VERSION}/${ZIG_DIR}.tar.xz" -o /tmp/zig.tar.xz
+          mkdir -p "$HOME/.zig" && tar -xJf /tmp/zig.tar.xz -C "$HOME/.zig"
+          echo "$HOME/.zig/${ZIG_DIR}" >> "$GITHUB_PATH"
+          "$HOME/.zig/${ZIG_DIR}/zig" version
+          cargo install --locked --version "${CARGO_ZIGBUILD_VERSION}" cargo-zigbuild
 
-      - name: Rename binary
-        run: cp target/${{ matrix.target }}/release/injection-scanner ${{ matrix.artifact }}
+      - name: Build (cargo zigbuild, cross-compiled from this Linux host)
+        run: cargo zigbuild --release --locked --target ${{ matrix.target }}
+
+      - name: Package (raw, target-triple-named binary; NO archive)
+        run: |
+          # CRITICAL asset contract: the Action curls + chmods + executes the RAW
+          # binary directly, so emit it un-archived, named exactly by target-triple.
+          set -euo pipefail
+          OUT="injection-scanner-${{ matrix.target }}"
+          cp "target/${{ matrix.target }}/release/injection-scanner" "$OUT"
+          chmod +x "$OUT"
+          sha256sum "$OUT" > "$OUT.sha256"
+          echo "Packaged raw binary: $OUT"
+
+      - name: Smoke test (host-arch-aware --version; cross-built/darwin = presence-only)
+        run: |
+          set -euo pipefail
+          OUT="injection-scanner-${{ matrix.target }}"
+          test -f "$OUT" || { echo "ERROR: $OUT missing"; exit 1; }
+          TARGET="${{ matrix.target }}"
+          case "$TARGET" in
+            *-apple-darwin)
+              # macOS binary is never natively executable on a Linux host.
+              echo "apple-darwin build present -- presence-only (not executable on Linux host)."
+              ;;
+            *)
+              # A cross-compiled Linux binary can only be EXECUTED when its arch
+              # matches the runner's arch (runner varies: orangepi=aarch64;
+              # Hetzner X64=x86_64). Decide at runtime, never hardcode a triple.
+              TARGET_ARCH="${TARGET%%-*}"            # x86_64 | aarch64
+              HOST_ARCH="$(uname -m)"; [ "$HOST_ARCH" = "arm64" ] && HOST_ARCH=aarch64
+              if [ "$TARGET_ARCH" = "$HOST_ARCH" ]; then
+                "./$OUT" --version
+              else
+                echo "Cross-built $TARGET_ARCH on $HOST_ARCH host -- presence-only (not natively executable)."
+              fi
+              ;;
+          esac
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
-          name: ${{ matrix.artifact }}
-          path: ${{ matrix.artifact }}
+          name: ${{ matrix.target }}
+          path: |
+            injection-scanner-${{ matrix.target }}
 
+  # ──────────────────────────────────────────────────────────────────────────
+  # JOB 3: release
+  # The four Linux assets are HARD-required (fail loudly if any is missing). The
+  # two apple-darwin assets are CONDITIONAL: include them if present, otherwise
+  # emit an A4 warning and continue (do NOT fail the release). Generates
+  # SHA256SUMS.txt over all present raw binaries and creates the GitHub Release.
+  # ──────────────────────────────────────────────────────────────────────────
   release:
-    needs: build
-    runs-on: ubuntu-latest
+    name: Create GitHub Release
+    needs: [build-binaries]
+    runs-on: [arc-runner-unityinflow]
+    permissions:
+      contents: write
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
-
-      - name: Create release
-        uses: softprops/action-gh-release@v2
+        uses: actions/download-artifact@v5
         with:
+          merge-multiple: true
+          path: artifacts/
+
+      - name: Validate Linux assets (hard-required) + macOS disposition (A4 conditional)
+        run: |
+          set -euo pipefail
+          cd artifacts
+          # The four Linux raw binaries the consumer + prior D-01 targets require.
+          REQUIRED=(
+            "injection-scanner-x86_64-unknown-linux-musl"
+            "injection-scanner-aarch64-unknown-linux-musl"
+            "injection-scanner-x86_64-unknown-linux-gnu"
+            "injection-scanner-aarch64-unknown-linux-gnu"
+          )
+          for f in "${REQUIRED[@]}"; do
+            if test -f "$f"; then
+              echo "OK (required): $f"
+            else
+              echo "MISSING (required Linux asset): $f"
+              exit 1
+            fi
+          done
+          # The two apple-darwin raw binaries are conditional (A4 fallback, D-01b).
+          for f in \
+            "injection-scanner-x86_64-apple-darwin" \
+            "injection-scanner-aarch64-apple-darwin"; do
+            if test -f "$f"; then
+              echo "OK (darwin present): $f"
+            else
+              echo "::warning::macOS apple-darwin cross-compile unavailable -- deferred to v2 (A4 fallback, D-01b): $f"
+            fi
+          done
+          echo "All four required Linux assets validated."
+
+      - name: Generate SHA256SUMS.txt (over all present raw binaries)
+        run: |
+          set -euo pipefail
+          cd artifacts
+          # Checksum every present raw injection-scanner binary (exclude per-asset
+          # .sha256 sidecars and any existing manifest).
+          : > SHA256SUMS.txt
+          for f in injection-scanner-*; do
+            case "$f" in
+              *.sha256) continue ;;
+            esac
+            sha256sum "$f" >> SHA256SUMS.txt
+          done
+          echo "Generated SHA256SUMS.txt:"
+          cat SHA256SUMS.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          # Glob the raw target-triple binaries (NOT the .sha256 sidecars) + the
+          # aggregate manifest. Raw binaries have no extension; exclude *.sha256.
           files: |
-            injection-scanner-linux-x86_64/injection-scanner-linux-x86_64
-            injection-scanner-linux-aarch64/injection-scanner-linux-aarch64
-            injection-scanner-darwin-arm64/injection-scanner-darwin-arm64
-            injection-scanner-darwin-x86_64/injection-scanner-darwin-x86_64
+            artifacts/injection-scanner-*-unknown-linux-musl
+            artifacts/injection-scanner-*-unknown-linux-gnu
+            artifacts/injection-scanner-*-apple-darwin
+            artifacts/SHA256SUMS.txt
+          generate_release_notes: true
+          body: |
+            ## injection-scanner release
+
+            Raw, target-triple-named binaries built entirely on UnityInFlow org
+            self-hosted Linux runners via `cargo zigbuild` (no GitHub-hosted
+            runners). Download the binary for your platform, `chmod +x`, run.
+
+            > The crate and binary are both named **`injection-scanner`**.
+
+            | Platform | Asset (raw binary) |
+            |----------|--------------------|
+            | Linux x86_64 (musl) | `injection-scanner-x86_64-unknown-linux-musl` |
+            | Linux aarch64 (musl) | `injection-scanner-aarch64-unknown-linux-musl` |
+            | Linux x86_64 (gnu) | `injection-scanner-x86_64-unknown-linux-gnu` |
+            | Linux aarch64 (gnu) | `injection-scanner-aarch64-unknown-linux-gnu` |
+            | macOS x86_64 | `injection-scanner-x86_64-apple-darwin` (if present) |
+            | macOS aarch64 | `injection-scanner-aarch64-apple-darwin` (if present) |
+
+            > The **musl** binaries are statically linked (run-anywhere, no libc-
+            > version drift) and are the assets the `spec-ci-plugin` GitHub Action
+            > downloads and executes at CI runtime.
+            >
+            > **macOS** binaries are cross-compiled via `cargo-zigbuild`. If the
+            > apple-darwin SDK/sysroot build is unavailable, macOS is
+            > document-and-deferred to v2 (A4 fallback) and the assets above will
+            > be absent — the Linux set still ships.
+
+            ## Checksums
+            See `SHA256SUMS.txt` for verification.
