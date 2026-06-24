@@ -52,7 +52,7 @@ jobs:
     # across Phases 1-2; because zigbuild is host-arch-independent every job here
     # can also run on the ARM64 orangepi runner -- to flip, change `runs-on` to
     # [orangepi] (RESEARCH Pitfall 4).
-    runs-on: [arc-runner-unityinflow]
+    runs-on: [orangepi]
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -91,7 +91,7 @@ jobs:
   build-binaries:
     name: Build ${{ matrix.target }}
     needs: test
-    runs-on: [arc-runner-unityinflow]   # flip to [orangepi] if Hetzner X64 fleet is offline (zigbuild is host-arch-independent)
+    runs-on: [orangepi]   # flip to [orangepi] if Hetzner X64 fleet is offline (zigbuild is host-arch-independent)
     # A darwin SDK/sysroot failure must NOT fail the release (A4 fallback, D-01b).
     continue-on-error: ${{ matrix.experimental }}
     strategy:
@@ -202,7 +202,7 @@ jobs:
   release:
     name: Create GitHub Release
     needs: [build-binaries]
-    runs-on: [arc-runner-unityinflow]
+    runs-on: [orangepi]
     permissions:
       contents: write
     steps:
