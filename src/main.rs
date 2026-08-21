@@ -6,10 +6,10 @@ use anyhow::{Context, Result};
 use clap::Parser;
 
 use injection_scanner::allowlist::parse_suppressions;
-use injection_scanner::pattern::{PatternCategory, ScanReport};
+use injection_scanner::pattern::ScanReport;
 use injection_scanner::patterns::load_all_patterns;
 use injection_scanner::reporter::{format_json, format_text};
-use injection_scanner::scanner::scan_content;
+use injection_scanner::scanner::Scanner;
 
 #[derive(Parser)]
 #[command(name = "injection-scanner")]
@@ -35,9 +35,9 @@ enum Commands {
     },
 }
 
-fn scan_file(path: &str, content: &str, categories: &[PatternCategory]) -> ScanReport {
+fn scan_file(path: &str, content: &str, scanner: &Scanner) -> ScanReport {
     let suppressions = parse_suppressions(content);
-    scan_content(path, content, categories, &suppressions)
+    scanner.scan(path, content, &suppressions)
 }
 
 fn walkdir(dir: &PathBuf) -> Result<Vec<PathBuf>> {
@@ -71,6 +71,11 @@ fn main() -> Result<()> {
             let categories =
                 load_all_patterns(patterns.as_deref()).context("Failed to load patterns")?;
 
+            // Compile the pattern set ONCE for the whole run. Doing this per file
+            // is what broke the <200ms budget: compilation dominates, so cost
+            // scaled with file count rather than content (issue #13).
+            let scanner = Scanner::new(&categories).context("Failed to compile patterns")?;
+
             let mut reports = Vec::new();
 
             if path == "-" {
@@ -78,18 +83,18 @@ fn main() -> Result<()> {
                 std::io::stdin()
                     .read_to_string(&mut content)
                     .context("Failed to read from stdin")?;
-                reports.push(scan_file("<stdin>", &content, &categories));
+                reports.push(scan_file("<stdin>", &content, &scanner));
             } else {
                 let target = PathBuf::from(&path);
                 if target.is_file() {
                     let content = fs::read_to_string(&target)
                         .with_context(|| format!("Failed to read {}", target.display()))?;
-                    reports.push(scan_file(&path, &content, &categories));
+                    reports.push(scan_file(&path, &content, &scanner));
                 } else if target.is_dir() {
                     for entry in walkdir(&target)? {
                         let content = fs::read_to_string(&entry)
                             .with_context(|| format!("Failed to read {}", entry.display()))?;
-                        reports.push(scan_file(&entry.to_string_lossy(), &content, &categories));
+                        reports.push(scan_file(&entry.to_string_lossy(), &content, &scanner));
                     }
                 } else {
                     anyhow::bail!("Path does not exist: {}", path);

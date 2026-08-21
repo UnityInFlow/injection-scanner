@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use injection_scanner::allowlist::{is_suppressed, parse_suppressions};
 use injection_scanner::patterns::load_embedded_patterns;
-use injection_scanner::scanner::scan_content;
+use injection_scanner::scanner::Scanner;
 
 fn fixture_path(name: &str) -> String {
     format!("{}/tests/fixtures/{}", env!("CARGO_MANIFEST_DIR"), name)
@@ -61,7 +61,9 @@ fn test_suppressed_line_not_detected_in_scan() {
     let content = read_fixture("allowlisted.md");
     let categories = load_embedded_patterns().unwrap();
     let suppressions = parse_suppressions(&content);
-    let report = scan_content("allowlisted.md", &content, &categories, &suppressions);
+    let report = Scanner::new(&categories)
+        .expect("patterns must compile")
+        .scan("allowlisted.md", &content, &suppressions);
 
     // PI001 on the suppressed line should NOT appear in results
     let pi001_matches: Vec<_> = report
@@ -81,7 +83,9 @@ fn test_unsuppressed_line_still_detected() {
     let content = read_fixture("allowlisted.md");
     let categories = load_embedded_patterns().unwrap();
     let suppressions = parse_suppressions(&content);
-    let report = scan_content("allowlisted.md", &content, &categories, &suppressions);
+    let report = Scanner::new(&categories)
+        .expect("patterns must compile")
+        .scan("allowlisted.md", &content, &suppressions);
 
     // "forget everything you know" (PI006) on the unsuppressed line SHOULD be detected
     let pi006_matches: Vec<_> = report
@@ -100,7 +104,9 @@ fn test_pi001_suppression_does_not_suppress_pi011() {
     let content = read_fixture("allowlisted.md");
     let categories = load_embedded_patterns().unwrap();
     let suppressions = parse_suppressions(&content);
-    let report = scan_content("allowlisted.md", &content, &categories, &suppressions);
+    let report = Scanner::new(&categories)
+        .expect("patterns must compile")
+        .scan("allowlisted.md", &content, &suppressions);
 
     // Line 8 has PI011 suppression, so PI011 should NOT appear for that line
     let pi011_line8: Vec<_> = report
