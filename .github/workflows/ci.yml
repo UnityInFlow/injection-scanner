@@ -88,3 +88,43 @@ jobs:
         run: |
           ./target/release/injection-scanner --version
           ./target/release/injection-scanner check tests/fixtures/clean-skill.md
+
+      # PERF-01: "<200ms for a typical project" (issue #29).
+      #
+      # `tests/perf_regression_test.rs` already defends the invariant that the
+      # pattern set is compiled once, and does so as a machine-independent ratio.
+      # This gate is the complement: it measures the *release binary end to end*,
+      # including directory walking and file I/O, against the budget the README
+      # actually claims. It is what would catch a regression outside the scanner
+      # — in the walk, say — that the ratio test cannot see.
+      #
+      # Best of three runs, after a warm-up, so a descheduled sample cannot fail
+      # the build. Measured at ~5ms of scan time locally and well under 100ms
+      # end-to-end on a hosted runner; the regressed build this defends against
+      # was 806ms on hardware faster than CI.
+      - name: Performance gate — 500 files under 200ms
+        run: |
+          set -euo pipefail
+          corpus="$(mktemp -d)"
+          for i in $(seq 1 500); do
+            printf '# Doc %s\n\nOrdinary prose about the project.\n\n- a bullet\n- another bullet\n' "$i" \
+              > "$corpus/doc$i.md"
+          done
+
+          scan() { ./target/release/injection-scanner check "$corpus" --format json > /dev/null; }
+
+          scan  # warm the page cache; the first run pays for cold reads
+
+          best=999999
+          for _ in 1 2 3; do
+            start=$(date +%s%N)
+            scan
+            elapsed=$(( ($(date +%s%N) - start) / 1000000 ))
+            if [ "$elapsed" -lt "$best" ]; then best=$elapsed; fi
+          done
+
+          echo "500-file scan: ${best}ms (budget 200ms)"
+          if [ "$best" -ge 200 ]; then
+            echo "::error::PERF-01 regression: 500 files took ${best}ms, budget is 200ms (issue #29)."
+            exit 1
+          fi

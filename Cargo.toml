@@ -17,3 +17,13 @@ serde_yaml = "0.9"
 regex = "1"
 anyhow = "1"
 thiserror = "2"
+
+[dev-dependencies]
+# Benchmarks only (`benches/scan.rs`). The CI-enforced perf guard is a plain
+# integration test — see tests/perf_regression_test.rs — so nothing in the test
+# gate depends on this.
+criterion = "0.8"
+
+[[bench]]
+name = "scan"
+harness = false
