@@ -1,0 +1,17 @@
+# Keeps the SHA-pinned Actions current.
+#
+# Every `uses:` in this repo is pinned to a full commit SHA rather than a tag,
+# because a tag can be force-moved by a compromised upstream maintainer — and a
+# compromised action could alter the source *before* the build that produces our
+# signed provenance attestation, making the attestation vouch confidently for
+# tampered code. Pinning removes that; dependabot stops the pins from rotting.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
+    labels:
+      - ci
