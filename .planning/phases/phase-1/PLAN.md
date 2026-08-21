@@ -2,7 +2,7 @@
 
 **Milestone:** Production Readiness (v0.0.3 + v0.1.0)
 **Requirements:** CI-01, CI-02 · **Issue:** #17
-**Status:** in progress · **Branch:** `chore/milestone-production-readiness`
+**Status:** complete (pending PR merge) · **Branch:** `chore/milestone-production-readiness`
 
 ## Goal
 
@@ -30,8 +30,13 @@ zero registered runners, and the repo is public under `allows_public_repositorie
 - [x] **T2** — Remove the stale `arc-runner-unityinflow` references from `release.yml` comments so
       the file no longer advertises a runner that cannot be scheduled.
 - [x] **T3** — Add `--locked` to the CI cargo invocations so `Cargo.lock` drift fails loudly.
-- [ ] **T4** — Push the branch, open a PR, confirm CI runs to completion.
-- [ ] **T5** — Confirm no self-hosted job is reachable from any fork-firable trigger.
+- [x] **T4** — Push the branch, open a PR, confirm CI runs to completion. **PR #44, CI run 32463308109: success.** Picked up in 29s (vs the previous 24h0m2s timeouts); all steps green — fmt, clippy, test, build, smoke.
+- [x] **T5** — Confirmed. `ci.yml` has no self-hosted label and no secret reference; `release.yml` is `[orangepi]` behind `push: tags: [v*]` only, which a fork cannot fire.
+
+## Outcome
+
+All five success criteria met. CI run `32463308109` on PR #44 completed successfully with every step
+green. The gate is restored.
 
 ## Success criteria
 
@@ -67,4 +72,4 @@ Options, to be decided before Phase 2 ships:
 - **C — workflow-restricted runner group.** Permit this repo on a dedicated group. Cleanest, needs
   org-admin access.
 
-Tracked as issue #44.
+Tracked as issue **#45**.
