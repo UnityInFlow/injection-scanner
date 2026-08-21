@@ -27,6 +27,42 @@ defend it, and they do different jobs:
 
 If you touch `Scanner`, run both.
 
+## The release asset contract
+
+`spec-ci-plugin` (tool 04) downloads and executes two of this repository's release
+assets directly, at a pinned tag, with **no file extension**:
+
+```
+injection-scanner-x86_64-unknown-linux-musl
+injection-scanner-aarch64-unknown-linux-musl
+```
+
+It `chmod +x`es what it downloads and runs it, after verifying the bytes against
+`SHA256SUMS.txt` from the same release. So these names, and the fact that they are
+raw executables rather than archives, are a **public API of this repository**.
+Renaming one, switching to tarballs, changing a target triple, or dropping a musl
+leg is a breaking change for another repository's CI, whatever this repo's version
+number says — and it surfaces there, not here, which is the hardest place to
+diagnose it.
+
+Two things enforce it, and they see different failures:
+
+- `tests/release_contract_test.rs` runs in the ordinary `cargo test` gate. It parses
+  `.github/workflows/release.yml` as YAML and checks the workflow still *produces*
+  the names the consumer *requests*: both musl targets are in the build matrix and
+  not `experimental`, the upload globs still select them, the attestation
+  `subject-path` still covers them, and the packaging step still emits a raw
+  target-triple-named binary. Break the contract in a pull request and it fails
+  there.
+- `verify-published-assets` in `release.yml` runs after the release is published. It
+  walks the consumer's exact path — anonymous `curl` of the public download URL at
+  the new tag — and asserts HTTP 200, ELF magic, the right architecture in the ELF
+  header, presence in `SHA256SUMS.txt`, a passing checksum, and a working
+  `--version`. A workflow can be perfectly specified and still fail to upload; this
+  is what catches that.
+
+Neither can see what the other sees. If you touch `release.yml`, expect both.
+
 ## Adding a New Pattern
 
 1. Choose the appropriate category YAML file in `patterns/core/`
