@@ -35,6 +35,45 @@ Every claim already in the README becomes true. No new features.
 - `--format bogus` exits non-zero with a usage error ✅
 - Both README suppression forms work as documented
 
+## External review findings, addressed (2026-08-21)
+
+An independent review of PR #44/#46 (`scratchpad/opencode-pr-review-report.md`) found four real
+defects. All confirmed by reproduction and fixed:
+
+1. **PI012 matched this tool's own suppression syntax.** Case-insensitive `INJECT` matched the
+   "inject" inside `<!-- injection-scanner:ignore PI001 -->`, so using the documented suppression
+   feature raised a HIGH finding. Fixed with **word boundaries**, not the reviewer's suggested
+   `case_sensitive: true` — that would have fixed the symptom while reintroducing a lowercase
+   bypass (`<!-- inject: … -->`). `\bINJECT\b` no longer matches "injection" but still matches
+   "INJECT:" and "inject:".
+2. **An unreadable subdirectory still aborted the walk.** The first cut of FIX-03 isolated per-*file*
+   read errors but left `?` on `fs::read_dir`, so one permission-denied subdir killed the scan — the
+   same defect one level up. Now skipped and reported.
+3. **Strict-by-default was premature for external patterns.** One malformed YAML in a `--patterns`
+   directory aborted every scan. Embedded patterns stay strict (compile-time constants, covered by a
+   CI test); external patterns are now lenient with loud per-pattern warnings, until
+   `--strict-patterns` (#28) makes it opt-in.
+4. **No false-positive regression guard.** Four new tests pin the PI012 behaviour in both
+   directions, the subdirectory case, and the malformed-external-pattern case.
+
+**Where the review overstated.** It reported a "43% false-positive increase (58 → 83)". After the
+PI012 fix the delta is 58 → 74, and the remainder is concentrated in `examples/` — which are
+**attack fixture files**. The newly-firing patterns there are PI004, PI005, PI006, PI013, PI014,
+PI020, PI023, PI032: real payloads written in sentence case that the scanner previously *missed*.
+That is the fix working, not noise. README is at parity with `main` (13 = 13). Genuine new prose
+false positives do exist — PI003 on "You are now ready to proceed", PI014 on "The developer wants
+you to test this feature", PI034 on "In this hypothetical scenario where you can find the docs" —
+but those are weak patterns, not a casing problem, and they are Phase 3's job (context classifier
+QUAL-01 and severity rebalance QUAL-02).
+
+**Also corrected:** the review recorded the 806ms → 17ms figure as "hardware differs" against its own
+86ms baseline. Re-measured against `origin/main` on an identical 500-file corpus: main 0.78s user /
+1.22s wall, fix 0.01s user / 0.02s wall. The original figure stands; the reviewer used a smaller corpus.
+
+**Still open from the review:** Actions are tag-pinned, not SHA-pinned, and
+`dtolnay/rust-toolchain@stable` is a moving branch ref. Graded NEEDS-HARDENING, not a blocker.
+Belongs on PR #44.
+
 ## Decisions taken during execution
 
 **Case-insensitive is the default, opt-out per pattern.** Prompt-injection payloads are natural

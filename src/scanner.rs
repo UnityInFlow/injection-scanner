@@ -28,13 +28,35 @@ pub struct Scanner {
 }
 
 impl Scanner {
-    /// Compile every pattern in every category.
+    /// Compile every pattern, failing on the first that does not.
     ///
-    /// Returns `Err` on the first pattern whose regex fails to compile. This is
-    /// deliberate: a security scanner that silently drops an unparsable pattern
-    /// reduces its own coverage while still exiting green.
+    /// Use this for the **embedded** pattern set. Those are compile-time
+    /// constants covered by a CI test, so a failure here is a bug in this
+    /// repository and should stop the run rather than silently shrink coverage.
+    ///
+    /// Do **not** use this for community `--patterns` directories: see
+    /// [`Scanner::new_lenient`] for why.
     pub fn new(categories: &[PatternCategory]) -> Result<Self, PatternError> {
+        let (scanner, errors) = Self::new_lenient(categories);
+        match errors.into_iter().next() {
+            Some(e) => Err(e),
+            None => Ok(scanner),
+        }
+    }
+
+    /// Compile every pattern, collecting failures instead of aborting.
+    ///
+    /// Use this for **external** `--patterns` directories. Those are an
+    /// untrusted input surface: making one malformed YAML file abort every scan
+    /// would hand a denial-of-service to anyone able to write into a shared
+    /// patterns directory. Callers are expected to surface the returned errors
+    /// loudly so a dropped pattern is never silent — the failure mode this
+    /// guards against is a scanner quietly losing coverage while exiting green.
+    ///
+    /// `--strict-patterns` (issue #28) will let callers opt back into failing.
+    pub fn new_lenient(categories: &[PatternCategory]) -> (Self, Vec<PatternError>) {
         let mut compiled = Vec::new();
+        let mut errors = Vec::new();
 
         for category in categories {
             for pattern in &category.patterns {
@@ -44,27 +66,28 @@ impl Scanner {
                 // `Pattern::case_sensitive` for why the default runs this way.
                 let case_sensitive = pattern.case_sensitive.unwrap_or(false);
 
-                let regex = RegexBuilder::new(&pattern.pattern)
+                match RegexBuilder::new(&pattern.pattern)
                     .case_insensitive(!case_sensitive)
                     .build()
-                    .map_err(|source| PatternError::InvalidRegex {
+                {
+                    Ok(regex) => compiled.push(CompiledPattern {
+                        id: pattern.id.clone(),
+                        name: pattern.name.clone(),
+                        severity,
+                        description: pattern.description.clone(),
+                        remediation: pattern.remediation.clone(),
+                        regex,
+                    }),
+                    Err(source) => errors.push(PatternError::InvalidRegex {
                         id: pattern.id.clone(),
                         pattern: pattern.pattern.clone(),
                         source,
-                    })?;
-
-                compiled.push(CompiledPattern {
-                    id: pattern.id.clone(),
-                    name: pattern.name.clone(),
-                    severity,
-                    description: pattern.description.clone(),
-                    remediation: pattern.remediation.clone(),
-                    regex,
-                });
+                    }),
+                }
             }
         }
 
-        Ok(Self { compiled })
+        (Self { compiled }, errors)
     }
 
     /// Number of patterns successfully compiled into this scanner.
