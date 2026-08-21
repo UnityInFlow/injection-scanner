@@ -346,3 +346,108 @@ jobs:
 
             ## Checksums
             See `SHA256SUMS.txt` for verification.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # JOB 4: verify-published-assets  (issue #18)
+  # ──────────────────────────────────────────────────────────────────────────
+  # The ASSET CONTRACT block at the top of this file DESCRIBES the coupling to
+  # spec-ci-plugin. Job 3 validates the artifacts it is about to upload. Neither
+  # checks what a consumer actually sees: the published download URL.
+  #
+  # That gap is real. A release can be green while the upload glob silently stops
+  # matching, or an asset is renamed, or the tag segment of the URL differs from
+  # what the Action pins — and the breakage surfaces in ANOTHER repository's CI,
+  # which is where it is hardest to diagnose.
+  #
+  # This job walks the consumer's exact path, unauthenticated, over the public
+  # download URL, at the tag just pushed:
+  #     curl -> HTTP 200 -> raw ELF of the right architecture -> --version
+  # plus SHA256SUMS.txt, which the Action now verifies before executing
+  # (spec-ci-plugin #9 / injection-scanner #43).
+  #
+  # It runs AFTER the release is published, so a failure here does not prevent a
+  # broken release — it makes one impossible to miss. Fix and re-tag.
+  verify-published-assets:
+    name: Verify published asset contract (spec-ci-plugin)
+    needs: [release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read     # the assets are fetched anonymously, exactly as the Action does
+    steps:
+      - name: Fetch and verify the musl pair + checksum manifest at this tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          BASE="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}"
+          WORK="$(mktemp -d)"; cd "$WORK"
+
+          # Asset publication is not instantaneous. Retry rather than racing it.
+          fetch() {
+            local name="$1"
+            for attempt in 1 2 3 4 5; do
+              if curl -fsSL --retry 3 --max-time 60 -o "$name" "${BASE}/${name}"; then
+                echo "  fetched ${name} ($(wc -c < "$name") bytes)"
+                return 0
+              fi
+              echo "  attempt ${attempt} failed for ${name}; retrying in 5s"
+              sleep 5
+            done
+            echo "::error::${BASE}/${name} did not return 200. The spec-ci-plugin Action" \
+                 "downloads this exact URL and will break. See issue #18."
+            return 1
+          }
+
+          # e_machine, offset 18, little-endian: x86_64 = 3e00, aarch64 = b700.
+          expected_machine() {
+            case "$1" in
+              x86_64)  echo "3e00" ;;
+              aarch64) echo "b700" ;;
+              *) echo "::error::unknown arch $1"; exit 1 ;;
+            esac
+          }
+
+          for arch in x86_64 aarch64; do
+            ASSET="injection-scanner-${arch}-unknown-linux-musl"
+            echo "── ${ASSET}"
+            fetch "$ASSET"
+
+            # RAW executable, not an archive. Checked by magic bytes rather than
+            # by extension, because the contract is precisely that there is no
+            # extension to check.
+            MAGIC="$(head -c 4 "$ASSET" | od -An -tx1 | tr -d ' \n')"
+            if [ "$MAGIC" != "7f454c46" ]; then
+              echo "::error::${ASSET} is not an ELF binary (magic ${MAGIC}). The Action chmods and" \
+                   "executes this file directly — it must be a raw binary, never a tarball."
+              exit 1
+            fi
+
+            MACHINE="$(od -An -tx1 -j18 -N2 "$ASSET" | tr -d ' \n')"
+            WANT="$(expected_machine "$arch")"
+            if [ "$MACHINE" != "$WANT" ]; then
+              echo "::error::${ASSET} reports ELF machine ${MACHINE}, expected ${WANT} for ${arch}."
+              exit 1
+            fi
+            echo "  ELF ok, machine ${MACHINE}"
+          done
+
+          # The manifest the Action verifies against before it executes anything.
+          echo "── SHA256SUMS.txt"
+          fetch "SHA256SUMS.txt"
+          for arch in x86_64 aarch64; do
+            ASSET="injection-scanner-${arch}-unknown-linux-musl"
+            if ! grep -q " ${ASSET}\$" SHA256SUMS.txt; then
+              echo "::error::SHA256SUMS.txt does not list ${ASSET}. The spec-ci-plugin Action" \
+                   "verifies against this manifest and will refuse to run the binary."
+              exit 1
+            fi
+          done
+          sha256sum -c --ignore-missing SHA256SUMS.txt
+          echo "  checksums verified"
+
+          # Finally, run it — the runner is x86_64, so only that one is native.
+          chmod +x injection-scanner-x86_64-unknown-linux-musl
+          ./injection-scanner-x86_64-unknown-linux-musl --version
+          printf '# doc\n\nordinary prose\n' > sample.md
+          ./injection-scanner-x86_64-unknown-linux-musl check sample.md
+          echo "Published asset contract verified at ${TAG}."
