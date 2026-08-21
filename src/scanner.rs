@@ -1,9 +1,14 @@
-use std::collections::HashMap;
-
 use regex::{Regex, RegexBuilder};
 
-use crate::allowlist::is_suppressed;
+use crate::allowlist::Suppressions;
 use crate::pattern::{PatternCategory, PatternError, ScanMatch, ScanReport, Severity};
+
+/// Upper bound on reported matches per pattern per line.
+///
+/// `find_iter` replaced `find` so a line carrying several payloads reports each
+/// one rather than only the first (audit C-05). The cap keeps a pathological
+/// line — thousands of repetitions of a short payload — from flooding a report.
+const MAX_MATCHES_PER_PATTERN_PER_LINE: usize = 10;
 
 /// A pattern with its regex pre-compiled for efficient scanning.
 struct CompiledPattern {
@@ -98,23 +103,25 @@ impl Scanner {
     /// Scan content line by line against the compiled pattern set.
     ///
     /// Per-line suppressions are honoured via [`is_suppressed`].
-    pub fn scan(
-        &self,
-        file_path: &str,
-        content: &str,
-        suppressions: &HashMap<usize, Vec<String>>,
-    ) -> ScanReport {
+    pub fn scan(&self, file_path: &str, content: &str, suppressions: &Suppressions) -> ScanReport {
         let mut matches = Vec::new();
 
         for (line_index, line) in content.lines().enumerate() {
             let line_number = line_index + 1;
 
             for cp in &self.compiled {
-                if is_suppressed(suppressions, line_number, &cp.id) {
+                if suppressions.is_suppressed(line_number, &cp.id) {
                     continue;
                 }
 
-                if let Some(matched) = cp.regex.find(line) {
+                // Every occurrence, not just the first: a line packing three
+                // payloads previously yielded one finding, and `matched_text`
+                // under-reported what was actually there.
+                for matched in cp
+                    .regex
+                    .find_iter(line)
+                    .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
+                {
                     matches.push(ScanMatch {
                         pattern_id: cp.id.clone(),
                         pattern_name: cp.name.clone(),

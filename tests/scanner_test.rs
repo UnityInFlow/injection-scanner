@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use injection_scanner::allowlist::Suppressions;
 use injection_scanner::patterns::load_embedded_patterns;
 use injection_scanner::scanner::Scanner;
 
@@ -17,7 +16,11 @@ fn test_clean_file_no_matches() {
     let categories = load_embedded_patterns().unwrap();
     let report = Scanner::new(&categories)
         .expect("patterns must compile")
-        .scan("tests/fixtures/clean-skill.md", &content, &HashMap::new());
+        .scan(
+            "tests/fixtures/clean-skill.md",
+            &content,
+            &Suppressions::default(),
+        );
     assert!(!report.has_findings());
 }
 
@@ -30,7 +33,7 @@ fn test_injected_file_has_matches() {
         .scan(
             "tests/fixtures/injected-skill.md",
             &content,
-            &HashMap::new(),
+            &Suppressions::default(),
         );
     assert!(report.has_findings());
     assert!(
@@ -49,7 +52,7 @@ fn test_reports_correct_line_numbers() {
         .scan(
             "tests/fixtures/injected-skill.md",
             &content,
-            &HashMap::new(),
+            &Suppressions::default(),
         );
     for m in &report.matches {
         assert!(m.line > 0, "Line number should be > 0");
@@ -65,7 +68,7 @@ fn test_severity_counts() {
         .scan(
             "tests/fixtures/injected-skill.md",
             &content,
-            &HashMap::new(),
+            &Suppressions::default(),
         );
     assert!(
         report.critical_count > 0,
@@ -78,7 +81,7 @@ fn test_scan_empty_content() {
     let categories = load_embedded_patterns().unwrap();
     let report = Scanner::new(&categories)
         .expect("patterns must compile")
-        .scan("empty.md", "", &HashMap::new());
+        .scan("empty.md", "", &Suppressions::default());
     assert!(!report.has_findings());
 }
 
@@ -90,7 +93,7 @@ fn test_scan_content_with_only_benign_text() {
         .scan(
             "test.md",
             "Just a normal README with nothing suspicious.",
-            &HashMap::new(),
+            &Suppressions::default(),
         );
     assert!(!report.has_findings());
 }
