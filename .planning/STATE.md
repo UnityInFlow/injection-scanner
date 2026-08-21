@@ -12,14 +12,15 @@ CI is green again. PR #44 (`chore/milestone-production-readiness`) runs on a Git
 and completed every step — fmt, clippy, test, build, smoke — picked up in 29 seconds against the
 previous two 24-hour queue timeouts. The gate is restored.
 
-**Next:** merge #44, then Phase 2. A decision on **#45** is needed before v0.0.3 can be *tagged*,
-but it does not block Phase 2 development.
+**Next:** Phase 2 is underway. PR #44 is deliberately held unmerged pending an independent review of
+the workflow changes (`scratchpad/opencode-phase1-review-prompt.md`) — any finding should land in the
+branch, not on `main`.
 
 ### Phase status
 | Phase | Goal | Status |
 |---|---|---|
 | 1 | Restore the Gate | ✅ Complete (PR #44) |
-| 2 | Correctness — ship v0.0.3 | Ready to plan · release tag blocked on #45 |
+| 2 | Correctness — ship v0.0.3 | In progress |
 | 3 | Signal Quality | Blocked on Phase 2 |
 | 4 | Integration — ship v0.1.0 | Blocked on Phase 3 |
 
@@ -44,11 +45,15 @@ on sand.
 
 ## Blockers
 
-**#45 — `release.yml` cannot be scheduled either.** All three release jobs target `[orangepi]`, which
-under `allows_public_repositories: false` cannot run on a public repo. v0.0.2 shipped only because the
-setting had drifted to `true` before July enforcement. **v0.0.3 cannot be tagged until this is
-decided.** Phase 2 development is unaffected. Notably, this release uses no org secrets — only
-`GITHUB_TOKEN` — which is what makes option B (extend the exception) defensible.
+**None.** #45 is resolved — see below.
+
+## Resolved
+
+**#45 — release pipeline (2026-08-21, option B).** `release.yml`'s three jobs moved from `[orangepi]`
+to `ubuntu-latest`, and now emit a signed SLSA build-provenance attestation. The pipeline uses no org
+secrets, only `GITHUB_TOKEN`, and is tag-triggered only — a fork cannot fire it. Recorded in the root
+decisions log. Side benefit: on an x86_64 host the two x86_64 Linux binaries are now natively
+executable, so the release smoke test actually runs them rather than checking for presence.
 
 ## Known unverified
 `arc-runner-unityinflow` is believed to match zero registered runners and the org runner group is
