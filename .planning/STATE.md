@@ -6,7 +6,7 @@ See: `.planning/PROJECT.md`
 **Milestone:** Production Readiness — v0.0.3 + v0.1.0 (opened 2026-08-21)
 
 ## Current Phase
-**Phase 1 — Restore the Gate** · status: **complete, pending PR merge**
+**Phase 2 — Correctness (v0.0.3)** · status: in progress, 4 of 8 tasks merged to `main`
 
 CI is green again. PR #44 (`chore/milestone-production-readiness`) runs on a GitHub-hosted runner
 and completed every step — fmt, clippy, test, build, smoke — picked up in 29 seconds against the
@@ -19,8 +19,8 @@ branch, not on `main`.
 ### Phase status
 | Phase | Goal | Status |
 |---|---|---|
-| 1 | Restore the Gate | ✅ Complete (PR #44) |
-| 2 | Correctness — ship v0.0.3 | In progress |
+| 1 | Restore the Gate | ✅ Merged (PR #44) |
+| 2 | Correctness — ship v0.0.3 | 4 of 8 merged (PR #51) |
 | 3 | Signal Quality | Blocked on Phase 2 |
 | 4 | Integration — ship v0.1.0 | Blocked on Phase 3 |
 
@@ -62,6 +62,10 @@ log; an independent reviewer's `gh api orgs/UnityInFlow/actions/runner-groups` r
 org-admin rights. The Phase 1 design is correct either way, but someone with org admin should confirm.
 
 ## Session Notes
+- 2026-08-21: External review round on #44/#46. Four real defects found and fixed, one conclusion
+  corrected (the "43% FP increase" was mostly correct new detection on attack fixtures). Actions
+  SHA-pinned. #44 and #51 merged to `main`. #46 was auto-closed by GitHub when its base branch was
+  deleted on merge — superseded by #51, no work lost.
 - 2026-08-21: Phase 1 complete. CI restored via the D-02 split; run 32463308109 green on PR #44.
   Release blocker #45 discovered and filed during phase planning.
 - 2026-08-21: Deep-dive audit (`docs/AUDIT-2026-08.md`) + independent verification pass. 6 critical
