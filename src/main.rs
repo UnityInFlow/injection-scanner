@@ -84,12 +84,26 @@ fn scan_file(path: &str, content: &str, scanner: &Scanner) -> ScanReport {
     scanner.scan(path, content, &suppressions)
 }
 
-fn walkdir(dir: &PathBuf) -> Result<Vec<PathBuf>> {
+/// Collect scannable files under `dir`, isolating per-directory failures.
+///
+/// An unreadable subdirectory is skipped and counted, not propagated: a single
+/// permission-denied directory previously aborted the whole walk, which is the
+/// same defect as the per-file case in issue #14 one level up. Failure to read
+/// the directory the user actually named is still a hard error — that one is
+/// reported by the caller.
+fn walkdir(dir: &PathBuf, skipped: &mut Vec<(PathBuf, String)>) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
-    for entry in
-        fs::read_dir(dir).with_context(|| format!("Failed to read directory {}", dir.display()))?
-    {
-        let entry = entry?;
+    let entries =
+        fs::read_dir(dir).with_context(|| format!("Failed to read directory {}", dir.display()))?;
+
+    for entry in entries {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(e) => {
+                skipped.push((dir.clone(), describe_read_error(&e)));
+                continue;
+            }
+        };
         let path = entry.path();
         if path.is_file() {
             let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
@@ -97,10 +111,20 @@ fn walkdir(dir: &PathBuf) -> Result<Vec<PathBuf>> {
                 files.push(path);
             }
         } else if path.is_dir() {
-            files.extend(walkdir(&path)?);
+            match walkdir(&path, skipped) {
+                Ok(nested) => files.extend(nested),
+                Err(e) => skipped.push((path, root_cause(&e))),
+            }
         }
     }
     Ok(files)
+}
+
+/// Innermost message of an `anyhow` chain, for a one-line skip warning.
+fn root_cause(e: &anyhow::Error) -> String {
+    e.chain()
+        .last()
+        .map_or_else(|| e.to_string(), |c| c.to_string())
 }
 
 fn main() -> Result<()> {
@@ -118,7 +142,26 @@ fn main() -> Result<()> {
             // Compile the pattern set ONCE for the whole run. Doing this per file
             // is what broke the <200ms budget: compilation dominates, so cost
             // scaled with file count rather than content (issue #13).
-            let scanner = Scanner::new(&categories).context("Failed to compile patterns")?;
+            // Embedded patterns are compile-time constants covered by a CI test,
+            // so a failure there is a bug here and should stop the run. External
+            // --patterns directories are an untrusted input surface: one malformed
+            // YAML file must not deny service to every scan. Dropped patterns are
+            // reported loudly so coverage is never lost silently.
+            let scanner = if patterns.is_some() {
+                let (scanner, errors) = Scanner::new_lenient(&categories);
+                for e in &errors {
+                    eprintln!("warning: pattern skipped — {e}");
+                }
+                if !errors.is_empty() {
+                    eprintln!(
+                        "warning: {} pattern(s) failed to compile and are NOT being applied",
+                        errors.len()
+                    );
+                }
+                scanner
+            } else {
+                Scanner::new(&categories).context("Failed to compile embedded patterns")?
+            };
 
             let mut reports = Vec::new();
             let mut skipped: usize = 0;
@@ -136,6 +179,7 @@ fn main() -> Result<()> {
                         .with_context(|| format!("Failed to read {}", target.display()))?;
                     reports.push(scan_file(&path, &content, &scanner));
                 } else if target.is_dir() {
+                    let mut skipped_dirs: Vec<(PathBuf, String)> = Vec::new();
                     // Per-file error isolation. Previously a single unreadable or
                     // non-UTF-8 file propagated with `?` and killed the entire
                     // walk, which in CI reads as a scanner crash rather than a
@@ -147,7 +191,12 @@ fn main() -> Result<()> {
                     // `JSON.parse(output) as Array<...>`. A JSON envelope carrying
                     // `skipped` is deferred to v0.1.0 as a coordinated breaking
                     // change (audit L-02).
-                    for entry in walkdir(&target)? {
+                    let walked = walkdir(&target, &mut skipped_dirs)?;
+                    for (dir, reason) in &skipped_dirs {
+                        skipped += 1;
+                        eprintln!("warning: skipped directory {} — {}", dir.display(), reason);
+                    }
+                    for entry in walked {
                         match fs::read_to_string(&entry) {
                             Ok(content) => reports.push(scan_file(
                                 &entry.to_string_lossy(),
