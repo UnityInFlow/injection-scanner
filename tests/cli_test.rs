@@ -277,3 +277,106 @@ fn check_allowlisted_file_respects_suppressions() {
         matches
     );
 }
+
+// ── FIX-06 (issue #42) ────────────────────────────────────────────────────────
+// `--format` matched only "json" and routed everything else to format_text. So
+// `--format sarif` returned human-readable text with exit 1, and `--format JSON`
+// silently lost machine-readable output. Both failed as malformed input to the
+// *consumer* rather than as an error from the scanner.
+
+#[test]
+fn unknown_format_is_rejected_not_silently_treated_as_text() {
+    let output = Command::new(binary_path())
+        .args([
+            "check",
+            &fixture_path("injected-skill.md"),
+            "--format",
+            "bogus",
+        ])
+        .output()
+        .expect("Failed to execute binary");
+
+    assert!(
+        !output.status.success(),
+        "an unknown --format value must be rejected, got exit {:?}",
+        output.status.code()
+    );
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        !stdout.contains("CRITICAL"),
+        "a rejected --format must not emit a report; got: {stdout}"
+    );
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("text") && stderr.contains("json"),
+        "the error should list the valid values; got: {stderr}"
+    );
+}
+
+#[test]
+fn sarif_format_errors_until_it_is_implemented() {
+    // SARIF is scheduled for Phase 4 (#5). Until then it must fail loudly rather
+    // than hand text to a CI job that asked for SARIF and will try to parse it.
+    let output = Command::new(binary_path())
+        .args([
+            "check",
+            &fixture_path("injected-skill.md"),
+            "--format",
+            "sarif",
+        ])
+        .output()
+        .expect("Failed to execute binary");
+
+    assert!(
+        !output.status.success(),
+        "--format sarif must error while unimplemented, got exit {:?}",
+        output.status.code()
+    );
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        !stdout.contains("finding(s)"),
+        "--format sarif must not fall through to text output; got: {stdout}"
+    );
+}
+
+#[test]
+fn format_value_is_case_insensitive() {
+    // Capitalising the value should do what the caller meant, not silently
+    // downgrade them to text.
+    for value in ["JSON", "Json", "json"] {
+        let output = Command::new(binary_path())
+            .args([
+                "check",
+                &fixture_path("injected-skill.md"),
+                "--format",
+                value,
+            ])
+            .output()
+            .expect("Failed to execute binary");
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            stdout.trim_start().starts_with('['),
+            "--format {value} should produce JSON; got: {stdout}"
+        );
+        serde_json::from_str::<serde_json::Value>(&stdout)
+            .unwrap_or_else(|e| panic!("--format {value} produced invalid JSON: {e}"));
+    }
+}
+
+#[test]
+fn text_remains_the_default_format() {
+    let output = Command::new(binary_path())
+        .args(["check", &fixture_path("injected-skill.md")])
+        .output()
+        .expect("Failed to execute binary");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("finding(s)"),
+        "default output should be text; got: {stdout}"
+    );
+}
