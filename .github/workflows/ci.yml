@@ -1,23 +1,87 @@
 name: CI
 
+# ── RUNNER POLICY — READ BEFORE EDITING ───────────────────────────────────────
+# This job runs on a GITHUB-HOSTED runner. That is deliberate, and it is the one
+# sanctioned exception to the org-wide "never use ubuntu-latest" rule.
+#
+# This repo is PUBLIC, and the UnityInFlow org runner group enforces
+# `allows_public_repositories: false` — so NO self-hosted job can be scheduled
+# here at all. On top of that, `arc-runner-unityinflow` currently matches zero
+# registered runners. A previous version of this file matrixed over both labels;
+# the result was two consecutive runs cancelled after a 24-hour queue timeout on
+# 2026-06-24, leaving the repo with no test gate while it shipped v0.0.2.
+#
+# Do NOT "fix" this back to a self-hosted label. The job will queue until it is
+# cancelled. See the August 2026 row in the root CLAUDE.md decisions log, and the
+# identical D-02 split already in use by spec-ci-plugin.
+#
+# The trade this makes: no secret may ever be referenced by this workflow. It is
+# reachable from fork pull requests, so it stays read-only and secretless. All
+# secret-bearing and release work lives in release.yml, on self-hosted runners,
+# behind a tag push that a fork cannot fire.
+# ──────────────────────────────────────────────────────────────────────────────
+
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+
+# Read-only. Never add write scopes or secrets to this workflow.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
 
 jobs:
-  build-and-test:
-    strategy:
-      matrix:
-        runner: [arc-runner-unityinflow, orangepi]
-    runs-on: ${{ matrix.runner }}
+  test:
+    name: fmt · clippy · test · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
-      - run: cargo fmt --check
-      - run: cargo clippy -- -D warnings
-      - run: cargo build
-      - run: cargo test
+
+      - name: Cache cargo registry and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      # --locked so a stale or hand-edited Cargo.lock fails here rather than
+      # silently resolving to different dependency versions than the release.
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check
+
+      - name: cargo clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: cargo test
+        run: cargo test --locked
+
+      - name: cargo build --release
+        run: cargo build --release --locked
+
+      # Smoke test: the binary must actually run and report its version. Catches
+      # the class of breakage where everything compiles but the CLI panics on start.
+      - name: Binary smoke test
+        run: |
+          ./target/release/injection-scanner --version
+          ./target/release/injection-scanner check tests/fixtures/clean-skill.md

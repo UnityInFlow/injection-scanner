@@ -48,10 +48,9 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   test:
     name: Test gate (test + clippy + fmt)
-    # Default org X64 fleet. The Hetzner X64 fleet has been intermittently offline
-    # across Phases 1-2; because zigbuild is host-arch-independent every job here
-    # can also run on the ARM64 orangepi runner -- to flip, change `runs-on` to
-    # [orangepi] (RESEARCH Pitfall 4).
+    # orangepi is the guaranteed release path (OPS-01 D-01). Do NOT target
+    # arc-runner-unityinflow -- it matches zero registered runners and the job
+    # will queue until cancelled.
     runs-on: [orangepi]
     steps:
       - name: Checkout
@@ -75,9 +74,8 @@ jobs:
   # JOB 2: build-binaries
   # ONE self-hosted Linux runner cross-compiles ALL 6 targets via cargo-zigbuild.
   #
-  # Runner: default [arc-runner-unityinflow]. Because zigbuild is host-arch-
-  # independent the whole matrix can also run on the ARM64 orangepi runner --
-  # to flip, change `runs-on` below to [orangepi] (RESEARCH Pitfall 4).
+  # Runner: [orangepi]. zigbuild is host-arch-independent, so one Linux host
+  # cross-compiles every target. Do NOT target arc-runner-unityinflow.
   #
   # Assets are RAW binaries named by target-triple (`injection-scanner-<target>`),
   # NOT tarballs -- the spec-ci-plugin Action curls + chmods + executes them
@@ -91,7 +89,7 @@ jobs:
   build-binaries:
     name: Build ${{ matrix.target }}
     needs: test
-    runs-on: [orangepi]   # flip to [orangepi] if Hetzner X64 fleet is offline (zigbuild is host-arch-independent)
+    runs-on: [orangepi]
     # A darwin SDK/sysroot failure must NOT fail the release (A4 fallback, D-01b).
     continue-on-error: ${{ matrix.experimental }}
     strategy:
