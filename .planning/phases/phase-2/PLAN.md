@@ -18,7 +18,9 @@ Every claim already in the README becomes true. No new features.
       *Result: `--format sarif` errors with `[possible values: text, json]` instead of printing text;
       `--format JSON` produces JSON instead of silently degrading. SARIF deliberately absent from the
       enum until #5 implements a writer.*
-- [ ] **T3 — FIX-03 (#14).** Per-file error isolation; report skipped files rather than aborting.
+- [x] **T3 — FIX-03 (#14).** Per-file error isolation in the directory walk; skips reported on stderr
+      with a human-readable reason, plus a summary line. An explicitly named unreadable file still
+      errors — skipping is for *walks*, not for a file the user asked for by name.
 - [ ] **T4 — FIX-04 (#15).** `ignore` / `ignore-next-line` / `ignore-file`; relax the `PI\d+` ID regex; fix the README.
 - [ ] **T5 — FIX-05 (#16).** `find_iter` with a per-line cap.
 - [ ] **T6 — SCAN-08 (#28).** Duplicate-ID detection, `deny_unknown_fields`, `--strict-patterns`.
@@ -29,7 +31,7 @@ Every claim already in the README becomes true. No new features.
 
 - `Ignore all previous instructions` is detected ✅
 - 500-file scan completes under 200ms ✅ (17ms)
-- A binary file in the tree does not abort the run
+- A binary file in the tree does not abort the run ✅
 - `--format bogus` exits non-zero with a usage error ✅
 - Both README suppression forms work as documented
 
@@ -47,6 +49,15 @@ the "silent detection loss" half of M-01 ahead of T6.
 **The free `scan_content` function was removed rather than kept as a convenience wrapper.** Keeping
 it would have preserved a trap: any caller using it in a loop reintroduces the per-file compilation
 bug. Nine test call sites were migrated instead.
+
+**JSON envelope deferred — downstream contract preserved (audit L-02).** FIX-03 wanted to surface
+skipped files in the report. The obvious shape is an envelope: `{"reports": [...], "skipped": [...]}`.
+That would have **broken `spec-ci-plugin` immediately** — it does
+`JSON.parse(output) as Array<...>` and reads `reports[0]`. The top-level array is therefore
+preserved and skips go to stderr. A JSON envelope is deferred to v0.1.0, where it can ship as a
+documented breaking change coordinated with tool 04. Worth noting this was caught by writing the
+test first: the test asserted an envelope, and checking the consumer before implementing is what
+revealed the trap.
 
 **Exit-code collision discovered (affects Phase 4 / CLI-06, issue #25).** Clap emits **exit 2** for a
 usage error, which is now what `--format sarif` returns. CLI-06 plans to use **exit 2 for
