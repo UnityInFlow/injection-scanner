@@ -16,7 +16,12 @@ patterns:
     tags: [injection]
   - id: PI012
     name: hidden-html-instruction
-    pattern: "<!--\\s*(HIDDEN|SECRET|INJECT)"
+    # Word boundaries are load-bearing. Without them, the case-insensitive
+    # "INJECT" matched the "inject" inside this tool's OWN suppression syntax --
+    # `<!-- injection-scanner:ignore PI001 -->` raised a PI012 finding, so using
+    # the documented suppression feature made the scanner noisier. \b after
+    # INJECT means "injection" no longer matches while "INJECT:" still does.
+    pattern: "<!--\\s*(\\bHIDDEN\\b|\\bSECRET\\b|\\bINJECT\\b)"
     description: "Hidden instruction in HTML comment"
     remediation: "Remove hidden instructions from HTML comments."
     tags: [injection, html]
