@@ -30,7 +30,22 @@ Every claim already in the README becomes true. No new features.
 - [x] **T6 — SCAN-08 (#28).** Duplicate-ID detection (first claim wins, second reported),
       `#[serde(deny_unknown_fields)]` so a misspelled key is rejected rather than silently defaulted,
       and `--strict-patterns` to turn external-pattern warnings into failure.
-- [ ] **T7 — INT-01 (#18, #43).** `spec-ci-plugin` consumer fixes + release-time asset-contract smoke test.
+- [~] **T7 — INT-01 (#18, #43, #56).** Consumer fixes done, asset-contract smoke test still open.
+      `spec-ci-plugin` PR #9 (`fix/injection-scanner-consumer`, CI green, 41 tests) fixes all four:
+      SHA256 verification before `chmod`/exec with a mismatch returning `fail` rather than `warn`;
+      cache keyed by version *and* target triple; `DEFAULT_SCANNER_VERSION` as the single source of
+      truth with tests pinning `action.yml` and the README to it, and anything below `v0.0.2` refused
+      with the reason instead of 404ing; `--no-suppress` passed by default behind a new
+      `allow-suppressions` input (#56). Flag support is probed from the binary (`check --help`), not
+      inferred from the version string — so this did **not** need to wait on the v0.0.3 tag, and a
+      repo pinned to an older release degrades with a visible note instead of dying on an
+      unrecognised argument. Verified against the real v0.0.2 release *and* a local build of #55:
+      the `ignore-file` payload from #56 fails the gate by default and passes only under
+      `allow-suppressions: true`. Downloads moved from shell `curl` to `fetch`, removing an Action
+      input interpolated into a shell command.
+      *Still open: **#18**, the release-time musl asset-contract smoke test (this repo's side).*
+      *Follow-up: bump `DEFAULT_SCANNER_VERSION` to v0.0.3 once #55 is merged and tagged — that is
+      when `--no-suppress` starts applying by default.*
 - [ ] **T8 — PERF-01 (#29).** Criterion benchmark so the 17ms result is defended, not just observed.
 
 ## Success criteria

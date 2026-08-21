@@ -33,7 +33,21 @@ is usually the document author. #55 does not try to remove that (impossible — 
 linter with inline suppression has it) but makes it **visible** (suppressed findings are
 reported and appear in JSON) and **refusable** (`--no-suppress`).
 
-### Issue #43 — `spec-ci-plugin` consumer defects (**the only live user-facing bugs**)
+### Issue #43 + #56 — `spec-ci-plugin` consumer defects — **fixed, PR open**
+
+**spec-ci-plugin PR #9** (`fix/injection-scanner-consumer`) fixes all four. CI green, 41 tests
+(19 new, hermetic — both `fetch` and the binary are injectable). Not merged yet.
+
+Verified against the real v0.0.2 release *and* a local build of #55: the `ignore-file` payload
+from #56 fails the gate by default and passes only under `allow-suppressions: true`.
+
+The one design call worth knowing: `--no-suppress` support is probed from the binary
+(`check --help`) rather than inferred from the version string. That decoupled the work from the
+v0.0.3 tag — nothing here waits on #55 — and a repo pinned to an older release degrades with a
+visible note in the PR comment instead of dying on an unrecognised argument. `DEFAULT_SCANNER_VERSION`
+stays `v0.0.2` until v0.0.3 exists; bump it then.
+
+Original defect list, for reference:
 In the sibling repo `../04-spec-ci-plugin`, file `src/injection-scanner.ts`. Three defects,
 all verified:
 1. **No integrity check** — `curl` → `chmodSync(0o755)` → `execFileSync`. `SHA256SUMS.txt`
@@ -62,14 +76,20 @@ An external review checked each against the inputs actually used and graded **al
 
 ## Next steps, in order
 
-1. **#43 + #56** — the consumer fixes in `../04-spec-ci-plugin`. Highest value: the only
-   defects affecting people today.
-2. **External review of #55 + #43 together** — they form one trust story (who controls
+1. ~~**#43 + #56**~~ — done, `spec-ci-plugin` PR #9, awaiting merge.
+2. **External review of #55 + PR #9 together** — they form one trust story (who controls
    suppression; what the Action trusts). Prompt scoped to: can `--no-suppress` be bypassed;
    does the additive `suppressed` JSON field break tool 04; is "visible but permitted" the
    right default or is `--fail-on-suppressed` needed; cost of recording suppressed matches.
-3. **Merge #55**, then **#29**, then tag **v0.0.3**.
-4. Phase 3 (signal quality) — see `.planning/ROADMAP.md`.
+   Add for PR #9: is the `check --help` capability probe defeatable by a tampered binary
+   (it runs *after* checksum verification, so it should not be — confirm); is `fail` the right
+   status for a checksum mismatch while a network error stays `warn`.
+3. **Merge PR #9** and **#55**, then **#29**, then tag **v0.0.3**.
+4. **Bump `DEFAULT_SCANNER_VERSION` to v0.0.3** in `04-spec-ci-plugin` once the tag exists —
+   that is when `--no-suppress` starts applying by default. Until then the Action reports the gap
+   rather than closing it.
+5. **#18** — the release-time musl asset-contract smoke test, the other half of T7.
+6. Phase 3 (signal quality) — see `.planning/ROADMAP.md`.
 
 ---
 

@@ -23,7 +23,8 @@ No new features. Every claim already in the README becomes true.
 - [ ] **#15** Suppression: `ignore` / `ignore-next-line` / `ignore-file`; fix the README `P0`
 - [ ] **#16** `find_iter` with a per-line cap — report every match, not just the first `P2`
 - [ ] **#42** `--format` as a clap `ValueEnum` — `--format sarif` currently returns text, not an error `P0`
-- [ ] **#43** Fix the `spec-ci-plugin` consumer — unverified download, unversioned cache, version default mismatch `P0`
+- [x] **#43** Fix the `spec-ci-plugin` consumer — unverified download, unversioned cache, version default mismatch `P0`
+      *(spec-ci-plugin PR #9, CI green, awaiting merge — also closes #56)*
 - [ ] **#18** Release smoke test enforcing the `spec-ci-plugin` musl asset contract `P1`
 - [ ] **#19** Replace `unwrap()` in `allowlist.rs`; deny `unwrap_used` in `src/` `P2` *good first issue*
 

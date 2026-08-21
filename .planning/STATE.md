@@ -62,6 +62,12 @@ log; an independent reviewer's `gh api orgs/UnityInFlow/actions/runner-groups` r
 org-admin rights. The Phase 1 design is correct either way, but someone with org admin should confirm.
 
 ## Session Notes
+- 2026-08-21: Phase 2 T7 / INT-01 — `spec-ci-plugin` consumer fixes (#43) and `--no-suppress` on the
+  Action (#56) landed as spec-ci-plugin PR #9, CI green, awaiting merge. Four defects: unverified
+  download, unversioned `/tmp` cache, three disagreeing version defaults, and PR-controlled
+  suppression. Notable: `--no-suppress` support is probed via `check --help` rather than inferred
+  from the version string, which decoupled this work from the v0.0.3 tag entirely. Remaining in T7:
+  #18, the release-time musl asset-contract smoke test on this side.
 - 2026-08-21: External review round on #44/#46. Four real defects found and fixed, one conclusion
   corrected (the "43% FP increase" was mostly correct new detection on attack fixtures). Actions
   SHA-pinned. #44 and #51 merged to `main`. #46 was auto-closed by GitHub when its base branch was
