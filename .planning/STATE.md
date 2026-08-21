@@ -62,6 +62,13 @@ log; an independent reviewer's `gh api orgs/UnityInFlow/actions/runner-groups` r
 org-admin rights. The Phase 1 design is correct either way, but someone with org admin should confirm.
 
 ## Session Notes
+- 2026-08-21: Phase 2 T8 / PERF-01 (#29) — PR #58, CI green. Worth carrying forward: the wall-clock
+  bound the handoff suggested ("500 files under ~1s") would have **passed** on the regression it was
+  meant to catch, since the regressed build was 806ms. The guard is a ratio instead — 500-file scan
+  versus one pattern-set compile — which is machine-independent and was verified by injecting the
+  regression (15.2s against a 1.41s budget). Criterion benches cover all four shapes from #29. The
+  CI end-to-end release-binary gate measures 13ms on the hosted runner against a 200ms budget.
+  Phase 2 code work is now complete; only merges and the v0.0.3 tag remain.
 - 2026-08-21: Phase 2 T7 / INT-01 — `spec-ci-plugin` consumer fixes (#43) and `--no-suppress` on the
   Action (#56) landed as spec-ci-plugin PR #9, CI green, awaiting merge. Four defects: unverified
   download, unversioned `/tmp` cache, three disagreeing version defaults, and PR-controlled

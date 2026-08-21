@@ -56,7 +56,9 @@ documentation.
 - [ ] **#5** SARIF 2.1.0 output — CLI-04 `P1`
 - [ ] **#8** `install-hook` + `.pre-commit-hooks.yaml` — HOOK-01 `P1`
 - [ ] **#4** Aho-Corasick prefilter — land *after* #13 `P1`
-- [ ] **#29** Measure what the docs assert: coverage gate, criterion benchmarks, false-positive corpus, fuzzing `P1`
+- [~] **#29** Measure what the docs assert: coverage gate, criterion benchmarks, false-positive corpus, fuzzing `P1`
+      *Benchmarks + perf regression guard done (PR #58). Coverage gate, FP corpus (QUAL-03, Phase 3)
+      and fuzzing still open.*
 
 ### Patterns
 - [ ] **#27** Fill the reserved ID gaps — `PI008-009`, `PI015-019`, `PI026-029`, `PI039`, `PI043-049` (~18 patterns) `P1` *good first issue*

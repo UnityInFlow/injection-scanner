@@ -46,7 +46,21 @@ Every claim already in the README becomes true. No new features.
       *Still open: **#18**, the release-time musl asset-contract smoke test (this repo's side).*
       *Follow-up: bump `DEFAULT_SCANNER_VERSION` to v0.0.3 once #55 is merged and tagged — that is
       when `--no-suppress` starts applying by default.*
-- [ ] **T8 — PERF-01 (#29).** Criterion benchmark so the 17ms result is defended, not just observed.
+- [x] **T8 — PERF-01 (#29).** PR #58, CI green. The guard is a **ratio**, not a wall-clock bound:
+      an absolute threshold could not work here, because the regressed build was 806ms — inside the
+      "500 files under 1s" bound the handoff proposed, so that test would have passed on the very
+      regression it existed to catch. `tests/perf_regression_test.rs` instead compares a 500-file
+      scan against one pattern-set compile (currently ~1.8x, trips at 50x); a build that compiles
+      per file cannot come in under 500x by construction, and both sides move with machine speed so
+      it holds on any hardware. Verified by injecting the regression: 15.2s against a 1.41s budget.
+      A second test asserts the same content costs the same as one file or as a hundred.
+      `benches/scan.rs` adds criterion coverage of all four shapes #29 asks for: compile 2.58ms,
+      one ~20k-line file 12.5ms, 500 small files 4.94ms, pathological single line 0.98ms.
+      CI gains an end-to-end release-binary gate — 500 files on disk, best of three, 200ms budget —
+      which covers what the ratio test structurally cannot see (the walk, file I/O). **Measured
+      13ms on the hosted runner**, ~15x headroom.
+      *Scope: item 2 of #29 only. Coverage gating, the FP corpus (QUAL-03, Phase 3) and fuzzing
+      remain open on that issue.*
 
 ## Success criteria
 

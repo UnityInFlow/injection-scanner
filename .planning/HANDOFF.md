@@ -8,7 +8,7 @@ Everything needed to continue without the prior conversation.
 ## Where we are
 
 **Milestone:** Production Readiness — v0.0.3 + v0.1.0 (`.planning/ROADMAP.md`, 4 phases)
-**Phase 1:** ✅ merged · **Phase 2:** 6 of 8 tasks merged · **Phases 3-4:** not started
+**Phase 1:** ✅ merged · **Phase 2:** 6 of 8 merged, T7 and T8 done in open PRs · **Phases 3-4:** not started
 **`main` is green.** 75 tests. CI runs on every PR and takes ~2 minutes.
 **Nothing is released.** No v0.0.3 tag. No user has any of this yet.
 
@@ -62,10 +62,18 @@ all verified:
 Also **#56**: that Action should pass `--no-suppress`, since it scans contributor-controlled
 pull requests. Do #43 and #56 together in one pass against tool 04.
 
-### Issue #29 — perf regression guard
-The 47× win (806ms → 17ms on 500 files) has **no test defending it**. If someone
-reintroduces per-file pattern compilation, nothing catches it. A loose wall-clock bound
-(500 files under ~1s) is cheap; criterion benchmarks are the fuller answer.
+### Issue #29 — perf regression guard — **fixed, PR #58 open**
+
+CI green. **Correction to the earlier plan recorded here:** the "500 files under ~1s"
+wall-clock bound suggested in this file would have *passed* on the regression it was
+meant to catch — the regressed build was 806ms. The guard shipped is a ratio instead
+(500-file scan versus one pattern-set compile: ~1.8× now, trips at 50×, and a per-file
+compile cannot come in under 500×). Verified by injecting the regression: 15.2s against
+a 1.41s budget. Criterion benches cover all four shapes #29 asks for, and a CI
+end-to-end release-binary gate measures **13ms** against the 200ms PERF-01 budget.
+
+Scope note: this closed item 2 of #29 only. Coverage gating, the false-positive corpus
+(that is QUAL-03, Phase 3) and fuzzing remain open on the issue.
 
 ### Dependabot #47–#50 — Action major-version bumps
 `checkout` v4→v7, `cache` v4→v6, `upload-artifact` v5→v7, `attest-build-provenance` v2→v4.
@@ -84,12 +92,15 @@ An external review checked each against the inputs actually used and graded **al
    Add for PR #9: is the `check --help` capability probe defeatable by a tampered binary
    (it runs *after* checksum verification, so it should not be — confirm); is `fail` the right
    status for a checksum mismatch while a network error stays `warn`.
-3. **Merge PR #9** and **#55**, then **#29**, then tag **v0.0.3**.
-4. **Bump `DEFAULT_SCANNER_VERSION` to v0.0.3** in `04-spec-ci-plugin` once the tag exists —
+3. **Merge the queue**: `spec-ci-plugin` PR #9, injection-scanner #55 and #58, and
+   Dependabot #47–#50 (all four already graded SAFE; #49 and #48 also clear the Node 20
+   deprecation warning now showing on every CI run).
+4. **Tag v0.0.3.** Phase 2 code work is complete — nothing but merges stands in the way.
+5. **Bump `DEFAULT_SCANNER_VERSION` to v0.0.3** in `04-spec-ci-plugin` once the tag exists —
    that is when `--no-suppress` starts applying by default. Until then the Action reports the gap
    rather than closing it.
-5. **#18** — the release-time musl asset-contract smoke test, the other half of T7.
-6. Phase 3 (signal quality) — see `.planning/ROADMAP.md`.
+6. **#18** — the release-time musl asset-contract smoke test, the other half of T7.
+7. Phase 3 (signal quality) — see `.planning/ROADMAP.md`.
 
 ---
 
