@@ -3,10 +3,33 @@ name: Release
 # Trigger: push a v* tag (e.g., git tag v0.0.2 && git push origin v0.0.2).
 #
 # This pipeline mirrors the proven Phase-3 mcp-hub cargo-zigbuild template: ONE
-# self-hosted Linux host cross-compiles ALL targets via cargo-zigbuild (zig is
+# Linux host cross-compiles ALL targets via cargo-zigbuild (zig is
 # host-arch-independent, so no per-arch runner, no Docker/cross, no macOS runner).
-# Every job runs on org self-hosted runners only -- ZERO GitHub-hosted runners
-# (no ubuntu / macos GitHub-hosted images anywhere) (CI-01).
+#
+# ── RUNNER POLICY (August 2026, issue #45, option B) ──────────────────────────
+# These jobs run on GITHUB-HOSTED runners. Deliberate, and a scoped extension of
+# the D-02 exception that ci.yml already uses. Two reasons:
+#
+#   1. This release uses NO org secrets -- only the built-in GITHUB_TOKEN. No
+#      signing key, no Sonatype credentials, no npm token. The self-hosted policy
+#      exists to protect secrets that are simply not present in this pipeline.
+#   2. This repo is PUBLIC under `allows_public_repositories: false`, so a
+#      self-hosted job CANNOT BE SCHEDULED here at all. The previous
+#      `runs-on: [orangepi]` would have queued until cancelled -- v0.0.2 shipped
+#      only because that group setting had drifted to `true` before the July 2026
+#      enforcement. Under the current (correct) policy this pipeline was dead.
+#
+# Provenance note: an ephemeral hosted runner is arguably BETTER provenance for a
+# security tool than a persistent self-hosted box that carries state between jobs
+# -- /tmp demonstrably survives across jobs on those runners, which is exactly
+# what makes the spec-ci-plugin cache bug (issue #43) reachable. This job now also
+# emits a signed SLSA build-provenance attestation, which the self-hosted path did
+# not have.
+#
+# Safe because this workflow is tag-triggered only. A fork cannot push a tag to
+# this repo, so it can never fire -- which is what makes the elevated
+# `contents: write` / `id-token: write` permissions below acceptable.
+# ──────────────────────────────────────────────────────────────────────────────
 #
 # ── ASSET CONTRACT (load-bearing cross-repo coupling) ──────────────────────────
 # The spec-ci-plugin GitHub Action (04-spec-ci-plugin/src/injection-scanner.ts)
@@ -48,10 +71,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   test:
     name: Test gate (test + clippy + fmt)
-    # orangepi is the guaranteed release path (OPS-01 D-01). Do NOT target
-    # arc-runner-unityinflow -- it matches zero registered runners and the job
-    # will queue until cancelled.
-    runs-on: [orangepi]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -74,8 +94,10 @@ jobs:
   # JOB 2: build-binaries
   # ONE self-hosted Linux runner cross-compiles ALL 6 targets via cargo-zigbuild.
   #
-  # Runner: [orangepi]. zigbuild is host-arch-independent, so one Linux host
-  # cross-compiles every target. Do NOT target arc-runner-unityinflow.
+  # Runner: ubuntu-latest. zigbuild is host-arch-independent, so one Linux host
+  # cross-compiles every target. On an x86_64 host the two x86_64 Linux binaries
+  # are now natively executable, so the smoke test actually RUNS them -- stronger
+  # than the aarch64 host, where they could only be checked for presence.
   #
   # Assets are RAW binaries named by target-triple (`injection-scanner-<target>`),
   # NOT tarballs -- the spec-ci-plugin Action curls + chmods + executes them
@@ -89,7 +111,7 @@ jobs:
   build-binaries:
     name: Build ${{ matrix.target }}
     needs: test
-    runs-on: [orangepi]
+    runs-on: ubuntu-latest
     # A darwin SDK/sysroot failure must NOT fail the release (A4 fallback, D-01b).
     continue-on-error: ${{ matrix.experimental }}
     strategy:
@@ -126,10 +148,10 @@ jobs:
       - name: Install pinned zig + cargo-zigbuild
         run: |
           # Pinned versions (RESEARCH Pitfall 3): zig 0.14.1, cargo-zigbuild 0.23.0.
-          # Install zig from the official tarball matched to the HOST arch (the
-          # self-hosted runners have no pip3 -- orangepi is ARM64; a Hetzner X64
-          # runner would be x86_64). zig itself cross-compiles to all targets, so
-          # only the host arch matters here. Pin BOTH versions -- never `latest`.
+          # Install zig from the official tarball matched to the HOST arch. Kept
+          # arch-dynamic on purpose: it costs nothing and keeps the job portable
+          # if it ever moves back to an ARM64 host. zig itself cross-compiles to
+          # all targets, so only the host arch matters. Pin BOTH -- never `latest`.
           set -euo pipefail
           case "$(uname -m)" in
             aarch64|arm64) ZIG_ARCH=aarch64 ;;
@@ -171,8 +193,8 @@ jobs:
               ;;
             *)
               # A cross-compiled Linux binary can only be EXECUTED when its arch
-              # matches the runner's arch (runner varies: orangepi=aarch64;
-              # Hetzner X64=x86_64). Decide at runtime, never hardcode a triple.
+              # matches the runner's arch (ubuntu-latest = x86_64). Decide at
+              # runtime, never hardcode a triple.
               TARGET_ARCH="${TARGET%%-*}"            # x86_64 | aarch64
               HOST_ARCH="$(uname -m)"; [ "$HOST_ARCH" = "arm64" ] && HOST_ARCH=aarch64
               if [ "$TARGET_ARCH" = "$HOST_ARCH" ]; then
@@ -200,9 +222,11 @@ jobs:
   release:
     name: Create GitHub Release
     needs: [build-binaries]
-    runs-on: [orangepi]
+    runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write      # create the Release and upload assets
+      id-token: write      # sign the build-provenance attestation
+      attestations: write  # record it
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v5
@@ -257,6 +281,20 @@ jobs:
           echo "Generated SHA256SUMS.txt:"
           cat SHA256SUMS.txt
 
+      # Signed SLSA build-provenance for every published binary. Only possible
+      # because this job runs on a GitHub-hosted runner with OIDC (issue #45,
+      # option B) -- the previous self-hosted path could not produce this.
+      # Consumers verify with:
+      #   gh attestation verify injection-scanner-x86_64-unknown-linux-musl \
+      #     --repo UnityInFlow/injection-scanner
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            artifacts/injection-scanner-*-unknown-linux-musl
+            artifacts/injection-scanner-*-unknown-linux-gnu
+            artifacts/injection-scanner-*-apple-darwin
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
@@ -271,9 +309,16 @@ jobs:
           body: |
             ## injection-scanner release
 
-            Raw, target-triple-named binaries built entirely on UnityInFlow org
-            self-hosted Linux runners via `cargo zigbuild` (no GitHub-hosted
-            runners). Download the binary for your platform, `chmod +x`, run.
+            Raw, target-triple-named binaries cross-compiled from a single Linux
+            host via `cargo zigbuild`. Download the binary for your platform,
+            `chmod +x`, run.
+
+            Every binary carries a signed SLSA build-provenance attestation:
+
+            ```bash
+            gh attestation verify injection-scanner-x86_64-unknown-linux-musl \
+              --repo UnityInFlow/injection-scanner
+            ```
 
             > The crate and binary are both named **`injection-scanner`**.
 

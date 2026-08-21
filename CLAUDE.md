@@ -119,17 +119,27 @@ permissions:
   contents: read
 ```
 
-**Release / secret-bearing work — `release.yml`.** Self-hosted, on triggers a fork cannot fire:
+**Release — `release.yml`.** Also GitHub-hosted, as of issue #45 (August 2026). This pipeline uses
+**no org secrets** — only the built-in `GITHUB_TOKEN` — and is tag-triggered only, which a fork
+cannot fire. That is what makes its elevated permissions acceptable:
 
 ```yaml
 on:
   push:
     tags: ['v*']
-runs-on: [orangepi]       # guaranteed path (OPS-01 D-01); cargo-zigbuild cross-compiles all targets
+runs-on: ubuntu-latest
+permissions:
+  contents: write      # create the Release
+  id-token: write      # sign the SLSA build-provenance attestation
+  attestations: write
 ```
 
-Never target `arc-runner-unityinflow` until the Hetzner fleet is re-registered, and never put a
-self-hosted job behind a `pull_request` trigger on this repo.
+Every published binary carries a signed provenance attestation, verifiable with
+`gh attestation verify <asset> --repo UnityInFlow/injection-scanner`.
+
+Never target `arc-runner-unityinflow` — it matches zero registered runners. Never put a self-hosted
+job behind any fork-firable trigger on this repo. **The musl assets must stay raw, unextensioned and
+target-triple-named** — `spec-ci-plugin` downloads and executes them directly.
 
 ## Do Not
 
