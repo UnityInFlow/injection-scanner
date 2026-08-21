@@ -98,13 +98,17 @@ An external review checked each against the inputs actually used and graded **al
 ## Next steps, in order
 
 1. ~~**#43 + #56**~~ — done, `spec-ci-plugin` PR #9, awaiting merge.
-2. **External review of #55 + PR #9 together** — they form one trust story (who controls
-   suppression; what the Action trusts). Prompt scoped to: can `--no-suppress` be bypassed;
-   does the additive `suppressed` JSON field break tool 04; is "visible but permitted" the
-   right default or is `--fail-on-suppressed` needed; cost of recording suppressed matches.
-   Add for PR #9: is the `check --help` capability probe defeatable by a tampered binary
-   (it runs *after* checksum verification, so it should not be — confirm); is `fail` the right
-   status for a checksum mismatch while a network error stays `warn`.
+2. ~~**External review of #55 + PR #9**~~ — done. Prompt:
+   `scratchpad/opencode-suppression-trust-review-prompt.md`, report:
+   `…-review-report.md`. **The review found nothing and graded all four safe to merge**; an
+   adversarial re-check found four real holes, all reproduced and now fixed. See STATE.md for the
+   list. Two are worth remembering as classes, not incidents:
+   - **Every failure path in the consumer used to return `warn`, and the adversary controls the
+     input that triggers them.** An oversized report overflowed Node's 1MB `execFileSync` buffer and
+     the gate passed. "Unanswered scan" is now `fail`; only acquisition failure still warns.
+   - **A verified download stays verified for exactly one run** unless the cache is re-checked.
+   The reviewer read the code accurately and confirmed the PR descriptions rather than attacking
+   them. A zero-defect review across four PRs is a signal about the review.
 3. **Merge the queue**: `spec-ci-plugin` PR #9, injection-scanner #55, #58 and #59, and
    Dependabot #47–#50 (all four already graded SAFE; #49 and #48 also clear the Node 20
    deprecation warning now showing on every CI run).

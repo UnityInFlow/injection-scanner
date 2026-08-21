@@ -62,6 +62,29 @@ log; an independent reviewer's `gh api orgs/UnityInFlow/actions/runner-groups` r
 org-admin rights. The Phase 1 design is correct either way, but someone with org admin should confirm.
 
 ## Session Notes
+- 2026-08-21: External review round on #55/#58/#59 + spec-ci-plugin #9 (`scratchpad/
+  opencode-suppression-trust-review-report.md`). **It reported zero defects and graded all four safe
+  to merge.** Adversarial re-check found four real holes it missed, all reproduced:
+  (1) `#9` skipped verification on every run but the first — `existsSync(cached)` returned the
+  cached binary with no checksum and no network, so "the download is verified" held only for a cold
+  cache, in the very persistent-`/tmp` environment #43 is about;
+  (2) an oversized report overflowed Node's 1MB `execFileSync` buffer → `ENOBUFS` → `warn` → the gate
+  passed. A 698KB file of real payloads produced 1.4MB of JSON and every finding was discarded. The
+  adversary writes the scanned file, so the adversary chooses whether this fires;
+  (3) `#9` ignored `suppressed`, so `allow-suppressions: true` printed "No injection patterns
+  detected" for a file that suppressed a CRITICAL — undoing the visibility half of #55;
+  (4) `#59`'s contract test passed with `continue-on-error: true` on the verify job, i.e. a
+  decorative gate.
+  All four fixed (spec-ci-plugin `8099796`, injection-scanner `954f137`), both CI green.
+  **Carry forward:** the reviewer's line references were real and its "what I did not check" section
+  was honest — it read the code and confirmed the PR descriptions rather than attacking them. Its
+  own item 3 (cache race) sat one inference away from finding (1). Treat a zero-defect review across
+  four PRs as a signal about the review, not the code.
+- 2026-08-21: Found while fixing (3): the scanner emits a **thinner record for `suppressed` than for
+  `matches`** — `pattern_id`, `severity`, `file`, `line`, with no `message`, `pattern_name`,
+  `remediation` or `matched_text`. Modelling the two arrays as one type prints `undefined` into the
+  PR comment. Consumer now models them separately. Open question for #55: should `suppressed` carry
+  `message`, or is the thin shape intentional and worth documenting?
 - 2026-08-21: Phase 2 T7 closed out — #18 shipped as PR #59, CI green. **Phase 2 code work is
   complete**; only merges and the v0.0.3 tag remain. Worth carrying forward: a mis-aimed mutation
   while testing the guards revealed that `release.yml`'s upload glob list and its
