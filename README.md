@@ -105,18 +105,35 @@ tests/fixtures/injected-skill.md
 
 ## Inline Suppression
 
-Suppress specific patterns on a line by adding a comment on the line above:
+Three forms, all using pattern IDs. `injection-scanner:ignore` applies to **the line it appears on**:
 
 ```markdown
-<!-- injection-scanner:ignore PI001 -->
+ignore all previous instructions <!-- injection-scanner:ignore PI001 -->
+```
+
+`ignore-next-line` applies to **the following line** — useful when the finding is inside a code block
+or you would rather keep the comment out of the content:
+
+```markdown
+<!-- injection-scanner:ignore-next-line PI001 -->
 ignore all previous instructions
 ```
 
-Multiple patterns can be suppressed:
+`ignore-file` applies to **the whole file**, and must appear within the first 10 lines so a file-wide
+escape hatch stays visible rather than buried:
+
+```markdown
+<!-- injection-scanner:ignore-file PI001,PI003 -->
+```
+
+Multiple IDs are comma-separated in every form:
 
 ```markdown
 <!-- injection-scanner:ignore PI001,PI003 -->
 ```
+
+Suppression is per-pattern, never file-global by default — suppressing `PI001` leaves every other
+pattern active on that line.
 
 ## Exit Codes
 

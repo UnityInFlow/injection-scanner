@@ -21,8 +21,12 @@ Every claim already in the README becomes true. No new features.
 - [x] **T3 — FIX-03 (#14).** Per-file error isolation in the directory walk; skips reported on stderr
       with a human-readable reason, plus a summary line. An explicitly named unreadable file still
       errors — skipping is for *walks*, not for a file the user asked for by name.
-- [ ] **T4 — FIX-04 (#15).** `ignore` / `ignore-next-line` / `ignore-file`; relax the `PI\d+` ID regex; fix the README.
-- [ ] **T5 — FIX-05 (#16).** `find_iter` with a per-line cap.
+- [x] **T4 — FIX-04 (#15).** Three directives: `ignore` (same line), `ignore-next-line`, and
+      `ignore-file` (honoured only in the first 10 lines, so a file-wide escape hatch stays visible).
+      ID regex relaxed to `[A-Za-z][A-Za-z0-9_-]*` so community pattern packs can be suppressed at
+      all. README rewritten to match. Also closes **M-02 / #19** — the `unwrap()` became an `expect()`
+      with a test that guards it, and `src/` is now unwrap-free.
+- [x] **T5 — FIX-05 (#16).** `find_iter` with a cap of 10 matches per pattern per line.
 - [ ] **T6 — SCAN-08 (#28).** Duplicate-ID detection, `deny_unknown_fields`, `--strict-patterns`.
 - [ ] **T7 — INT-01 (#18, #43).** `spec-ci-plugin` consumer fixes + release-time asset-contract smoke test.
 - [ ] **T8 — PERF-01 (#29).** Criterion benchmark so the 17ms result is defended, not just observed.
@@ -33,7 +37,7 @@ Every claim already in the README becomes true. No new features.
 - 500-file scan completes under 200ms ✅ (17ms)
 - A binary file in the tree does not abort the run ✅
 - `--format bogus` exits non-zero with a usage error ✅
-- Both README suppression forms work as documented
+- Both README suppression forms work as documented ✅
 
 ## External review findings, addressed (2026-08-21)
 
