@@ -10,7 +10,14 @@ Static scanner for prompt injection attacks in skill files, CLAUDE.md, RAG docum
 
 ## Status
 
-Ready to build — `spec-linter` (Tool 01) and `ai-changelog` (Tool 02) are shipped.
+**v0.0.2 shipped** (2026-06-24) — 6 target-triple binaries, consumed by `spec-ci-plugin`.
+
+**Current milestone: Production Readiness (v0.0.3 + v0.1.0).** A 2026-08 audit
+(`docs/AUDIT-2026-08.md`, independently verified) found the tool does not do what its README claims.
+Live planning: `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`.
+Backlog beyond this milestone: `docs/DETECTION-BACKLOG.md`. Checklist: `TODO.md`.
+
+**Phase 1 is a hard gate** — CI has been dead since 2026-06-24. Nothing merges until it is green.
 
 ## Reference Documents
 
@@ -46,7 +53,14 @@ Read these before making architectural or scope decisions.
 - No secrets committed — all credentials via environment variables
 - No `console.log` or `println!` debug output left in committed code
 
-## Acceptance Criteria — v0.0.1
+## Acceptance Criteria
+
+> **These are the ORIGINAL v0.0.1 criteria, retained for history.** Three of them — SARIF output,
+> `install-hook`, and the <200ms budget — were never delivered, while `.planning/REQUIREMENTS.md`
+> assigned them to Phase 2. That contradiction is resolved in `.planning/REQUIREMENTS.md`; the live
+> requirement set for the current milestone lives there, not here.
+
+### v0.0.1 (historical)
 
 - [ ] 30+ patterns across 5 categories: role override, instruction injection, exfiltration, jailbreaks, encoding attacks
 - [ ] YAML pattern loader: load from `patterns/` directory
@@ -86,25 +100,36 @@ Superpowers skills (TDD, code review, debugging) activate automatically during e
 
 ## CI / Self-Hosted Runners
 
-Use UnityInFlow org-level self-hosted runners. Never use `ubuntu-latest`.
+> **Revised 2026-08-21 (Phase 1, this milestone).** The guidance below replaces the original
+> "never use ubuntu-latest / default to arc-runner-unityinflow" instruction, which produced two
+> 24-hour CI queue timeouts and left this repo with no test gate. See the August 2026 row in the
+> root CLAUDE.md decisions log.
+
+This repo is **public**, and the org runner group enforces `allows_public_repositories: false` —
+so **no self-hosted job can run here at all**. `arc-runner-unityinflow` additionally matches zero
+registered runners. Targeting either from a PR-triggered workflow means the job queues until it is
+cancelled.
+
+**Public / fork CI — `ci.yml`.** GitHub-hosted runner. Secretless, `permissions: contents: read`,
+no self-hosted label anywhere in the file. This is the sanctioned D-02 exception, not an oversight:
 
 ```yaml
-# Default (X64)
-runs-on: [arc-runner-unityinflow]
-
-# ARM64 cross-compilation
-runs-on: [orangepi]
-
-# Matrix for both architectures
-strategy:
-  matrix:
-    runner: [arc-runner-unityinflow, orangepi]
-runs-on: ${{ matrix.runner }}
+runs-on: ubuntu-latest    # deliberate — see decisions log. Do NOT change to a self-hosted label.
+permissions:
+  contents: read
 ```
 
-Available runners: `hetzner-runner-1/2/3` (X64), `orangepi-runner` (ARM64).
+**Release / secret-bearing work — `release.yml`.** Self-hosted, on triggers a fork cannot fire:
 
----
+```yaml
+on:
+  push:
+    tags: ['v*']
+runs-on: [orangepi]       # guaranteed path (OPS-01 D-01); cargo-zigbuild cross-compiles all targets
+```
+
+Never target `arc-runner-unityinflow` until the Hetzner fleet is re-registered, and never put a
+self-hosted job behind a `pull_request` trigger on this repo.
 
 ## Do Not
 
