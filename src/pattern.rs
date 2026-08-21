@@ -30,6 +30,7 @@ impl std::fmt::Display for Severity {
 /// The `severity` field is optional — when absent, the parent category's
 /// `default_severity` applies.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Pattern {
     pub id: String,
     pub name: String,
@@ -56,6 +57,7 @@ pub struct Pattern {
 ///
 /// Maps directly to a YAML pattern file (e.g., `role-override.yaml`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PatternCategory {
     pub category: String,
     pub default_severity: Severity,
@@ -131,5 +133,15 @@ pub enum PatternError {
         id: String,
         pattern: String,
         source: regex::Error,
+    },
+    #[error(
+        "Duplicate pattern id '{id}': defined in category '{first_category}' and again in \
+         '{second_category}'. Two patterns sharing an id produce contradictory findings for the \
+         same id, which breaks any consumer that keys on pattern_id."
+    )]
+    DuplicateId {
+        id: String,
+        first_category: String,
+        second_category: String,
     },
 }

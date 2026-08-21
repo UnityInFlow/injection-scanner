@@ -61,6 +61,9 @@ enum Commands {
         /// Additional patterns directory
         #[arg(long)]
         patterns: Option<PathBuf>,
+        /// Fail instead of warning when a pattern is invalid or has a duplicate id
+        #[arg(long)]
+        strict_patterns: bool,
     },
 }
 
@@ -135,6 +138,7 @@ fn main() -> Result<()> {
             path,
             format,
             patterns,
+            strict_patterns,
         } => {
             let categories =
                 load_all_patterns(patterns.as_deref()).context("Failed to load patterns")?;
@@ -147,7 +151,7 @@ fn main() -> Result<()> {
             // --patterns directories are an untrusted input surface: one malformed
             // YAML file must not deny service to every scan. Dropped patterns are
             // reported loudly so coverage is never lost silently.
-            let scanner = if patterns.is_some() {
+            let scanner = if patterns.is_some() && !strict_patterns {
                 let (scanner, errors) = Scanner::new_lenient(&categories);
                 for e in &errors {
                     eprintln!("warning: pattern skipped — {e}");
@@ -160,7 +164,11 @@ fn main() -> Result<()> {
                 }
                 scanner
             } else {
-                Scanner::new(&categories).context("Failed to compile embedded patterns")?
+                Scanner::new(&categories).context(if strict_patterns {
+                    "Pattern validation failed (--strict-patterns)"
+                } else {
+                    "Failed to compile embedded patterns"
+                })?
             };
 
             let mut reports = Vec::new();

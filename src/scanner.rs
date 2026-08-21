@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use regex::{Regex, RegexBuilder};
 
 use crate::allowlist::Suppressions;
@@ -62,9 +64,24 @@ impl Scanner {
     pub fn new_lenient(categories: &[PatternCategory]) -> (Self, Vec<PatternError>) {
         let mut compiled = Vec::new();
         let mut errors = Vec::new();
+        // id -> the category that first claimed it. A second claim is rejected:
+        // two patterns sharing an id emit findings with the same `pattern_id`
+        // but different severity, message and remediation, which corrupts the
+        // output for any consumer keying on that id (audit M-01).
+        let mut seen_ids: HashMap<&str, &str> = HashMap::new();
 
         for category in categories {
             for pattern in &category.patterns {
+                if let Some(first) = seen_ids.get(pattern.id.as_str()) {
+                    errors.push(PatternError::DuplicateId {
+                        id: pattern.id.clone(),
+                        first_category: (*first).to_string(),
+                        second_category: category.category.clone(),
+                    });
+                    continue;
+                }
+                seen_ids.insert(&pattern.id, &category.category);
+
                 let severity = pattern.severity.unwrap_or(category.default_severity);
 
                 // Case-insensitive by default. Patterns opt out explicitly; see
