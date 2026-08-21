@@ -140,8 +140,14 @@ fn main() -> Result<()> {
             patterns,
             strict_patterns,
         } => {
-            let categories =
-                load_all_patterns(patterns.as_deref()).context("Failed to load patterns")?;
+            let loaded = load_all_patterns(patterns.as_deref())
+                .context("Failed to load embedded patterns")?;
+            let categories = loaded.categories;
+            // Schema failures from external files travel the same strict/lenient
+            // path as regex-compilation failures. Enforcing them at parse time
+            // made --strict-patterns inert and let one malformed community file
+            // abort every scan.
+            let mut load_errors = loaded.errors;
 
             // Compile the pattern set ONCE for the whole run. Doing this per file
             // is what broke the <200ms budget: compilation dominates, so cost
@@ -153,16 +159,22 @@ fn main() -> Result<()> {
             // reported loudly so coverage is never lost silently.
             let scanner = if patterns.is_some() && !strict_patterns {
                 let (scanner, errors) = Scanner::new_lenient(&categories);
-                for e in &errors {
+                load_errors.extend(errors);
+                for e in &load_errors {
                     eprintln!("warning: pattern skipped — {e}");
                 }
-                if !errors.is_empty() {
+                if !load_errors.is_empty() {
                     eprintln!(
-                        "warning: {} pattern(s) failed to compile and are NOT being applied",
-                        errors.len()
+                        "warning: {} pattern(s) were rejected and are NOT being applied",
+                        load_errors.len()
                     );
                 }
                 scanner
+            } else if let Some(first) = load_errors.into_iter().next() {
+                // strict, and an external file already failed to parse
+                return Err(anyhow::Error::new(first).context(
+                    "Pattern validation failed (remove --strict-patterns to warn and continue)",
+                ));
             } else {
                 Scanner::new(&categories).context(if strict_patterns {
                     "Pattern validation failed (--strict-patterns)"

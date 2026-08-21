@@ -41,7 +41,7 @@ fn test_severity_override() {
 #[test]
 fn test_external_patterns_empty_dir() {
     let dir = std::path::Path::new("/nonexistent");
-    let result = injection_scanner::patterns::load_external_patterns(dir).unwrap();
+    let result = injection_scanner::patterns::load_external_patterns(dir).categories;
     assert!(result.is_empty());
 }
 
