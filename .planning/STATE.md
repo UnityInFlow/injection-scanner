@@ -1,43 +1,56 @@
 # State: injection-scanner
 
 ## Project Reference
-See: .planning/PROJECT.md (updated 2026-04-02)
+See: `.planning/PROJECT.md`
 **Core value:** Catch prompt injection attacks before they reach production
-**Current focus:** Phase 1 complete -- v0.0.1 released
+**Milestone:** Production Readiness — v0.0.3 + v0.1.0 (opened 2026-08-21)
 
 ## Current Phase
-**Phase 1** -- COMPLETE
+**Phase 1 — Restore the Gate** · status: ready for planning
 
-### Progress
-- [x] Scaffold Rust project (cargo new, Cargo.toml, CI)
-- [x] Pattern types + severity enum
-- [x] YAML pattern loader (embedded at compile time)
-- [x] Regex-based pattern matching engine
-- [x] 30 patterns across 5 categories
-- [x] File scanner (single file + recursive directory)
-- [x] Stdin mode
-- [x] JSON output
-- [x] Inline allowlist suppression
-- [x] Tests (39 passing)
-- [x] README, CONTRIBUTING.md, PATTERNS.md
-- [x] v0.0.1 tagged and released on GitHub
+Phase 1 is a hard gate. CI has been non-functional since 2026-06-24 (two 24-hour queue timeouts),
+so there is currently no automated test gate on this repository. **No Phase 2-4 work merges until
+Phase 1 is green.**
+
+### Phase status
+| Phase | Goal | Status |
+|---|---|---|
+| 1 | Restore the Gate | Ready for planning |
+| 2 | Correctness — ship v0.0.3 | Blocked on Phase 1 |
+| 3 | Signal Quality | Blocked on Phase 2 |
+| 4 | Integration — ship v0.1.0 | Blocked on Phase 3 |
 
 ## Releases
-- **v0.0.1** (2026-04-01): Initial release. 30 patterns, 5 categories, text/JSON output, inline suppression, stdin mode.
+- **v0.0.1** (2026-04-01): 30 patterns, 5 categories, text/JSON output, inline suppression, stdin mode
+- **v0.0.2** (2026-06-24): 6 target-triple binaries + SHA256SUMS. Consumed by `spec-ci-plugin`.
 
-## v0.1.0 Roadmap (Issues #4-#11)
-- [ ] #4 Aho-Corasick multi-pattern matching
-- [ ] #5 SARIF output format
-- [ ] #6 HTML entity decoding detection
-- [ ] #7 Base64-encoded instruction detection
-- [ ] #8 Pre-commit hook install command
-- [ ] #9 Cross-compilation CI (5 platforms)
-- [ ] #10 Homebrew formula
-- [ ] #11 Runtime filter mode for agent-sandbox
+## Open decisions carried into this milestone
+
+**CI policy (2026-08-21).** Public/fork CI runs on a **GitHub-hosted runner**, secretless with
+`contents: read`. This is a deliberate, scoped exception to the "never use ubuntu-latest" rule in
+both CLAUDE.md files, matching the D-02 split already sanctioned for `spec-ci-plugin` in July 2026.
+Rationale: the org runner group enforces `allows_public_repositories: false`, so no self-hosted job
+can run on this public repo at all — and the private-window alternative would deny CI to every fork
+PR, which kills the community pattern contributions `PATTERNS.md` is built around. All secret-bearing
+and release work stays self-hosted on `[orangepi]`, reachable only from tag push / `release: published`.
+
+**Scope (2026-08-21).** "Production ready" is defined as v0.0.3 + v0.1.0. The agentic categories
+(`PI050`–`PI079`) that differentiate this tool are explicitly deferred to v0.2.0 — they depend on the
+frontmatter engine, and shipping them on top of a scanner that misses sentence case would be building
+on sand.
+
+## Known unverified
+`arc-runner-unityinflow` is believed to match zero registered runners and the org runner group is
+believed to enforce `allows_public_repositories: false`. Both come from the root CLAUDE.md decisions
+log; an independent reviewer's `gh api orgs/UnityInFlow/actions/runner-groups` returned 403 without
+org-admin rights. The Phase 1 design is correct either way, but someone with org admin should confirm.
 
 ## Session Notes
-- 2026-04-02: Harness engineering setup complete. Ready for GSD discuss-phase 1.
-- 2026-04-01: Phase 1 complete. All 39 tests pass. v0.0.1 released with binary on GitHub.
+- 2026-08-21: Deep-dive audit (`docs/AUDIT-2026-08.md`) + independent verification pass. 6 critical
+  and 7 high findings. 32 GitHub issues filed (#12-#43). Planning reconciled; new 4-phase milestone
+  opened. Prior milestone archived to `.planning/archive/milestone-v0.0.1/`.
+- 2026-04-02: Harness engineering setup complete.
+- 2026-04-01: v0.0.1 released.
 
 ---
-*Last updated: 2026-04-01*
+*Last updated: 2026-08-21*

@@ -8,7 +8,11 @@ Catch prompt injection attacks before they reach production — in skill files, 
 
 ## Requirements
 
-### Active
+> Current requirements live in `.planning/REQUIREMENTS.md` (milestone: Production Readiness,
+> v0.0.3 + v0.1.0). The list below is the **original v0.0.1 set, retained for history** — see the
+> reconciliation note in REQUIREMENTS.md for why CLI-04, HOOK-01 and PERF-01 were never delivered.
+
+### Original v0.0.1 set (historical)
 - [ ] **SCAN-01**: 30+ patterns across 5 categories (role override, instruction injection, exfiltration, jailbreaks, encoding)
 - [ ] **SCAN-02**: YAML pattern loader from `patterns/` directory
 - [ ] **SCAN-03**: Severity classifier (CRITICAL / HIGH / MEDIUM / LOW)
@@ -47,10 +51,12 @@ Catch prompt injection attacks before they reach production — in skill files, 
 ## Key Decisions
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Rust over TypeScript | <200ms performance requirement for pre-commit hook | — Pending |
-| YAML patterns over embedded | Community contributions via PR, no recompilation needed | — Pending |
-| SARIF output | GitHub Advanced Security integration, industry standard | — Pending |
-| regex over Aho-Corasick | Simpler for v0.0.1, Aho-Corasick for v0.1.0 if perf needed | — Pending |
+| Rust over TypeScript | <200ms performance requirement for pre-commit hook | ✅ Held — matching is fast; the perf problem was per-file regex compilation, not the language |
+| YAML patterns over embedded | Community contributions via PR, no recompilation needed | ✅ Held — embedded core + external overlay works |
+| SARIF output | GitHub Advanced Security integration, industry standard | ⏳ Never built — carried to Phase 4 |
+| regex over Aho-Corasick | Simpler for v0.0.1, Aho-Corasick for v0.1.0 if perf needed | ⏳ Carried to Phase 4; compile-once (Phase 2) matters more |
+| Public/fork CI on a GitHub-hosted runner (2026-08-21) | Org runner group blocks all self-hosted jobs on public repos; the private-window alternative denies CI to fork PRs and kills community pattern contributions. Scoped exception mirroring the spec-ci-plugin D-02 split. | ⏳ Phase 1 |
+| "Production ready" = v0.0.3 + v0.1.0 (2026-08-21) | Correctness and signal quality before differentiation. Agentic categories deferred to v0.2.0. | ⏳ In progress |
 
 ---
-*Last updated: 2026-04-02*
+*Last updated: 2026-08-21*

@@ -4,3 +4,9 @@
 
 # Local Claude Code config
 .claude/
+
+# Local memtrace store
+.memdb/
+
+# Session scratch
+scratchpad/
