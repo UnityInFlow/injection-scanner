@@ -64,6 +64,21 @@ enum Commands {
     },
 }
 
+/// Human-readable reason a file could not be read.
+///
+/// `io::Error`'s own Display for an encoding failure is "stream did not contain
+/// valid UTF-8", which reads like a scanner bug rather than a skipped binary.
+fn describe_read_error(e: &std::io::Error) -> String {
+    match e.kind() {
+        std::io::ErrorKind::InvalidData => {
+            "not valid UTF-8 (binary or non-UTF-8 encoding)".to_string()
+        }
+        std::io::ErrorKind::PermissionDenied => "permission denied".to_string(),
+        std::io::ErrorKind::NotFound => "not found (broken symlink?)".to_string(),
+        _ => e.to_string(),
+    }
+}
+
 fn scan_file(path: &str, content: &str, scanner: &Scanner) -> ScanReport {
     let suppressions = parse_suppressions(content);
     scanner.scan(path, content, &suppressions)
@@ -106,6 +121,7 @@ fn main() -> Result<()> {
             let scanner = Scanner::new(&categories).context("Failed to compile patterns")?;
 
             let mut reports = Vec::new();
+            let mut skipped: usize = 0;
 
             if path == "-" {
                 let mut content = String::new();
@@ -120,10 +136,33 @@ fn main() -> Result<()> {
                         .with_context(|| format!("Failed to read {}", target.display()))?;
                     reports.push(scan_file(&path, &content, &scanner));
                 } else if target.is_dir() {
+                    // Per-file error isolation. Previously a single unreadable or
+                    // non-UTF-8 file propagated with `?` and killed the entire
+                    // walk, which in CI reads as a scanner crash rather than a
+                    // result. Skips are surfaced on stderr so nothing is silently
+                    // left unscanned (issue #14).
+                    //
+                    // NOTE: skips are NOT added to the JSON output. The top-level
+                    // shape must stay an array — spec-ci-plugin does
+                    // `JSON.parse(output) as Array<...>`. A JSON envelope carrying
+                    // `skipped` is deferred to v0.1.0 as a coordinated breaking
+                    // change (audit L-02).
                     for entry in walkdir(&target)? {
-                        let content = fs::read_to_string(&entry)
-                            .with_context(|| format!("Failed to read {}", entry.display()))?;
-                        reports.push(scan_file(&entry.to_string_lossy(), &content, &scanner));
+                        match fs::read_to_string(&entry) {
+                            Ok(content) => reports.push(scan_file(
+                                &entry.to_string_lossy(),
+                                &content,
+                                &scanner,
+                            )),
+                            Err(e) => {
+                                skipped += 1;
+                                eprintln!(
+                                    "warning: skipped {} — {}",
+                                    entry.display(),
+                                    describe_read_error(&e)
+                                );
+                            }
+                        }
                     }
                 } else {
                     anyhow::bail!("Path does not exist: {}", path);
@@ -138,6 +177,13 @@ fn main() -> Result<()> {
             };
 
             print!("{}", output);
+
+            if skipped > 0 {
+                eprintln!(
+                    "warning: {} file(s) skipped and NOT scanned — see warnings above",
+                    skipped
+                );
+            }
 
             let has_findings = reports.iter().any(|r| r.has_findings());
             std::process::exit(if has_findings { 1 } else { 0 });
