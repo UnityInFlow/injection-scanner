@@ -3,7 +3,9 @@ use std::collections::HashMap;
 use regex::{Regex, RegexBuilder};
 
 use crate::allowlist::Suppressions;
-use crate::pattern::{PatternCategory, PatternError, ScanMatch, ScanReport, Severity};
+use crate::pattern::{
+    PatternCategory, PatternError, ScanMatch, ScanReport, Severity, SuppressedMatch,
+};
 
 /// Upper bound on reported matches per pattern per line.
 ///
@@ -119,15 +121,27 @@ impl Scanner {
 
     /// Scan content line by line against the compiled pattern set.
     ///
-    /// Per-line suppressions are honoured via [`is_suppressed`].
+    /// Suppressed findings are recorded in the report rather than discarded, so a
+    /// document that disarms the scanner leaves a visible trace.
     pub fn scan(&self, file_path: &str, content: &str, suppressions: &Suppressions) -> ScanReport {
         let mut matches = Vec::new();
+        let mut suppressed = Vec::new();
 
         for (line_index, line) in content.lines().enumerate() {
             let line_number = line_index + 1;
 
             for cp in &self.compiled {
                 if suppressions.is_suppressed(line_number, &cp.id) {
+                    // Record rather than discard. A document that disarms the
+                    // scanner should leave a trace; see `SuppressedMatch`.
+                    if cp.regex.is_match(line) {
+                        suppressed.push(SuppressedMatch {
+                            pattern_id: cp.id.clone(),
+                            severity: cp.severity,
+                            file: file_path.to_string(),
+                            line: line_number,
+                        });
+                    }
                     continue;
                 }
 
@@ -153,6 +167,6 @@ impl Scanner {
             }
         }
 
-        ScanReport::new(file_path.to_string(), matches)
+        ScanReport::with_suppressed(file_path.to_string(), matches, suppressed)
     }
 }
