@@ -134,7 +134,18 @@ impl Scanner {
                 if suppressions.is_suppressed(line_number, &cp.id) {
                     // Record rather than discard. A document that disarms the
                     // scanner should leave a trace; see `SuppressedMatch`.
-                    if cp.regex.is_match(line) {
+                    //
+                    // Counted the same way visible findings are — `find_iter`
+                    // under the same cap, not `is_match`. Using `is_match` here
+                    // undercounted: three payloads on one suppressed line
+                    // reported "1 suppressed" while the same line unsuppressed
+                    // reports 3 findings, understating exactly the signal this
+                    // record exists to surface.
+                    for _ in cp
+                        .regex
+                        .find_iter(line)
+                        .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
+                    {
                         suppressed.push(SuppressedMatch {
                             pattern_id: cp.id.clone(),
                             severity: cp.severity,
