@@ -1,5 +1,18 @@
 use crate::pattern::{PatternCategory, PatternError};
 
+/// Pattern categories that loaded, alongside the failures that did not.
+///
+/// Separating these is what lets schema errors respect the same strict/lenient
+/// policy as regex-compilation errors. Previously `deny_unknown_fields` was
+/// enforced at parse time and returned `Err` immediately, so a single unknown
+/// key in a community file aborted every scan — bypassing `--strict-patterns`
+/// entirely and re-opening the denial-of-service that lenient loading closed.
+#[derive(Debug, Default)]
+pub struct LoadedPatterns {
+    pub categories: Vec<PatternCategory>,
+    pub errors: Vec<PatternError>,
+}
+
 const ROLE_OVERRIDE_YAML: &str = include_str!("../../patterns/core/role-override.yaml");
 const INSTRUCTION_YAML: &str = include_str!("../../patterns/core/instruction-injection.yaml");
 const EXFILTRATION_YAML: &str = include_str!("../../patterns/core/exfiltration.yaml");
@@ -30,46 +43,97 @@ pub fn load_embedded_patterns() -> Result<Vec<PatternCategory>, PatternError> {
 
 /// Load additional patterns from an external directory.
 ///
-/// Returns an empty `Vec` if the directory does not exist,
-/// allowing optional community pattern overlays.
-pub fn load_external_patterns(dir: &std::path::Path) -> Result<Vec<PatternCategory>, PatternError> {
-    let mut categories = Vec::new();
+/// Returns an empty result if the directory does not exist, allowing optional
+/// community pattern overlays.
+///
+/// **Per-file error isolation.** A file that fails to read or parse is collected
+/// into `errors` rather than aborting the load. External patterns are an
+/// untrusted input surface: one malformed community YAML must not deny service
+/// to every scan. Callers decide whether to warn or fail — see
+/// [`LoadedPatterns`] and `--strict-patterns`.
+pub fn load_external_patterns(dir: &std::path::Path) -> LoadedPatterns {
+    let mut loaded = LoadedPatterns::default();
 
     if !dir.exists() {
-        return Ok(categories);
+        return loaded;
     }
 
-    for entry in std::fs::read_dir(dir).map_err(|e| PatternError::ParseError(e.to_string()))? {
-        let entry = entry.map_err(|e| PatternError::ParseError(e.to_string()))?;
-        let path = entry.path();
-        if path
+    let entries = match std::fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(e) => {
+            loaded.errors.push(PatternError::ParseError(format!(
+                "{}: {}",
+                dir.display(),
+                e
+            )));
+            return loaded;
+        }
+    };
+
+    for entry in entries {
+        let path = match entry {
+            Ok(entry) => entry.path(),
+            Err(e) => {
+                loaded.errors.push(PatternError::ParseError(format!(
+                    "{}: {}",
+                    dir.display(),
+                    e
+                )));
+                continue;
+            }
+        };
+
+        if !path
             .extension()
             .is_some_and(|ext| ext == "yaml" || ext == "yml")
         {
-            let content = std::fs::read_to_string(&path)
-                .map_err(|e| PatternError::ParseError(format!("{}: {}", path.display(), e)))?;
-            let category: PatternCategory = serde_yaml::from_str(&content)
-                .map_err(|e| PatternError::ParseError(format!("{}: {}", path.display(), e)))?;
-            categories.push(category);
+            continue;
+        }
+
+        let content = match std::fs::read_to_string(&path) {
+            Ok(content) => content,
+            Err(e) => {
+                loaded.errors.push(PatternError::ParseError(format!(
+                    "{}: {}",
+                    path.display(),
+                    e
+                )));
+                continue;
+            }
+        };
+
+        match serde_yaml::from_str::<PatternCategory>(&content) {
+            Ok(category) => loaded.categories.push(category),
+            Err(e) => loaded.errors.push(PatternError::ParseError(format!(
+                "{}: {}",
+                path.display(),
+                e
+            ))),
         }
     }
 
-    Ok(categories)
+    loaded
 }
 
 /// Load embedded patterns plus optional external patterns.
 ///
-/// This is the primary entry point for pattern loading. External
-/// patterns extend (not replace) the embedded set.
+/// Embedded patterns are compile-time constants covered by a CI test, so a
+/// failure there is a bug in this repository and is returned as `Err`. External
+/// patterns are untrusted, so their failures are collected in
+/// [`LoadedPatterns::errors`] for the caller to warn about or fail on.
 pub fn load_all_patterns(
     external_dir: Option<&std::path::Path>,
-) -> Result<Vec<PatternCategory>, PatternError> {
-    let mut categories = load_embedded_patterns()?;
+) -> Result<LoadedPatterns, PatternError> {
+    let mut loaded = LoadedPatterns {
+        categories: load_embedded_patterns()?,
+        errors: Vec::new(),
+    };
 
     if let Some(dir) = external_dir {
-        let external = load_external_patterns(dir)?;
-        categories.extend(external);
+        let external = load_external_patterns(dir);
+        loaded.categories.extend(external.categories);
+        loaded.errors.extend(external.errors);
     }
 
-    Ok(categories)
+    Ok(loaded)
 }
