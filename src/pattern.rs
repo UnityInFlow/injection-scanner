@@ -77,11 +77,30 @@ pub struct ScanMatch {
     pub matched_text: String,
 }
 
+/// A finding that fired but was withheld by a suppression directive.
+///
+/// Recorded rather than discarded: suppression is a control the *scanned
+/// document* invokes, so silent suppression means an attacker can disarm the
+/// scanner without leaving a trace.
+#[derive(Debug, Clone, Serialize)]
+pub struct SuppressedMatch {
+    pub pattern_id: String,
+    pub severity: Severity,
+    pub file: String,
+    pub line: usize,
+}
+
 /// Aggregated scan results for a single file.
 #[derive(Debug, Clone, Serialize)]
 pub struct ScanReport {
     pub file: String,
     pub matches: Vec<ScanMatch>,
+    /// Findings withheld by a suppression directive in the scanned file.
+    ///
+    /// Additive field — the top-level JSON stays an array of report objects, so
+    /// `spec-ci-plugin`'s `JSON.parse(output) as Array<...>` is unaffected.
+    #[serde(default)]
+    pub suppressed: Vec<SuppressedMatch>,
     pub critical_count: usize,
     pub high_count: usize,
     pub medium_count: usize,
@@ -91,6 +110,15 @@ pub struct ScanReport {
 impl ScanReport {
     /// Create a new report, automatically computing severity counts.
     pub fn new(file: String, matches: Vec<ScanMatch>) -> Self {
+        Self::with_suppressed(file, matches, Vec::new())
+    }
+
+    /// Create a report that also records what suppression withheld.
+    pub fn with_suppressed(
+        file: String,
+        matches: Vec<ScanMatch>,
+        suppressed: Vec<SuppressedMatch>,
+    ) -> Self {
         let critical_count = matches
             .iter()
             .filter(|m| m.severity == Severity::Critical)
@@ -110,6 +138,7 @@ impl ScanReport {
         Self {
             file,
             matches,
+            suppressed,
             critical_count,
             high_count,
             medium_count,
@@ -120,6 +149,11 @@ impl ScanReport {
     /// Returns `true` if any findings were detected.
     pub fn has_findings(&self) -> bool {
         !self.matches.is_empty()
+    }
+
+    /// How many findings this file's own directives withheld.
+    pub fn suppressed_count(&self) -> usize {
+        self.suppressed.len()
     }
 }
 

@@ -22,6 +22,7 @@ pub fn format_text(reports: &[ScanReport]) -> String {
         }
     }
 
+    let total_suppressed: usize = reports.iter().map(|r| r.suppressed_count()).sum();
     let total_critical: usize = reports.iter().map(|r| r.critical_count).sum();
     let total_high: usize = reports.iter().map(|r| r.high_count).sum();
     let total_medium: usize = reports.iter().map(|r| r.medium_count).sum();
@@ -34,6 +35,17 @@ pub fn format_text(reports: &[ScanReport]) -> String {
         output.push_str(&format!(
             "\n{} finding(s): {} critical, {} high, {} medium, {} low\n",
             total, total_critical, total_high, total_medium, total_low
+        ));
+    }
+
+    // Suppression is invoked by the scanned document itself. If a file silences
+    // findings, that must be visible — otherwise an untrusted document can
+    // disarm the scanner and look identical to a clean one.
+    if total_suppressed > 0 {
+        output.push_str(&format!(
+            "{} finding(s) suppressed by directives in the scanned file(s). \
+             Re-run with --no-suppress to see them.\n",
+            total_suppressed
         ));
     }
 

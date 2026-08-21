@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use anyhow::{Context, Result};
 use clap::{Parser, ValueEnum};
 
-use injection_scanner::allowlist::parse_suppressions;
+use injection_scanner::allowlist::{parse_suppressions, Suppressions};
 use injection_scanner::pattern::ScanReport;
 use injection_scanner::patterns::load_all_patterns;
 use injection_scanner::reporter::{format_json, format_text};
@@ -64,6 +64,14 @@ enum Commands {
         /// Fail instead of warning when a pattern is invalid or has a duplicate id
         #[arg(long)]
         strict_patterns: bool,
+        /// Ignore all in-file suppression directives
+        ///
+        /// Suppression is a control the SCANNED DOCUMENT invokes, so when the
+        /// document is untrusted — a downloaded skill, a RAG corpus, a fork's
+        /// pull request — its author can disarm the scanner. Use this whenever
+        /// you did not write the file you are scanning.
+        #[arg(long)]
+        no_suppress: bool,
     },
 }
 
@@ -82,8 +90,12 @@ fn describe_read_error(e: &std::io::Error) -> String {
     }
 }
 
-fn scan_file(path: &str, content: &str, scanner: &Scanner) -> ScanReport {
-    let suppressions = parse_suppressions(content);
+fn scan_file(path: &str, content: &str, scanner: &Scanner, no_suppress: bool) -> ScanReport {
+    let suppressions = if no_suppress {
+        Suppressions::default()
+    } else {
+        parse_suppressions(content)
+    };
     scanner.scan(path, content, &suppressions)
 }
 
@@ -139,6 +151,7 @@ fn main() -> Result<()> {
             format,
             patterns,
             strict_patterns,
+            no_suppress,
         } => {
             let loaded = load_all_patterns(patterns.as_deref())
                 .context("Failed to load embedded patterns")?;
@@ -191,13 +204,13 @@ fn main() -> Result<()> {
                 std::io::stdin()
                     .read_to_string(&mut content)
                     .context("Failed to read from stdin")?;
-                reports.push(scan_file("<stdin>", &content, &scanner));
+                reports.push(scan_file("<stdin>", &content, &scanner, no_suppress));
             } else {
                 let target = PathBuf::from(&path);
                 if target.is_file() {
                     let content = fs::read_to_string(&target)
                         .with_context(|| format!("Failed to read {}", target.display()))?;
-                    reports.push(scan_file(&path, &content, &scanner));
+                    reports.push(scan_file(&path, &content, &scanner, no_suppress));
                 } else if target.is_dir() {
                     let mut skipped_dirs: Vec<(PathBuf, String)> = Vec::new();
                     // Per-file error isolation. Previously a single unreadable or
@@ -222,6 +235,7 @@ fn main() -> Result<()> {
                                 &entry.to_string_lossy(),
                                 &content,
                                 &scanner,
+                                no_suppress,
                             )),
                             Err(e) => {
                                 skipped += 1;
