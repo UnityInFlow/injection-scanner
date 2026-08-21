@@ -36,6 +36,14 @@ pub struct Pattern {
     pub pattern: String,
     #[serde(default)]
     pub severity: Option<Severity>,
+    /// Whether this pattern must match the exact casing written in `pattern`.
+    ///
+    /// Defaults to `false` — patterns are **case-insensitive** unless they opt
+    /// out. This is deliberate: prompt-injection payloads are natural language,
+    /// and an attacker capitalising a sentence must not defeat detection.
+    /// Set `case_sensitive: true` only where casing itself carries the signal.
+    #[serde(default)]
+    pub case_sensitive: Option<bool>,
     #[serde(default)]
     pub description: String,
     #[serde(default)]
