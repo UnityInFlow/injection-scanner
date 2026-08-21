@@ -266,6 +266,20 @@ fn a_published_asset_check_runs_after_the_release() {
          exist yet. See issue #18."
     );
 
+    // A `continue-on-error: true` here would leave the job green whatever it
+    // found, which is a decorative gate rather than a gate. Nothing else in the
+    // workflow would notice.
+    let tolerated = verify
+        .get("continue-on-error")
+        .map(|v| v.as_bool() != Some(false))
+        .unwrap_or(false);
+    assert!(
+        !tolerated,
+        "verify-published-assets sets `continue-on-error`, so a failed contract check would \
+         not fail the workflow. The job exists to make a broken release impossible to miss; \
+         tolerating its failure makes it decorative. See issue #18."
+    );
+
     let script = steps(verify)
         .iter()
         .filter_map(|s| s.get("run").and_then(Value::as_str))
