@@ -30,7 +30,7 @@ Every claim already in the README becomes true. No new features.
 - [x] **T6 — SCAN-08 (#28).** Duplicate-ID detection (first claim wins, second reported),
       `#[serde(deny_unknown_fields)]` so a misspelled key is rejected rather than silently defaulted,
       and `--strict-patterns` to turn external-pattern warnings into failure.
-- [~] **T7 — INT-01 (#18, #43, #56).** Consumer fixes done, asset-contract smoke test still open.
+- [x] **T7 — INT-01 (#18, #43, #56).** Consumer fixes in `spec-ci-plugin` PR #9; asset contract enforced in PR #59.
       `spec-ci-plugin` PR #9 (`fix/injection-scanner-consumer`, CI green, 41 tests) fixes all four:
       SHA256 verification before `chmod`/exec with a mismatch returning `fail` rather than `warn`;
       cache keyed by version *and* target triple; `DEFAULT_SCANNER_VERSION` as the single source of
@@ -43,7 +43,17 @@ Every claim already in the README becomes true. No new features.
       the `ignore-file` payload from #56 fails the gate by default and passes only under
       `allow-suppressions: true`. Downloads moved from shell `curl` to `fetch`, removing an Action
       input interpolated into a shell command.
-      *Still open: **#18**, the release-time musl asset-contract smoke test (this repo's side).*
+      **#18 (PR #59, CI green)** replaces the description of the contract with enforcement, in two
+      places that see different failures. `tests/release_contract_test.rs` parses `release.yml` as
+      YAML in the ordinary `cargo test` gate and asserts the workflow still *produces* the names the
+      consumer *requests* — musl targets present and not `experimental`, upload globs still selecting
+      them, attestation `subject-path` still covering them, packaging still raw and target-triple
+      named. `verify-published-assets` runs after publish and walks the consumer's exact anonymous
+      download path: HTTP 200 → ELF magic → ELF machine → listed in `SHA256SUMS.txt` → checksum →
+      `--version`. Verified by six mutations of `release.yml`, each failing exactly one assertion.
+      One of them found a real gap nothing was watching: the upload glob list and the attestation
+      `subject-path` list are separate and were not kept in step, so an asset could ship without the
+      provenance the release notes tell people to verify. Contract also written into `CONTRIBUTING.md`.
       *Follow-up: bump `DEFAULT_SCANNER_VERSION` to v0.0.3 once #55 is merged and tagged — that is
       when `--no-suppress` starts applying by default.*
 - [x] **T8 — PERF-01 (#29).** PR #58, CI green. The guard is a **ratio**, not a wall-clock bound:

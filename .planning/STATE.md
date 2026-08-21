@@ -62,6 +62,12 @@ log; an independent reviewer's `gh api orgs/UnityInFlow/actions/runner-groups` r
 org-admin rights. The Phase 1 design is correct either way, but someone with org admin should confirm.
 
 ## Session Notes
+- 2026-08-21: Phase 2 T7 closed out — #18 shipped as PR #59, CI green. **Phase 2 code work is
+  complete**; only merges and the v0.0.3 tag remain. Worth carrying forward: a mis-aimed mutation
+  while testing the guards revealed that `release.yml`'s upload glob list and its
+  `attest-build-provenance` `subject-path` list are independent and nothing kept them in step — an
+  asset could ship without the provenance the release notes instruct consumers to verify. Now
+  asserted.
 - 2026-08-21: Phase 2 T8 / PERF-01 (#29) — PR #58, CI green. Worth carrying forward: the wall-clock
   bound the handoff suggested ("500 files under ~1s") would have **passed** on the regression it was
   meant to catch, since the regressed build was 806ms. The guard is a ratio instead — 500-file scan

@@ -8,7 +8,7 @@ Everything needed to continue without the prior conversation.
 ## Where we are
 
 **Milestone:** Production Readiness — v0.0.3 + v0.1.0 (`.planning/ROADMAP.md`, 4 phases)
-**Phase 1:** ✅ merged · **Phase 2:** 6 of 8 merged, T7 and T8 done in open PRs · **Phases 3-4:** not started
+**Phase 1:** ✅ merged · **Phase 2:** all 8 tasks done — T7/T8 sit in open PRs · **Phases 3-4:** not started
 **`main` is green.** 75 tests. CI runs on every PR and takes ~2 minutes.
 **Nothing is released.** No v0.0.3 tag. No user has any of this yet.
 
@@ -75,6 +75,19 @@ end-to-end release-binary gate measures **13ms** against the 200ms PERF-01 budge
 Scope note: this closed item 2 of #29 only. Coverage gating, the false-positive corpus
 (that is QUAL-03, Phase 3) and fuzzing remain open on the issue.
 
+### Issue #18 — asset contract — **fixed, PR #59 open**
+
+CI green. Contract is now enforced in two places rather than described in a comment:
+`tests/release_contract_test.rs` (parses `release.yml` as YAML in the normal test gate,
+checks the workflow still produces the names tool 04 requests) and a
+`verify-published-assets` release job (walks the consumer's exact anonymous download
+path at the new tag). Verified by six mutations, each failing exactly one assertion.
+
+One mutation found a gap nobody was watching: the upload glob list and the
+`attest-build-provenance` `subject-path` list are independent, and nothing kept them in
+step — an asset dropped from `subject-path` still ships, silently without the provenance
+the release notes tell consumers to verify. Now asserted.
+
 ### Dependabot #47–#50 — Action major-version bumps
 `checkout` v4→v7, `cache` v4→v6, `upload-artifact` v5→v7, `attest-build-provenance` v2→v4.
 An external review checked each against the inputs actually used and graded **all four SAFE**
@@ -92,15 +105,14 @@ An external review checked each against the inputs actually used and graded **al
    Add for PR #9: is the `check --help` capability probe defeatable by a tampered binary
    (it runs *after* checksum verification, so it should not be — confirm); is `fail` the right
    status for a checksum mismatch while a network error stays `warn`.
-3. **Merge the queue**: `spec-ci-plugin` PR #9, injection-scanner #55 and #58, and
+3. **Merge the queue**: `spec-ci-plugin` PR #9, injection-scanner #55, #58 and #59, and
    Dependabot #47–#50 (all four already graded SAFE; #49 and #48 also clear the Node 20
    deprecation warning now showing on every CI run).
 4. **Tag v0.0.3.** Phase 2 code work is complete — nothing but merges stands in the way.
 5. **Bump `DEFAULT_SCANNER_VERSION` to v0.0.3** in `04-spec-ci-plugin` once the tag exists —
    that is when `--no-suppress` starts applying by default. Until then the Action reports the gap
    rather than closing it.
-6. **#18** — the release-time musl asset-contract smoke test, the other half of T7.
-7. Phase 3 (signal quality) — see `.planning/ROADMAP.md`.
+6. Phase 3 (signal quality) — see `.planning/ROADMAP.md`.
 
 ---
 

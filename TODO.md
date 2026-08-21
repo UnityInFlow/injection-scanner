@@ -25,7 +25,8 @@ No new features. Every claim already in the README becomes true.
 - [ ] **#42** `--format` as a clap `ValueEnum` — `--format sarif` currently returns text, not an error `P0`
 - [x] **#43** Fix the `spec-ci-plugin` consumer — unverified download, unversioned cache, version default mismatch `P0`
       *(spec-ci-plugin PR #9, CI green, awaiting merge — also closes #56)*
-- [ ] **#18** Release smoke test enforcing the `spec-ci-plugin` musl asset contract `P1`
+- [x] **#18** Release smoke test enforcing the `spec-ci-plugin` musl asset contract `P1`
+      *(PR #59, CI green — plus a repo-level contract test and CONTRIBUTING docs)*
 - [ ] **#19** Replace `unwrap()` in `allowlist.rs`; deny `unwrap_used` in `src/` `P2` *good first issue*
 
 **Exit criteria**
