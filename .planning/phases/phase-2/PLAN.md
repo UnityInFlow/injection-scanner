@@ -27,7 +27,9 @@ Every claim already in the README becomes true. No new features.
       all. README rewritten to match. Also closes **M-02 / #19** — the `unwrap()` became an `expect()`
       with a test that guards it, and `src/` is now unwrap-free.
 - [x] **T5 — FIX-05 (#16).** `find_iter` with a cap of 10 matches per pattern per line.
-- [ ] **T6 — SCAN-08 (#28).** Duplicate-ID detection, `deny_unknown_fields`, `--strict-patterns`.
+- [x] **T6 — SCAN-08 (#28).** Duplicate-ID detection (first claim wins, second reported),
+      `#[serde(deny_unknown_fields)]` so a misspelled key is rejected rather than silently defaulted,
+      and `--strict-patterns` to turn external-pattern warnings into failure.
 - [ ] **T7 — INT-01 (#18, #43).** `spec-ci-plugin` consumer fixes + release-time asset-contract smoke test.
 - [ ] **T8 — PERF-01 (#29).** Criterion benchmark so the 17ms result is defended, not just observed.
 
