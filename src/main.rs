@@ -3,7 +3,7 @@ use std::io::Read;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 
 use injection_scanner::allowlist::parse_suppressions;
 use injection_scanner::pattern::ScanReport;
@@ -20,15 +20,44 @@ struct Cli {
     command: Commands,
 }
 
+/// Output formats the scanner can emit.
+///
+/// This is a `ValueEnum` on purpose. `--format` was previously a bare `String`
+/// matched against `"json"`, with everything else falling through to text — so
+/// `--format sarif` produced human-readable text with a findings exit code, and
+/// `--format JSON` silently lost machine-readable output. Both surfaced as
+/// malformed input to the *consumer* rather than as an error here. Clap now
+/// rejects unknown values at parse time and lists the valid ones.
+///
+/// SARIF is deliberately absent until it is actually implemented (issue #5).
+/// Adding the variant before the writer exists would recreate the same class of
+/// silent failure this type was introduced to remove.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+enum OutputFormat {
+    /// Human-readable output for terminals.
+    Text,
+    /// Machine-readable JSON for CI consumers.
+    Json,
+}
+
+impl std::fmt::Display for OutputFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OutputFormat::Text => write!(f, "text"),
+            OutputFormat::Json => write!(f, "json"),
+        }
+    }
+}
+
 #[derive(clap::Subcommand)]
 enum Commands {
     /// Scan files for prompt injection patterns
     Check {
         /// File or directory to scan (use - for stdin)
         path: String,
-        /// Output format: text or json
-        #[arg(long, default_value = "text")]
-        format: String,
+        /// Output format
+        #[arg(long, value_enum, ignore_case = true, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
         /// Additional patterns directory
         #[arg(long)]
         patterns: Option<PathBuf>,
@@ -101,9 +130,11 @@ fn main() -> Result<()> {
                 }
             }
 
-            let output = match format.as_str() {
-                "json" => format_json(&reports)?,
-                _ => format_text(&reports),
+            // Exhaustive by construction — a new variant will not compile until
+            // it has a writer, which is the point of the enum.
+            let output = match format {
+                OutputFormat::Json => format_json(&reports)?,
+                OutputFormat::Text => format_text(&reports),
             };
 
             print!("{}", output);
