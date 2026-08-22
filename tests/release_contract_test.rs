@@ -74,40 +74,41 @@ fn step_named<'a>(steps: &'a [Value], needle: &str) -> &'a Value {
 /// pattern still select this exact asset", and the patterns in question use
 /// nothing more exotic than `*`.
 fn glob_matches(pattern: &str, name: &str) -> bool {
-    let mut remaining = name;
-    let mut segments = pattern.split('*');
+    // `split` always yields at least one element, so `parts` is never empty and
+    // `first`/`last` are always valid.
+    let parts: Vec<&str> = pattern.split('*').collect();
+    let (Some(first), Some(last)) = (parts.first(), parts.last()) else {
+        return false;
+    };
 
-    let first = segments.next().unwrap_or("");
-    match remaining.strip_prefix(first) {
-        Some(rest) => remaining = rest,
-        None => return false,
+    // No wildcard at all: the pattern is a literal filename.
+    if parts.len() == 1 {
+        return pattern == name;
     }
 
-    let mut last_was_wildcard = true;
-    let mut trailing = "";
-    for segment in segments {
-        trailing = segment;
-        last_was_wildcard = true;
-        if segment.is_empty() {
-            continue;
-        }
-        match remaining.find(segment) {
-            Some(at) => {
-                remaining = &remaining[at + segment.len()..];
-                last_was_wildcard = false;
-            }
+    // Anchor both ends before scanning the middle. Consuming the segments
+    // left-to-right with `find` — as an earlier version did — lets a middle
+    // search swallow the text the trailing segment needs, so `a*b` did not
+    // match `abxb` and `*-unknown-linux-musl` did not match a name containing
+    // that suffix twice. Those are false negatives, so the failure showed up as
+    // "this asset is not in the upload list" for an asset that was.
+    let Some(remaining) = name.strip_prefix(first) else {
+        return false;
+    };
+    let Some(mut remaining) = remaining.strip_suffix(last) else {
+        return false;
+    };
+
+    // Interior segments must appear in order in what is left between the
+    // anchors. Greedy is safe here: the tail is already reserved.
+    for segment in &parts[1..parts.len() - 1] {
+        match remaining.find(*segment) {
+            Some(at) => remaining = &remaining[at + segment.len()..],
             None => return false,
         }
     }
 
-    // A pattern not ending in `*` must consume the whole name.
-    if !trailing.is_empty() && !last_was_wildcard {
-        return remaining.is_empty();
-    }
-    if pattern.ends_with('*') {
-        return true;
-    }
-    remaining.is_empty()
+    true
 }
 
 fn build_matrix_targets(workflow: &Value) -> Vec<(String, bool)> {
@@ -301,6 +302,54 @@ fn a_published_asset_check_runs_after_the_release() {
 }
 
 #[test]
+fn the_published_asset_check_is_read_only() {
+    // This job downloads an unauthenticated artifact and executes it. That is
+    // the whole point — it walks the consumer's exact path — but it means the
+    // job runs code that is not gated on the repository's review process. It
+    // must therefore hold nothing worth stealing: no write scope, no token
+    // beyond the anonymous fetch, no secrets in its environment.
+    //
+    // The CI guidance in CLAUDE.md is specific about this split, and a
+    // `permissions:` block is easy to widen by copying a neighbouring job.
+    let workflow = release_workflow();
+    let verify = job(&workflow, "verify-published-assets");
+
+    let permissions = verify
+        .get("permissions")
+        .and_then(Value::as_mapping)
+        .expect("verify-published-assets must declare an explicit `permissions` block");
+
+    for (scope, level) in permissions {
+        let scope = scope.as_str().unwrap_or("<non-string>");
+        let level = level.as_str().unwrap_or("<non-string>");
+        assert_eq!(
+            level, "read",
+            "verify-published-assets grants `{scope}: {level}`. The job fetches assets \
+             anonymously and then executes one; it must not hold write scope on anything."
+        );
+    }
+
+    let script = steps(verify)
+        .iter()
+        .filter_map(|s| s.get("run").and_then(Value::as_str))
+        .collect::<String>();
+    let env_blocks = steps(verify)
+        .iter()
+        .filter_map(|s| s.get("env"))
+        .chain(verify.get("env"))
+        .map(|v| serde_yaml::to_string(v).unwrap_or_default())
+        .collect::<String>();
+
+    for surface in [&script, &env_blocks] {
+        assert!(
+            !surface.contains("secrets."),
+            "verify-published-assets references `secrets.`. It executes a downloaded \
+             binary — nothing secret may be reachable from it."
+        );
+    }
+}
+
+#[test]
 fn glob_matcher_behaves() {
     assert!(glob_matches(
         "injection-scanner-*-unknown-linux-musl",
@@ -320,4 +369,29 @@ fn glob_matcher_behaves() {
     ));
     assert!(glob_matches("SHA256SUMS.txt", "SHA256SUMS.txt"));
     assert!(!glob_matches("SHA256SUMS.txt", "SHA256SUMS.txt.asc"));
+
+    // A trailing literal that also occurs earlier in the name. The previous
+    // matcher consumed segments left-to-right with `find`, so the middle search
+    // ate the text the tail needed and these all returned false — an asset that
+    // *is* covered by the upload glob reported as uncovered.
+    assert!(glob_matches("a*b", "abxb"));
+    assert!(glob_matches("*-musl", "a-musl-b-musl"));
+    assert!(glob_matches(
+        "injection-scanner-*-unknown-linux-musl",
+        "injection-scanner-x86_64-unknown-linux-musl-unknown-linux-musl"
+    ));
+
+    // Anchors may not overlap: `a*a` needs at least two characters.
+    assert!(!glob_matches("a*a", "a"));
+    assert!(glob_matches("a*a", "aa"));
+
+    // Degenerate patterns.
+    assert!(glob_matches("*", "anything"));
+    assert!(glob_matches("*", ""));
+    assert!(glob_matches("prefix*", "prefix"));
+    assert!(!glob_matches("prefix*", "prefi"));
+
+    // Multiple wildcards, in order.
+    assert!(glob_matches("a*b*c", "a-b-c"));
+    assert!(!glob_matches("a*b*c", "a-c-b"));
 }

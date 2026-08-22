@@ -385,13 +385,18 @@ jobs:
           # Asset publication is not instantaneous. Retry rather than racing it.
           fetch() {
             local name="$1"
+            local delay=5
             for attempt in 1 2 3 4 5; do
               if curl -fsSL --retry 3 --max-time 60 -o "$name" "${BASE}/${name}"; then
                 echo "  fetched ${name} ($(wc -c < "$name") bytes)"
                 return 0
               fi
-              echo "  attempt ${attempt} failed for ${name}; retrying in 5s"
-              sleep 5
+              # Back off rather than spending the whole budget in 20s. Asset
+              # publication is usually fast, but under load the fixed 5s x 5
+              # window was too short to be worth having.
+              echo "  attempt ${attempt} failed for ${name}; retrying in ${delay}s"
+              sleep "$delay"
+              delay=$(( delay * 2 ))
             done
             echo "::error::${BASE}/${name} did not return 200. The spec-ci-plugin Action" \
                  "downloads this exact URL and will break. See issue #18."
@@ -442,6 +447,11 @@ jobs:
               exit 1
             fi
           done
+          # --ignore-missing because the manifest lists all six target-triple
+          # binaries while this job downloads only the two musl ones. The grep
+          # above is what makes that safe: it already failed the job if either
+          # consumer asset were absent from the manifest, so this cannot pass
+          # vacuously by skipping the files it is meant to check.
           sha256sum -c --ignore-missing SHA256SUMS.txt
           echo "  checksums verified"
 
