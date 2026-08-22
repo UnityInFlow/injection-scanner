@@ -1,8 +1,22 @@
 use std::process::Command;
 
-fn binary_path() -> String {
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    format!("{}/target/debug/injection-scanner", manifest_dir)
+/// The binary Cargo built for *this* test run.
+///
+/// `CARGO_BIN_EXE_<name>` is set by Cargo for integration tests and points at
+/// the artifact it just produced. The previous hard-coded
+/// `target/debug/injection-scanner` was wrong in both directions:
+///
+/// - If that file existed from an earlier `cargo build`, these tests ran **it**
+///   rather than the binary under test. Under `cargo llvm-cov` — which builds
+///   into `target/llvm-cov-target/` — all 14 CLI tests passed against a stale
+///   binary, and `main.rs` measured 0% coverage despite being the only module
+///   these tests exercise.
+/// - If it did not exist, every test panicked with `NotFound`. The suite
+///   depended on an artifact none of it builds.
+///
+/// It also ignored `CARGO_TARGET_DIR`, `--target` and the release profile.
+fn binary_path() -> &'static str {
+    env!("CARGO_BIN_EXE_injection-scanner")
 }
 
 fn fixture_path(name: &str) -> String {
