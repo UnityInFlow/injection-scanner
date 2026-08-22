@@ -62,6 +62,13 @@ all verified:
 Also **#56**: that Action should pass `--no-suppress`, since it scans contributor-controlled
 pull requests. Do #43 and #56 together in one pass against tool 04.
 
+### `suppressed` record shape — **fixed in #55 (`fe08083`)**
+
+`suppressed` is now `Vec<ScanMatch>`, identical to `matches`. It was a four-field stub that could
+not describe the finding it recorded, which defeats the purpose of recording it. Pinned by
+`tests/suppression_symmetry_test.rs`. `SuppressedMatch` was never released, so nothing depended on
+the old shape.
+
 ### Issue #29 — perf regression guard — **fixed, PR #58 open**
 
 CI green. **Correction to the earlier plan recorded here:** the "500 files under ~1s"

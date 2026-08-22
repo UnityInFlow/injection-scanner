@@ -80,11 +80,16 @@ org-admin rights. The Phase 1 design is correct either way, but someone with org
   was honest — it read the code and confirmed the PR descriptions rather than attacking them. Its
   own item 3 (cache race) sat one inference away from finding (1). Treat a zero-defect review across
   four PRs as a signal about the review, not the code.
-- 2026-08-21: Found while fixing (3): the scanner emits a **thinner record for `suppressed` than for
-  `matches`** — `pattern_id`, `severity`, `file`, `line`, with no `message`, `pattern_name`,
-  `remediation` or `matched_text`. Modelling the two arrays as one type prints `undefined` into the
-  PR comment. Consumer now models them separately. Open question for #55: should `suppressed` carry
-  `message`, or is the thin shape intentional and worth documenting?
+- 2026-08-22: The thin `suppressed` record turned out to be an omission, not a design choice, and is
+  fixed in #55 (`fe08083`). It carried `pattern_id`, `severity`, `file`, `line` and nothing else, so
+  the record proving the scanner had been disarmed could not say *what* it found — "PI001 at line 5",
+  never the message or the matched text. Nothing was bought by it: the suppressed and visible arms of
+  `Scanner::scan` are the same loop over the same `find_iter`, and the suppressed arm was discarding
+  the `Match` with `for _ in` where the visible arm binds it. `suppressed` is now `Vec<ScanMatch>` —
+  the same type `matches` holds — so `--no-suppress` moves a record between the arrays unchanged, and
+  a consumer cannot get the two shapes confused (tool 04's first renderer already had). Two tests pin
+  the symmetry. Found while fixing the consumer; the external review verified the field did not
+  *break* tool 04 and stopped there.
 - 2026-08-21: Phase 2 T7 closed out — #18 shipped as PR #59, CI green. **Phase 2 code work is
   complete**; only merges and the v0.0.3 tag remain. Worth carrying forward: a mis-aimed mutation
   while testing the guards revealed that `release.yml`'s upload glob list and its
