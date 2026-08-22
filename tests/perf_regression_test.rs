@@ -51,6 +51,14 @@ fn corpus(n: usize) -> Vec<String> {
 
 /// Median of three, so one descheduled sample cannot decide the test.
 fn median_of_three(mut f: impl FnMut() -> Duration) -> Duration {
+    // Discard a warm-up run before measuring. The first call pays for lazy
+    // one-time costs — regex program construction, page faults on freshly
+    // mapped code, a cold file cache — that have nothing to do with the ratio
+    // under test. The median absorbs one cold sample out of three, but if the
+    // warm-up cost lands on two of them it shifts the median itself, which is
+    // the case this avoids.
+    let _ = f();
+
     let mut samples = [f(), f(), f()];
     samples.sort();
     samples[1]
@@ -97,14 +105,32 @@ fn scan_cost_tracks_content_not_file_count() {
     let categories = load_embedded_patterns().expect("embedded patterns must load");
     let scanner = Scanner::new(&categories).expect("patterns must compile");
 
-    // Same total content, split two ways. A scanner that recompiles per file
-    // pays the compile cost 100 times on the right and once on the left, so the
-    // two diverge; one that compiles up front sees roughly the same work.
-    let one_big: String = (0..FILE_COUNT)
-        .map(|i| format!("# Section {i}\n\nOrdinary prose in a long document.\n\n"))
-        .collect();
-    let many_small: Vec<String> = (0..100)
-        .map(|i| format!("# Section {i}\n\nOrdinary prose in a long document.\n\n").repeat(5))
+    // Same total content, split two ways: FILE_COUNT sections as one document,
+    // versus SPLIT_FILES documents of SECTIONS_PER_FILE sections each. A
+    // scanner that recompiles per file pays the compile cost SPLIT_FILES times
+    // on the right and once on the left, so the two diverge; one that compiles
+    // up front sees roughly the same work either way.
+    //
+    // The section counts are derived rather than written twice, so changing
+    // FILE_COUNT cannot silently make the two sides measure different amounts
+    // of content — which would turn this into a comparison of corpus sizes
+    // wearing the costume of a per-file-overhead test.
+    const SPLIT_FILES: usize = 100;
+    const SECTIONS_PER_FILE: usize = FILE_COUNT / SPLIT_FILES;
+    assert_eq!(
+        SPLIT_FILES * SECTIONS_PER_FILE,
+        FILE_COUNT,
+        "FILE_COUNT must divide evenly by SPLIT_FILES for the two sides to hold          the same amount of content"
+    );
+
+    let section = |i: usize| format!("# Section {i}\n\nOrdinary prose in a long document.\n\n");
+    let one_big: String = (0..FILE_COUNT).map(section).collect();
+    let many_small: Vec<String> = (0..SPLIT_FILES)
+        .map(|f| {
+            (0..SECTIONS_PER_FILE)
+                .map(|s| section(f * SECTIONS_PER_FILE + s))
+                .collect::<String>()
+        })
         .collect();
 
     let single = median_of_three(|| {
