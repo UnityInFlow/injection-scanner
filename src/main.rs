@@ -1,3 +1,9 @@
+//! CLI entry point.
+//!
+//! `unwrap()` is denied here as well as in the library — this is a separate
+//! crate, so `lib.rs`'s attribute does not reach it. See the note there.
+#![deny(clippy::unwrap_used)]
+
 use std::fs;
 use std::io::Read;
 use std::path::PathBuf;

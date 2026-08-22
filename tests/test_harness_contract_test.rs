@@ -84,3 +84,41 @@ fn no_integration_test_hard_codes_a_path_into_the_target_directory() {
         offenders.join("\n  ")
     );
 }
+
+/// Both crate roots must deny `clippy::unwrap_used`.
+///
+/// Issue #19 asked for this and was closed with only its first half done — the
+/// `unwrap()` in `allowlist.rs` was replaced, but nothing was ever configured
+/// to stop the next one. `cargo clippy -- -D warnings` does not cover it:
+/// `unwrap_used` is a restriction lint, off by default, so a new `unwrap()` in
+/// production code passed CI silently for the whole milestone.
+///
+/// The attribute is the enforcement, so removing it is the regression. `src/`
+/// is two crates — the library and the binary — and a crate-level attribute
+/// does not cross that boundary, which is why both are checked.
+#[test]
+fn both_crate_roots_deny_unwrap_used() {
+    use std::fs;
+    use std::path::Path;
+
+    let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let needle = "deny(clippy::unwrap_used)";
+
+    for root in ["lib.rs", "main.rs"] {
+        let path = src.join(root);
+        let source = fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("{} must be readable: {e}", path.display()));
+
+        let declared = source.lines().any(|line| {
+            let line = line.trim();
+            line.starts_with("#![") && line.contains(needle)
+        });
+
+        assert!(
+            declared,
+            "src/{root} does not carry `#![{needle}]`. Without it a new `unwrap()` in \
+             production code passes `cargo clippy -- -D warnings` silently — that lint is \
+             a restriction lint and is off by default. See issue #19."
+        );
+    }
+}
