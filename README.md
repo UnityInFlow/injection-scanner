@@ -158,7 +158,7 @@ look identical to a clean one:
 
 ```
 No injection patterns detected.
-1 finding(s) suppressed by directives in the scanned file(s). Re-run with --no-suppress to see them.
+1 finding suppressed by directives in 1 scanned file. Re-run with --no-suppress to see it.
 ```
 
 The same information is in `--format json`, as a `suppressed` array on each report.

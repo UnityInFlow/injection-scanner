@@ -22,6 +22,28 @@ struct CompiledPattern {
     regex: Regex,
 }
 
+impl CompiledPattern {
+    /// Build the finding this pattern reports for `matched_text`.
+    ///
+    /// The single construction site for `ScanMatch`. Suppression decides which
+    /// array a finding is filed into, never what the finding says, so having
+    /// one arm of `scan` able to drift from the other is a bug waiting to
+    /// happen — a new field added to `ScanMatch` would be populated in one
+    /// place and defaulted in the other.
+    fn record(&self, file_path: &str, line_number: usize, matched_text: &str) -> ScanMatch {
+        ScanMatch {
+            pattern_id: self.id.clone(),
+            pattern_name: self.name.clone(),
+            severity: self.severity,
+            message: self.description.clone(),
+            remediation: self.remediation.clone(),
+            file: file_path.to_string(),
+            line: line_number,
+            matched_text: matched_text.to_string(),
+        }
+    }
+}
+
 /// A ready-to-use scanner owning the compiled pattern set.
 ///
 /// Construct **once** and reuse across every file. Compiling the pattern set is
@@ -129,37 +151,26 @@ impl Scanner {
             let line_number = line_index + 1;
 
             for cp in &self.compiled {
-                if suppressions.is_suppressed(line_number, &cp.id) {
-                    // Record rather than discard. A document that disarms the
-                    // scanner should leave a trace; see `ScanReport::suppressed`.
-                    //
-                    // Counted the same way visible findings are — `find_iter`
-                    // under the same cap, not `is_match`. Using `is_match` here
-                    // undercounted: three payloads on one suppressed line
-                    // reported "1 suppressed" while the same line unsuppressed
-                    // reports 3 findings, understating exactly the signal this
-                    // record exists to surface.
-                    for matched in cp
-                        .regex
-                        .find_iter(line)
-                        .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
-                    {
-                        // Identical to the record the visible arm builds below.
-                        // Suppression changes where a finding is filed, never
-                        // what it says.
-                        suppressed.push(ScanMatch {
-                            pattern_id: cp.id.clone(),
-                            pattern_name: cp.name.clone(),
-                            severity: cp.severity,
-                            message: cp.description.clone(),
-                            remediation: cp.remediation.clone(),
-                            file: file_path.to_string(),
-                            line: line_number,
-                            matched_text: matched.as_str().to_string(),
-                        });
-                    }
-                    continue;
-                }
+                // Suppression selects the destination; it does not change the
+                // finding, and it does not change how findings are counted.
+                //
+                // Both arms run `find_iter` under the same cap. An earlier
+                // version used `is_match` for the suppressed arm, which
+                // undercounted: three payloads on one suppressed line reported
+                // "1 suppressed" while the same line unsuppressed reports 3,
+                // understating exactly the signal this record exists to raise.
+                //
+                // `find_iter` on a suppressed line does pay the full regex cost
+                // rather than short-circuiting. That is the intended trade — the
+                // information is being recorded rather than discarded, and the
+                // cap bounds the worst case.
+                let destination = if suppressions.is_suppressed(line_number, &cp.id) {
+                    // Recorded rather than dropped: a document that disarms the
+                    // scanner should leave a trace. See `ScanReport::suppressed`.
+                    &mut suppressed
+                } else {
+                    &mut matches
+                };
 
                 // Every occurrence, not just the first: a line packing three
                 // payloads previously yielded one finding, and `matched_text`
@@ -169,16 +180,7 @@ impl Scanner {
                     .find_iter(line)
                     .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
                 {
-                    matches.push(ScanMatch {
-                        pattern_id: cp.id.clone(),
-                        pattern_name: cp.name.clone(),
-                        severity: cp.severity,
-                        message: cp.description.clone(),
-                        remediation: cp.remediation.clone(),
-                        file: file_path.to_string(),
-                        line: line_number,
-                        matched_text: matched.as_str().to_string(),
-                    });
+                    destination.push(cp.record(file_path, line_number, matched.as_str()));
                 }
             }
         }

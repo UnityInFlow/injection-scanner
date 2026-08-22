@@ -99,6 +99,18 @@ pub struct ScanReport {
     /// `spec-ci-plugin`'s `JSON.parse(output) as Array<...>` is unaffected.
     #[serde(default)]
     pub suppressed: Vec<ScanMatch>,
+    /// Severity tallies over `matches` **only** — suppressed findings are not
+    /// counted here.
+    ///
+    /// These answer "what is the user being asked to act on", which is what
+    /// drives exit codes and CI gates; a suppressed finding is by definition
+    /// not that. So `critical_count` can be 0 for a file that suppressed a
+    /// CRITICAL, and a consumer wanting the full picture must read `suppressed`
+    /// as well — `spec-ci-plugin` printed "No injection patterns detected" for
+    /// exactly that file before it did.
+    ///
+    /// Under `--no-suppress` nothing is suppressed, so the tallies cover
+    /// everything found.
     pub critical_count: usize,
     pub high_count: usize,
     pub medium_count: usize,
