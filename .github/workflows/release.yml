@@ -84,6 +84,29 @@ jobs:
           toolchain: stable
           components: clippy, rustfmt
 
+      # The tag is the only thing that says which version this is to GitHub;
+      # Cargo.toml is the only thing that says it to `--version` and to the
+      # binary's own metadata. Nothing kept them in step. A tag pushed without
+      # the matching bump built binaries reporting the PREVIOUS version, shipped
+      # them on the new release, signed a provenance attestation over them, and
+      # passed every gate -- `verify-published-assets` runs `--version` but never
+      # compared the output to anything. v0.0.2 avoided it only because someone
+      # remembered the bump commit.
+      - name: Tag must match the crate version
+        run: |
+          set -euo pipefail
+          crate="$(cargo metadata --no-deps --format-version 1 \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["packages"][0]["version"])')"
+          tag="${GITHUB_REF_NAME#v}"
+          echo "tag=${GITHUB_REF_NAME} (${tag})  Cargo.toml=${crate}"
+          if [ "$tag" != "$crate" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match Cargo.toml version ${crate}." \
+                 "Bump Cargo.toml (and Cargo.lock) before tagging, or delete the tag and re-push" \
+                 "the correct one. Releasing this would publish binaries reporting ${crate} as" \
+                 "version ${tag}."
+            exit 1
+          fi
+
       - name: cargo test
         run: cargo test --locked
 

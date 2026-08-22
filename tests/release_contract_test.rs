@@ -395,3 +395,55 @@ fn glob_matcher_behaves() {
     assert!(glob_matches("a*b*c", "a-b-c"));
     assert!(!glob_matches("a*b*c", "a-c-b"));
 }
+
+#[test]
+fn the_tag_is_checked_against_the_crate_version_before_anything_is_built() {
+    // The git tag is what GitHub calls the release; `Cargo.toml` is what the
+    // binary reports from `--version`. Nothing connected them. Pushing a tag
+    // without the matching bump produced binaries reporting the PREVIOUS
+    // version, published them under the new one, signed a provenance
+    // attestation over them, and passed every gate — `verify-published-assets`
+    // runs `--version` but never compared the output to anything.
+    //
+    // The check belongs in `test`, which every other job depends on, so a
+    // mismatch costs one step rather than a full cross-compile of six targets
+    // and a published release that has to be withdrawn.
+    let workflow = release_workflow();
+    let test_job = job(&workflow, "test");
+    let guard = step_named(steps(test_job), "Tag must match the crate version");
+
+    let script = guard
+        .get("run")
+        .and_then(Value::as_str)
+        .expect("the tag/version guard must be a `run` step");
+
+    assert!(
+        script.contains("GITHUB_REF_NAME"),
+        "the guard must read the pushed tag from GITHUB_REF_NAME"
+    );
+    assert!(
+        script.contains("cargo metadata"),
+        "the guard must read the version from cargo metadata rather than parsing Cargo.toml by hand"
+    );
+    assert!(
+        script.contains("exit 1"),
+        "the guard must fail the job on a mismatch, not merely log one"
+    );
+
+    // It has to run before the build. `build-binaries` depends on `test`, so
+    // placement inside `test` is what makes that true; assert the dependency
+    // rather than trusting the job order in the file.
+    let build = job(&workflow, "build-binaries");
+    let needs = build
+        .get("needs")
+        .expect("build-binaries must declare needs");
+    let gated = match needs {
+        Value::String(s) => s == "test",
+        Value::Sequence(items) => items.iter().any(|i| i.as_str() == Some("test")),
+        other => panic!("unexpected `needs` shape: {other:?}"),
+    };
+    assert!(
+        gated,
+        "build-binaries must depend on `test`, or the tag/version guard does not gate the build"
+    );
+}
