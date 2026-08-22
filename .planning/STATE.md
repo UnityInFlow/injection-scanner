@@ -62,6 +62,19 @@ log; an independent reviewer's `gh api orgs/UnityInFlow/actions/runner-groups` r
 org-admin rights. The Phase 1 design is correct either way, but someone with org admin should confirm.
 
 ## Session Notes
+- 2026-08-22: Checked the ">80% coverage on core logic before any release" constraint that both
+  CLAUDE.md files state and nothing measures (#29 item 1) ahead of the v0.0.3 tag, and found a
+  different bug. `tests/cli_test.rs` hard-coded `target/debug/injection-scanner` instead of
+  `CARGO_BIN_EXE_injection-scanner`, so the 14 CLI tests ran whatever binary happened to be on disk.
+  Under `cargo llvm-cov` (which builds into `target/llvm-cov-target/`) they reported **14 passed
+  while executing stale code**; delete the artifact and all 14 panic with NotFound. `cli_test.rs` is
+  the only place `main.rs` is exercised at all. Fixed in PR #61, CI green.
+  **Coverage, corrected:** total 48.49% → 72.18% regions, 49.62% → 70.38% lines, `main.rs`
+  0.00% → 60.78% — no new tests, just correct attribution. Excluding `main.rs` as CLI wiring,
+  **core logic is ~78.8% regions / 77.7% lines — just under the documented 80%**, and the entire
+  shortfall is `patterns/mod.rs` at 31.52%: `load_external_patterns`, which parses untrusted
+  community YAML and has no in-process tests. That is the next piece of #29, along with the
+  coverage gate itself, which still does not exist.
 - 2026-08-21: External review round on #55/#58/#59 + spec-ci-plugin #9 (`scratchpad/
   opencode-suppression-trust-review-report.md`). **It reported zero defects and graded all four safe
   to merge.** Adversarial re-check found four real holes it missed, all reproduced:

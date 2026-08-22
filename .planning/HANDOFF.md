@@ -95,6 +95,19 @@ One mutation found a gap nobody was watching: the upload glob list and the
 step — an asset dropped from `subject-path` still ships, silently without the provenance
 the release notes tell consumers to verify. Now asserted.
 
+### PR #61 — CLI tests ran a stale binary — **fixed, open**
+
+`cli_test.rs` hard-coded `target/debug/injection-scanner`. Under `cargo llvm-cov` the 14 CLI tests
+passed while executing stale code; without the artifact they all panic. Fixed to
+`CARGO_BIN_EXE_injection-scanner`. Coverage was never 48% — that number was measuring the wrong
+binary. Corrected: **72.18% regions total, ~78.8% excluding `main.rs`**.
+
+**Open, and relevant to the v0.0.3 tag:** the ">80% on core logic before any release" constraint in
+both CLAUDE.md files is still unmet (~78.8%) and still ungated. The whole gap is
+`patterns/mod.rs` at 31.52% — `load_external_patterns`, the untrusted-YAML surface, which has no
+in-process tests. Decide before tagging: raise it, gate at the real number, or scope what "core
+logic" means.
+
 ### Dependabot #47–#50 — Action major-version bumps
 `checkout` v4→v7, `cache` v4→v6, `upload-artifact` v5→v7, `attest-build-provenance` v2→v4.
 An external review checked each against the inputs actually used and graded **all four SAFE**
