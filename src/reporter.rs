@@ -42,10 +42,20 @@ pub fn format_text(reports: &[ScanReport]) -> String {
     // findings, that must be visible — otherwise an untrusted document can
     // disarm the scanner and look identical to a clean one.
     if total_suppressed > 0 {
+        let files_with_suppressions = reports.iter().filter(|r| r.suppressed_count() > 0).count();
+        let (findings, them) = if total_suppressed == 1 {
+            ("finding", "it")
+        } else {
+            ("findings", "them")
+        };
+        let files = if files_with_suppressions == 1 {
+            "file"
+        } else {
+            "files"
+        };
         output.push_str(&format!(
-            "{} finding(s) suppressed by directives in the scanned file(s). \
-             Re-run with --no-suppress to see them.\n",
-            total_suppressed
+            "{total_suppressed} {findings} suppressed by directives in {files_with_suppressions} \
+             scanned {files}. Re-run with --no-suppress to see {them}.\n"
         ));
     }
 
