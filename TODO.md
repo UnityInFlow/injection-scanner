@@ -4,7 +4,7 @@ Actionable checklist derived from the 2026-08-21 deep-dive audit. Every item map
 and a milestone. Full reasoning lives in `docs/AUDIT-2026-08.md`, `docs/DETECTION-BACKLOG.md` and
 `docs/ROADMAP-v0.1.0.md`.
 
-**Current state:** v0.0.2 · 30 patterns · 5 categories · 39 tests · **CI red since 2026-06-24**
+**Current state:** v0.0.2 · 30 patterns · 5 categories · **93 tests** · CI green · **all v0.0.3 code merged to `main` (2026-08-22); only the tag remains**
 
 > **Revised 2026-08-21** after an independent verification pass (`scratchpad/opencode-verification-report.md`).
 > Every original claim reproduced. Two new defects added (#42, #43), CI promoted to a hard gate,
@@ -16,18 +16,18 @@ and a milestone. Full reasoning lives in `docs/AUDIT-2026-08.md`, `docs/DETECTIO
 
 No new features. Every claim already in the README becomes true.
 
-- [ ] **#17** Restore CI — D-02 public/fork split; drop the zero-runner `arc-runner-unityinflow` matrix leg `P0` **← hard gate: nothing else in this milestone merges until this is green**
-- [ ] **#12** Case-insensitive matching by default + `case_sensitive` opt-out field `P0`
-- [ ] **#13** `Scanner` struct — compile the pattern set once, not once per file `P0`
-- [ ] **#14** Per-file error isolation so one non-UTF-8 file cannot abort the scan `P0`
-- [ ] **#15** Suppression: `ignore` / `ignore-next-line` / `ignore-file`; fix the README `P0`
-- [ ] **#16** `find_iter` with a per-line cap — report every match, not just the first `P2`
-- [ ] **#42** `--format` as a clap `ValueEnum` — `--format sarif` currently returns text, not an error `P0`
+- [x] **#17** Restore CI — D-02 public/fork split; drop the zero-runner `arc-runner-unityinflow` matrix leg `P0` **← hard gate: nothing else in this milestone merges until this is green**
+- [x] **#12** Case-insensitive matching by default + `case_sensitive` opt-out field `P0`
+- [x] **#13** `Scanner` struct — compile the pattern set once, not once per file `P0`
+- [x] **#14** Per-file error isolation so one non-UTF-8 file cannot abort the scan `P0`
+- [x] **#15** Suppression: `ignore` / `ignore-next-line` / `ignore-file`; fix the README `P0`
+- [x] **#16** `find_iter` with a per-line cap — report every match, not just the first `P2`
+- [x] **#42** `--format` as a clap `ValueEnum` — `--format sarif` currently returns text, not an error `P0`
 - [x] **#43** Fix the `spec-ci-plugin` consumer — unverified download, unversioned cache, version default mismatch `P0`
       *(spec-ci-plugin PR #9, CI green, awaiting merge — also closes #56)*
 - [x] **#18** Release smoke test enforcing the `spec-ci-plugin` musl asset contract `P1`
       *(PR #59, CI green — plus a repo-level contract test and CONTRIBUTING docs)*
-- [ ] **#19** Replace `unwrap()` in `allowlist.rs`; deny `unwrap_used` in `src/` `P2` *good first issue*
+- [x] **#19** Replace `unwrap()` in `allowlist.rs`; deny `unwrap_used` in `src/` `P2` *good first issue*
 
 **Exit criteria**
 - `Ignore all previous instructions` (sentence case) is detected

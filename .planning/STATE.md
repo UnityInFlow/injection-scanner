@@ -6,22 +6,20 @@ See: `.planning/PROJECT.md`
 **Milestone:** Production Readiness — v0.0.3 + v0.1.0 (opened 2026-08-21)
 
 ## Current Phase
-**Phase 2 — Correctness (v0.0.3)** · status: in progress, 4 of 8 tasks merged to `main`
+**Phase 2 — Correctness (v0.0.3)** · status: **all code merged to `main`; only the v0.0.3 tag remains**
 
-CI is green again. PR #44 (`chore/milestone-production-readiness`) runs on a GitHub-hosted runner
-and completed every step — fmt, clippy, test, build, smoke — picked up in 29 seconds against the
-previous two 24-hour queue timeouts. The gate is restored.
+Zero open pull requests. The last nine merged on 2026-08-22 after a review round: #61, #55, #58, #59
+and the five dependabot action bumps (#47–#50, #60). `main` is green — fmt, clippy, 93 tests — and
+still strictly linear (this repo rebase-merges; it has no merge commits).
 
-**Next:** Phase 2 is underway. PR #44 is deliberately held unmerged pending an independent review of
-the workflow changes (`scratchpad/opencode-phase1-review-prompt.md`) — any finding should land in the
-branch, not on `main`.
+**Next:** tag v0.0.3. Nothing blocks it.
 
 ### Phase status
 | Phase | Goal | Status |
 |---|---|---|
 | 1 | Restore the Gate | ✅ Merged (PR #44) |
-| 2 | Correctness — ship v0.0.3 | 4 of 8 merged (PR #51) |
-| 3 | Signal Quality | Blocked on Phase 2 |
+| 2 | Correctness — ship v0.0.3 | ✅ Code merged — tag pending |
+| 3 | Signal Quality | Ready to start |
 | 4 | Integration — ship v0.1.0 | Blocked on Phase 3 |
 
 ## Releases
@@ -62,6 +60,33 @@ log; an independent reviewer's `gh api orgs/UnityInFlow/actions/runner-groups` r
 org-admin rights. The Phase 1 design is correct either way, but someone with org admin should confirm.
 
 ## Session Notes
+- 2026-08-22 (later): Review round on the four open PRs, then all nine merged. The blocking finding
+  — `suppression_trust_test.rs` still hand-building its binary path — turned out to be **three**
+  files, not one: `pattern_validation_test.rs` and `scan_resilience_test.rs` were already on `main`
+  with it, and #61 had fixed only `cli_test.rs`. Proven rather than argued: a binary whose entire
+  `main` is `std::process::exit(0)`, built into an alternate `CARGO_TARGET_DIR`, was passed by **all
+  29 tests**. `tests/test_harness_contract_test.rs` now forbids any integration test building a path
+  into the target directory (skips comment lines; assembles the needle at runtime so it does not
+  self-match, the trap PI012 hit).
+  **Coverage, corrected again** — the 2026-08-22 figures below were themselves measured with two of
+  three files still stale. Actual on merged `main`: **89.94% regions / 90.00% lines** total;
+  `main.rs` 86.13%, `patterns/mod.rs` 75.00%. Core logic excluding `main.rs` is ~92% regions /
+  ~90% lines, so the documented ">80% on core logic" bar **is met**. The "just under 80%, shortfall
+  is all `patterns/mod.rs`" reading was the same bug one layer down. `load_external_patterns` is
+  still the thinnest part and still wants in-process tests (#29).
+  Also fixed from the review: `glob_matches` in `release_contract_test.rs` was not merely convoluted
+  but **wrong** — it consumed the trailing segment with `find`, so `a*b` did not match `abxb` and a
+  name repeating the suffix failed. False negatives, so a release could fail its own asset contract
+  for an asset the glob does cover. Both ends are now anchored before the interior is searched.
+  New `the_published_asset_check_is_read_only` asserts the verify job holds no write scope and can
+  reach no `secrets.` — it downloads and executes an unauthenticated binary. Mutation-tested.
+  **Carry forward — GitHub's `MERGEABLE` is per-PR-against-main, not pairwise.** All four reported
+  CLEAN while #58 and #59 conflicted with each other in `CONTRIBUTING.md` (both appended a section at
+  the same anchor). Merge order must be verified locally, not read off the PR list. Second lesson:
+  this repo rebase-merges (zero merge commits on `main`), so a merge-commit conflict resolution is
+  the wrong shape — #59 had to be relinearised before it could land.
+  Also corrected a stale RUNNER POLICY comment in `ci.yml` claiming release work runs self-hosted;
+  #45 moved all four `release.yml` jobs to `ubuntu-latest`.
 - 2026-08-22: Checked the ">80% coverage on core logic before any release" constraint that both
   CLAUDE.md files state and nothing measures (#29 item 1) ahead of the v0.0.3 tag, and found a
   different bug. `tests/cli_test.rs` hard-coded `target/debug/injection-scanner` instead of
@@ -135,4 +160,4 @@ org-admin rights. The Phase 1 design is correct either way, but someone with org
 - 2026-04-01: v0.0.1 released.
 
 ---
-*Last updated: 2026-08-21*
+*Last updated: 2026-08-22*

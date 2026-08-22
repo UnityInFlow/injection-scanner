@@ -16,9 +16,15 @@ name: CI
 # identical D-02 split already in use by spec-ci-plugin.
 #
 # The trade this makes: no secret may ever be referenced by this workflow. It is
-# reachable from fork pull requests, so it stays read-only and secretless. All
-# secret-bearing and release work lives in release.yml, on self-hosted runners,
-# behind a tag push that a fork cannot fire.
+# reachable from fork pull requests, so it stays read-only and secretless.
+#
+# Release work lives in release.yml, behind a tag push that a fork cannot fire.
+# That workflow is ALSO GitHub-hosted as of issue #45, for the same scheduling
+# reason as this one -- under `allows_public_repositories: false` its jobs could
+# not be scheduled here at all, so the pipeline was silently dead. It is safe
+# there because it uses no org secret, only the built-in GITHUB_TOKEN, and the
+# ephemeral runner additionally lets it emit a signed SLSA build-provenance
+# attestation that a persistent self-hosted box could not.
 # ──────────────────────────────────────────────────────────────────────────────
 
 on:
