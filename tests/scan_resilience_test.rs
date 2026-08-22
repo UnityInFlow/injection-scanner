@@ -3,11 +3,15 @@
 use std::fs;
 use std::process::Command;
 
-fn binary_path() -> String {
-    format!(
-        "{}/target/debug/injection-scanner",
-        env!("CARGO_MANIFEST_DIR")
-    )
+/// The binary Cargo built for *this* test run.
+///
+/// See the note on the same function in `tests/cli_test.rs`: a hard-coded
+/// `target/debug/injection-scanner` runs whatever artifact happens to be on
+/// disk, so these tests pass against a stale binary under `cargo llvm-cov`
+/// (which builds into `target/llvm-cov-target/`) and panic with `NotFound`
+/// when no earlier `cargo build` left one behind.
+fn binary_path() -> &'static str {
+    env!("CARGO_BIN_EXE_injection-scanner")
 }
 
 fn temp_dir(name: &str) -> std::path::PathBuf {
