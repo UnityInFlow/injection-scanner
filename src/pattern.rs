@@ -65,7 +65,7 @@ pub struct PatternCategory {
 }
 
 /// A single match found during scanning.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanMatch {
     pub pattern_id: String,
     pub pattern_name: String,
@@ -78,7 +78,12 @@ pub struct ScanMatch {
 }
 
 /// Aggregated scan results for a single file.
-#[derive(Debug, Clone, Serialize)]
+///
+/// Round-trips: `--format json` output deserializes back into this type. That
+/// is what makes `#[serde(default)]` on `suppressed` mean anything — without
+/// `Deserialize` the attribute was inert, and the backward-compatibility it
+/// documents could not actually happen.
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanReport {
     pub file: String,
     pub matches: Vec<ScanMatch>,
