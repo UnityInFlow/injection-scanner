@@ -430,6 +430,22 @@ fn the_tag_is_checked_against_the_crate_version_before_anything_is_built() {
         "the guard must fail the job on a mismatch, not merely log one"
     );
 
+    // The package must be selected by name. `packages[0]` reads correctly with
+    // one crate, but issue #41 plans a library split and cargo metadata orders
+    // workspace packages alphabetically — `injection-scanner-core` would sort
+    // ahead of `injection-scanner`, so the guard would compare the tag against
+    // the library's version and block every correct release.
+    assert!(
+        !script.contains("[\"packages\"][0]") && !script.contains("packages[0]"),
+        "the guard indexes into `packages`. Select by name instead: in a workspace \
+         cargo metadata gives no ordering guarantee, and the first entry is not \
+         necessarily the binary crate this tag is about."
+    );
+    assert!(
+        script.contains("injection-scanner"),
+        "the guard must name the package it is checking"
+    );
+
     // It has to run before the build. `build-binaries` depends on `test`, so
     // placement inside `test` is what makes that true; assert the dependency
     // rather than trusting the job order in the file.
