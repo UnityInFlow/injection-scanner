@@ -111,7 +111,17 @@ jobs:
               > "$corpus/doc$i.md"
           done
 
-          scan() { ./target/release/injection-scanner check "$corpus" --format json > /dev/null; }
+          # This step depends on a `cargo build --release` earlier in the same
+          # job. If the job is ever split so the build happens elsewhere, say so
+          # instead of failing several lines later inside the timing loop, where
+          # it would read as a performance problem rather than a missing binary.
+          binary=./target/release/injection-scanner
+          if [ ! -x "$binary" ]; then
+            echo "::error::$binary is missing or not executable — the release build must run in this job before the performance gate."
+            exit 1
+          fi
+
+          scan() { "$binary" check "$corpus" --format json > /dev/null; }
 
           scan  # warm the page cache; the first run pays for cold reads
 
