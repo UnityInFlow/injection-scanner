@@ -3,9 +3,7 @@ use std::collections::HashMap;
 use regex::{Regex, RegexBuilder};
 
 use crate::allowlist::Suppressions;
-use crate::pattern::{
-    PatternCategory, PatternError, ScanMatch, ScanReport, Severity, SuppressedMatch,
-};
+use crate::pattern::{PatternCategory, PatternError, ScanMatch, ScanReport, Severity};
 
 /// Upper bound on reported matches per pattern per line.
 ///
@@ -133,7 +131,7 @@ impl Scanner {
             for cp in &self.compiled {
                 if suppressions.is_suppressed(line_number, &cp.id) {
                     // Record rather than discard. A document that disarms the
-                    // scanner should leave a trace; see `SuppressedMatch`.
+                    // scanner should leave a trace; see `ScanReport::suppressed`.
                     //
                     // Counted the same way visible findings are — `find_iter`
                     // under the same cap, not `is_match`. Using `is_match` here
@@ -141,16 +139,23 @@ impl Scanner {
                     // reported "1 suppressed" while the same line unsuppressed
                     // reports 3 findings, understating exactly the signal this
                     // record exists to surface.
-                    for _ in cp
+                    for matched in cp
                         .regex
                         .find_iter(line)
                         .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
                     {
-                        suppressed.push(SuppressedMatch {
+                        // Identical to the record the visible arm builds below.
+                        // Suppression changes where a finding is filed, never
+                        // what it says.
+                        suppressed.push(ScanMatch {
                             pattern_id: cp.id.clone(),
+                            pattern_name: cp.name.clone(),
                             severity: cp.severity,
+                            message: cp.description.clone(),
+                            remediation: cp.remediation.clone(),
                             file: file_path.to_string(),
                             line: line_number,
+                            matched_text: matched.as_str().to_string(),
                         });
                     }
                     continue;
