@@ -77,19 +77,6 @@ pub struct ScanMatch {
     pub matched_text: String,
 }
 
-/// A finding that fired but was withheld by a suppression directive.
-///
-/// Recorded rather than discarded: suppression is a control the *scanned
-/// document* invokes, so silent suppression means an attacker can disarm the
-/// scanner without leaving a trace.
-#[derive(Debug, Clone, Serialize)]
-pub struct SuppressedMatch {
-    pub pattern_id: String,
-    pub severity: Severity,
-    pub file: String,
-    pub line: usize,
-}
-
 /// Aggregated scan results for a single file.
 #[derive(Debug, Clone, Serialize)]
 pub struct ScanReport {
@@ -97,10 +84,21 @@ pub struct ScanReport {
     pub matches: Vec<ScanMatch>,
     /// Findings withheld by a suppression directive in the scanned file.
     ///
+    /// Recorded rather than discarded: suppression is a control the *scanned
+    /// document* invokes, so silent suppression would let an attacker disarm the
+    /// scanner without leaving a trace.
+    ///
+    /// Deliberately the **same** `ScanMatch` the `matches` array holds. These are
+    /// not lesser findings — they are findings, filed under the reason they are
+    /// not being shown. `--no-suppress` moves a record from here to `matches`
+    /// unchanged, and a consumer needs the message, the pattern name and the
+    /// matched text to judge whether a suppression was legitimate. A thinner
+    /// record saved nothing: every field is in scope where it is built.
+    ///
     /// Additive field — the top-level JSON stays an array of report objects, so
     /// `spec-ci-plugin`'s `JSON.parse(output) as Array<...>` is unaffected.
     #[serde(default)]
-    pub suppressed: Vec<SuppressedMatch>,
+    pub suppressed: Vec<ScanMatch>,
     pub critical_count: usize,
     pub high_count: usize,
     pub medium_count: usize,
@@ -117,7 +115,7 @@ impl ScanReport {
     pub fn with_suppressed(
         file: String,
         matches: Vec<ScanMatch>,
-        suppressed: Vec<SuppressedMatch>,
+        suppressed: Vec<ScanMatch>,
     ) -> Self {
         let critical_count = matches
             .iter()
