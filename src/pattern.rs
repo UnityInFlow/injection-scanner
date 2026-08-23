@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+
+use crate::context::MatchContext;
 use thiserror::Error;
 
 /// Severity level for a scan finding.
@@ -75,6 +77,28 @@ pub struct ScanMatch {
     pub file: String,
     pub line: usize,
     pub matched_text: String,
+    /// Where in the document this was found (issue #20).
+    ///
+    /// Additive with a default, so a consumer reading reports from a release
+    /// that predates it is unaffected.
+    #[serde(default = "default_context")]
+    pub context: MatchContext,
+    /// How likely this is a real attack rather than documentation of one, 0.0-1.0.
+    ///
+    /// Derived from `context`. Carried on the record rather than recomputed so a
+    /// consumer filtering reports does not need to know the scoring table.
+    #[serde(default = "default_confidence")]
+    pub confidence: f32,
+}
+
+/// Reports written before `context` existed came from a scanner with no notion
+/// of structure, which is exactly the prose assumption.
+fn default_context() -> MatchContext {
+    MatchContext::Prose
+}
+
+fn default_confidence() -> f32 {
+    MatchContext::Prose.confidence()
 }
 
 /// Aggregated scan results for a single file.

@@ -1,3 +1,4 @@
+use injection_scanner::context::MatchContext;
 use injection_scanner::pattern::{ScanMatch, ScanReport, Severity};
 use injection_scanner::reporter::{format_json, format_text};
 
@@ -14,6 +15,8 @@ fn sample_report() -> ScanReport {
                 file: "test.md".to_string(),
                 line: 5,
                 matched_text: "ignore all previous instructions".to_string(),
+                context: MatchContext::Prose,
+                confidence: MatchContext::Prose.confidence(),
             },
             ScanMatch {
                 pattern_id: "PI030".to_string(),
@@ -24,6 +27,8 @@ fn sample_report() -> ScanReport {
                 file: "test.md".to_string(),
                 line: 10,
                 matched_text: "developer mode enabled".to_string(),
+                context: MatchContext::Prose,
+                confidence: MatchContext::Prose.confidence(),
             },
         ],
     )
