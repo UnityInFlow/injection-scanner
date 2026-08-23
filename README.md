@@ -133,6 +133,37 @@ injection-scanner check README.md --strict           # 15 — every context repo
 injection-scanner check docs/ --min-confidence 0.9   # only the strongest signals
 ```
 
+### Withheld, never dropped
+
+A finding below the threshold is **not discarded** — it moves to a `low_confidence`
+array in the report, and the text summary says so:
+
+```
+$ injection-scanner check untrusted.md
+No injection patterns reported.
+2 findings withheld as documentation (code blocks, inline spans, tables).
+Re-run with --strict to see them.
+```
+
+This matters because the confidence score is a guess about how a document will be
+**consumed**, and that guess can be wrong. A fenced block is inert in a README a
+human reads. The same block, in a web page or RAG document flattened into an
+agent's context, arrives as bare text — the fence markers are gone, and the payload
+reads exactly like an instruction. We confirmed this against a live agent: payloads
+in fenced blocks and table cells reached the model in full.
+
+So the threshold is right for scanning **your own repository**, where a fenced block
+stays a fenced block. Use `--strict` for **untrusted input** — anything you did not
+write and are about to feed to a model:
+
+```bash
+injection-scanner check ./docs                  # your repo: documentation is documentation
+injection-scanner check ./rag-corpus --strict   # untrusted input: assume the fence is stripped
+```
+
+Withheld findings never affect exit codes or severity counts, so turning this on
+does not change what your CI gate blocks on — only what you can see.
+
 Every finding carries `context` and `confidence` in `--format json`, so a consumer
 can apply its own threshold instead of trusting this one:
 

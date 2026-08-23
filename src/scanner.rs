@@ -156,13 +156,24 @@ impl Scanner {
         self.scan_with_confidence(file_path, content, suppressions, DEFAULT_MIN_CONFIDENCE)
     }
 
-    /// Scan, keeping only findings scoring at or above `min_confidence`.
+    /// Scan, reporting only findings scoring at or above `min_confidence`.
     ///
     /// Pass 0.0 to report everything regardless of markdown context — that is
-    /// what `--strict` does. Findings below the threshold are dropped, not
-    /// filed under `suppressed`: that array means "a directive in the document
-    /// withheld this", and conflating the two would let a low-confidence
-    /// documentation match masquerade as evidence the scanner was disarmed.
+    /// what `--strict` does.
+    ///
+    /// Findings below the threshold go to [`ScanReport::low_confidence`], not to
+    /// `suppressed` and not to the floor. They are a *third* category: the two
+    /// arrays answer different questions — "a directive in this document
+    /// disarmed the scanner" versus "the scanner judged this documentation" —
+    /// and merging them would let a benign README example masquerade as evidence
+    /// of tampering.
+    ///
+    /// They are recorded rather than discarded because the context judgement is
+    /// a guess about how the document will be *consumed*, and that guess can be
+    /// wrong. A fenced block is inert in a rendered README, but a page flattened
+    /// into an agent's context arrives without its fence markers — the exact
+    /// delivery path this tool exists to guard. Discarding would make
+    /// "wrap it in backticks" a silent, traceless bypass.
     pub fn scan_with_confidence(
         &self,
         file_path: &str,
@@ -173,6 +184,7 @@ impl Scanner {
         let contexts = ContextMap::build(content);
         let mut matches = Vec::new();
         let mut suppressed = Vec::new();
+        let mut low_confidence = Vec::new();
 
         for (line_index, line) in content.lines().enumerate() {
             let line_number = line_index + 1;
@@ -191,13 +203,7 @@ impl Scanner {
                 // rather than short-circuiting. That is the intended trade — the
                 // information is being recorded rather than discarded, and the
                 // cap bounds the worst case.
-                let destination = if suppressions.is_suppressed(line_number, &cp.id) {
-                    // Recorded rather than dropped: a document that disarms the
-                    // scanner should leave a trace. See `ScanReport::suppressed`.
-                    &mut suppressed
-                } else {
-                    &mut matches
-                };
+                let suppressed_here = suppressions.is_suppressed(line_number, &cp.id);
 
                 // Every occurrence, not just the first: a line packing three
                 // payloads previously yielded one finding, and `matched_text`
@@ -208,14 +214,25 @@ impl Scanner {
                     .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
                 {
                     let context = contexts.context_at(line_number, line, matched.start());
-                    if context.confidence() < min_confidence {
-                        continue;
-                    }
+
+                    // Three destinations, and nothing is ever dropped. A
+                    // suppression directive is the document's own act and takes
+                    // precedence in the record, because "this file disarmed the
+                    // scanner" is the louder signal; below-threshold context is
+                    // the scanner's own judgement and is filed separately so it
+                    // can be audited or overridden with `--strict`.
+                    let destination = if suppressed_here {
+                        &mut suppressed
+                    } else if context.confidence() < min_confidence {
+                        &mut low_confidence
+                    } else {
+                        &mut matches
+                    };
                     destination.push(cp.record(file_path, line_number, matched.as_str(), context));
                 }
             }
         }
 
-        ScanReport::with_suppressed(file_path.to_string(), matches, suppressed)
+        ScanReport::with_withheld(file_path.to_string(), matches, suppressed, low_confidence)
     }
 }
