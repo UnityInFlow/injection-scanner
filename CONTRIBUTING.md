@@ -11,6 +11,39 @@ cargo build --release # optimized binary
 cargo bench          # performance benchmarks (benches/scan.rs)
 ```
 
+### Lints
+
+`cargo clippy -- -D warnings` is the gate, and it covers less than it looks like
+it covers. Clippy's **restriction** group is off by default, and `-D warnings`
+does not turn it on — it only promotes lints that are already firing. So a lint
+in that group catches nothing until something opts into it explicitly.
+
+`clippy::unwrap_used` is the one that bit us. CLAUDE.md has said "no `unwrap()`
+in production code" since the project started, and issue #19 asked for the lint;
+only the cleanup half shipped, so for an entire milestone a new `unwrap()` in
+`src/` passed CI silently. `src/lib.rs` and `src/main.rs` now each carry
+`#![deny(clippy::unwrap_used)]` — both, because they are separate crates and a
+crate-level attribute does not cross that boundary.
+
+Two things to know if you go looking:
+
+- **Testing the gate is easy to get wrong.** `Some(1).unwrap()` is caught even
+  without the attribute, because clippy can see statically that it succeeds.
+  Probe with a value it cannot reason about — `raw.parse::<usize>().unwrap()` —
+  or you will conclude the gate works when it does not.
+- **The same gap applies to every other restriction lint** (`indexing_slicing`,
+  `panic`, `expect_used`, `float_arithmetic`, …). If a rule matters, deny it
+  explicitly; do not assume `-D warnings` is enforcing it.
+
+`expect()` is deliberately *not* denied. It carries a message, and the one use in
+`allowlist.rs` is on a compile-time-constant regex covered by a test — denying it
+there would push toward a silent fallback, which is worse than a documented panic
+on an unreachable branch. If a second `expect()` shows up in `src/`, that is the
+moment to revisit.
+
+Integration tests are separate crates and are unaffected. `unwrap()` in a test is
+fine.
+
 ### Performance
 
 The scanner has a budget of **200ms for a typical project** (500 files). Two things
