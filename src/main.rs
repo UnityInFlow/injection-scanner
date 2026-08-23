@@ -12,6 +12,7 @@ use anyhow::{Context, Result};
 use clap::{Parser, ValueEnum};
 
 use injection_scanner::allowlist::{parse_suppressions, Suppressions};
+use injection_scanner::context::DEFAULT_MIN_CONFIDENCE;
 use injection_scanner::pattern::ScanReport;
 use injection_scanner::patterns::load_all_patterns;
 use injection_scanner::reporter::{format_json, format_text};
@@ -78,7 +79,40 @@ enum Commands {
         /// you did not write the file you are scanning.
         #[arg(long)]
         no_suppress: bool,
+        /// Report findings regardless of where they appear in the document
+        ///
+        /// By default a payload quoted inside a fenced code block, an inline
+        /// `code` span or a markdown table scores below the confidence
+        /// threshold and is not reported, because that is what documentation
+        /// about injection looks like. `--strict` puts them all back. Use it
+        /// when the document is untrusted: a fenced block is still text a model
+        /// reads.
+        #[arg(long)]
+        strict: bool,
+        /// Minimum confidence to report, 0.0-1.0 (default 0.5)
+        ///
+        /// Overridden by `--strict`, which is equivalent to 0.0.
+        #[arg(long, value_name = "SCORE")]
+        min_confidence: Option<f32>,
     },
+}
+
+/// Resolve the confidence floor from the two flags that can set it.
+///
+/// `--strict` wins over `--min-confidence`: it is the "show me everything"
+/// escape hatch, and having it silently lose to a stricter number would be a
+/// surprising way to miss a finding.
+fn resolve_min_confidence(strict: bool, min_confidence: Option<f32>) -> Result<f32> {
+    if strict {
+        return Ok(0.0);
+    }
+    match min_confidence {
+        None => Ok(DEFAULT_MIN_CONFIDENCE),
+        Some(value) if (0.0..=1.0).contains(&value) => Ok(value),
+        Some(value) => Err(anyhow::anyhow!(
+            "--min-confidence must be between 0.0 and 1.0, got {value}"
+        )),
+    }
 }
 
 /// Human-readable reason a file could not be read.
@@ -96,13 +130,19 @@ fn describe_read_error(e: &std::io::Error) -> String {
     }
 }
 
-fn scan_file(path: &str, content: &str, scanner: &Scanner, no_suppress: bool) -> ScanReport {
+fn scan_file(
+    path: &str,
+    content: &str,
+    scanner: &Scanner,
+    no_suppress: bool,
+    min_confidence: f32,
+) -> ScanReport {
     let suppressions = if no_suppress {
         Suppressions::default()
     } else {
         parse_suppressions(content)
     };
-    scanner.scan(path, content, &suppressions)
+    scanner.scan_with_confidence(path, content, &suppressions, min_confidence)
 }
 
 /// Collect scannable files under `dir`, isolating per-directory failures.
@@ -158,7 +198,10 @@ fn main() -> Result<()> {
             patterns,
             strict_patterns,
             no_suppress,
+            strict,
+            min_confidence,
         } => {
+            let min_confidence = resolve_min_confidence(strict, min_confidence)?;
             let loaded = load_all_patterns(patterns.as_deref())
                 .context("Failed to load embedded patterns")?;
             let categories = loaded.categories;
@@ -210,13 +253,25 @@ fn main() -> Result<()> {
                 std::io::stdin()
                     .read_to_string(&mut content)
                     .context("Failed to read from stdin")?;
-                reports.push(scan_file("<stdin>", &content, &scanner, no_suppress));
+                reports.push(scan_file(
+                    "<stdin>",
+                    &content,
+                    &scanner,
+                    no_suppress,
+                    min_confidence,
+                ));
             } else {
                 let target = PathBuf::from(&path);
                 if target.is_file() {
                     let content = fs::read_to_string(&target)
                         .with_context(|| format!("Failed to read {}", target.display()))?;
-                    reports.push(scan_file(&path, &content, &scanner, no_suppress));
+                    reports.push(scan_file(
+                        &path,
+                        &content,
+                        &scanner,
+                        no_suppress,
+                        min_confidence,
+                    ));
                 } else if target.is_dir() {
                     let mut skipped_dirs: Vec<(PathBuf, String)> = Vec::new();
                     // Per-file error isolation. Previously a single unreadable or
@@ -242,6 +297,7 @@ fn main() -> Result<()> {
                                 &content,
                                 &scanner,
                                 no_suppress,
+                                min_confidence,
                             )),
                             Err(e) => {
                                 skipped += 1;

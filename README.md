@@ -103,6 +103,53 @@ tests/fixtures/injected-skill.md
 ]
 ```
 
+## Documentation Is Not an Attack
+
+A security guide that quotes `ignore all previous instructions` is documenting an
+attack, not carrying one. The scanner used to be unable to tell the difference and
+reported **15 findings on this README** — nine in the table above, six in sample
+output.
+
+It now tracks where in a markdown document each match sits and scores it:
+
+| Context | Confidence | Reported by default |
+|---|---|---|
+| Prose | 1.0 | yes |
+| HTML comment | 1.0 | yes |
+| Frontmatter | 0.9 | yes |
+| Block quote | 0.9 | yes |
+| Table cell | 0.3 | no |
+| Inline code span | 0.3 | no |
+| Fenced code block | 0.2 | no |
+
+HTML comments are deliberately **not** downgraded. Hidden text is a delivery
+mechanism, not a disclaimer — a payload nobody can see is worse than one they can.
+Frontmatter is structured config an agent loads directly, and a block quote is
+still text the model reads.
+
+```bash
+injection-scanner check README.md                    # 0 findings
+injection-scanner check README.md --strict           # 15 — every context reported
+injection-scanner check docs/ --min-confidence 0.9   # only the strongest signals
+```
+
+Every finding carries `context` and `confidence` in `--format json`, so a consumer
+can apply its own threshold instead of trusting this one:
+
+```json
+{
+  "pattern_id": "PI001",
+  "line": 56,
+  "context": "table",
+  "confidence": 0.3
+}
+```
+
+**Context is not a safety guarantee.** A model ingesting a document reads the
+fenced blocks too. The score says a match is *less likely to be an attack*, not
+that it is harmless — so use `--strict` whenever the document is not yours,
+alongside `--no-suppress`.
+
 ## Inline Suppression
 
 Three forms, all using pattern IDs. `injection-scanner:ignore` applies to **the line it appears on**:

@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use regex::{Regex, RegexBuilder};
 
 use crate::allowlist::Suppressions;
+use crate::context::{ContextMap, MatchContext, DEFAULT_MIN_CONFIDENCE};
 use crate::pattern::{PatternCategory, PatternError, ScanMatch, ScanReport, Severity};
 
 /// Upper bound on reported matches per pattern per line.
@@ -30,8 +31,16 @@ impl CompiledPattern {
     /// one arm of `scan` able to drift from the other is a bug waiting to
     /// happen — a new field added to `ScanMatch` would be populated in one
     /// place and defaulted in the other.
-    fn record(&self, file_path: &str, line_number: usize, matched_text: &str) -> ScanMatch {
+    fn record(
+        &self,
+        file_path: &str,
+        line_number: usize,
+        matched_text: &str,
+        context: MatchContext,
+    ) -> ScanMatch {
         ScanMatch {
+            context,
+            confidence: context.confidence(),
             pattern_id: self.id.clone(),
             pattern_name: self.name.clone(),
             severity: self.severity,
@@ -144,6 +153,24 @@ impl Scanner {
     /// Suppressed findings are recorded in the report rather than discarded, so a
     /// document that disarms the scanner leaves a visible trace.
     pub fn scan(&self, file_path: &str, content: &str, suppressions: &Suppressions) -> ScanReport {
+        self.scan_with_confidence(file_path, content, suppressions, DEFAULT_MIN_CONFIDENCE)
+    }
+
+    /// Scan, keeping only findings scoring at or above `min_confidence`.
+    ///
+    /// Pass 0.0 to report everything regardless of markdown context — that is
+    /// what `--strict` does. Findings below the threshold are dropped, not
+    /// filed under `suppressed`: that array means "a directive in the document
+    /// withheld this", and conflating the two would let a low-confidence
+    /// documentation match masquerade as evidence the scanner was disarmed.
+    pub fn scan_with_confidence(
+        &self,
+        file_path: &str,
+        content: &str,
+        suppressions: &Suppressions,
+        min_confidence: f32,
+    ) -> ScanReport {
+        let contexts = ContextMap::build(content);
         let mut matches = Vec::new();
         let mut suppressed = Vec::new();
 
@@ -180,7 +207,11 @@ impl Scanner {
                     .find_iter(line)
                     .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
                 {
-                    destination.push(cp.record(file_path, line_number, matched.as_str()));
+                    let context = contexts.context_at(line_number, line, matched.start());
+                    if context.confidence() < min_confidence {
+                        continue;
+                    }
+                    destination.push(cp.record(file_path, line_number, matched.as_str(), context));
                 }
             }
         }

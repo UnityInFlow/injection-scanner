@@ -1,3 +1,4 @@
+use crate::context::MatchContext;
 use crate::pattern::ScanReport;
 
 /// Format scan reports as human-readable text output.
@@ -15,9 +16,19 @@ pub fn format_text(reports: &[ScanReport]) -> String {
         output.push_str(&format!("\n{}\n", report.file));
 
         for m in &report.matches {
+            // Context is shown only when it is not plain prose. A finding that
+            // appears solely because `--strict` (or a lowered
+            // `--min-confidence`) was passed should say so on its own line —
+            // otherwise a documentation match is indistinguishable from a real
+            // one in the output that people actually read.
+            let where_found = if m.context == MatchContext::Prose {
+                String::new()
+            } else {
+                format!("  [{} · confidence {:.1}]", m.context.label(), m.confidence)
+            };
             output.push_str(&format!(
-                "  :{} {}  {} — {}  ({})\n",
-                m.line, m.severity, m.message, m.remediation, m.pattern_id
+                "  :{} {}  {} — {}  ({}){}\n",
+                m.line, m.severity, m.message, m.remediation, m.pattern_id, where_found
             ));
         }
     }
