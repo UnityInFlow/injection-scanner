@@ -44,3 +44,15 @@ patterns:
     description: "Training override attempt"
     remediation: "Remove training override."
     tags: [role-override]
+  - id: PI008
+    name: from-now-on-you-are
+    pattern: "(from\\s+now\\s+on|starting\\s+now|for\\s+the\\s+rest\\s+of\\s+this\\s+conversation)\\s*,?\\s*you\\s+are"
+    description: "Sustained role reassignment for the remainder of the conversation"
+    remediation: "Remove ongoing role-override phrasing. Scope roles explicitly instead."
+    tags: [role-override]
+  - id: PI009
+    name: reset-instructions
+    pattern: "(reset\\s+your\\s+instructions|your\\s+true\\s+instructions\\s+are|the\\s+real\\s+system\\s+prompt\\s+is)"
+    description: "Attempts to replace or reveal the real system instructions"
+    remediation: "Remove instruction-reset or system-prompt disclosure language."
+    tags: [role-override]
