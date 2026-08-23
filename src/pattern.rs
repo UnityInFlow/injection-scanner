@@ -128,8 +128,31 @@ pub struct ScanReport {
     /// `spec-ci-plugin`'s `JSON.parse(output) as Array<...>` is unaffected.
     #[serde(default)]
     pub suppressed: Vec<ScanMatch>,
+    /// Findings withheld because their markdown context scored below the
+    /// confidence threshold — a payload inside a fenced code block, an inline
+    /// span, or a table cell.
+    ///
+    /// A **separate** array from `suppressed`, deliberately. `suppressed` means
+    /// "a directive in this document disarmed the scanner", which is itself a
+    /// signal worth raising; this means "the scanner judged it documentation".
+    /// Merging them would let a benign README example masquerade as evidence of
+    /// tampering.
+    ///
+    /// Recorded rather than discarded, for the same reason `suppressed` is.
+    /// Markdown context is a guess about how a document will be *consumed*, and
+    /// it can be wrong: a fenced block is inert in a rendered README but arrives
+    /// as bare text when a page is flattened into an agent's context, which is
+    /// the exact delivery path this tool exists to guard. Dropping these outright
+    /// would hand an attacker a one-line bypass — wrap the payload in backticks
+    /// and the scanner goes silent with no trace. `--strict` (or
+    /// `--min-confidence 0`) moves these into `matches` unchanged.
+    ///
+    /// Additive field — the top-level JSON stays an array of report objects, so
+    /// `spec-ci-plugin`'s `JSON.parse(output) as Array<...>` is unaffected.
+    #[serde(default)]
+    pub low_confidence: Vec<ScanMatch>,
     /// Severity tallies over `matches` **only** — suppressed findings are not
-    /// counted here.
+    /// counted here, and neither are `low_confidence` ones.
     ///
     /// These answer "what is the user being asked to act on", which is what
     /// drives exit codes and CI gates; a suppressed finding is by definition
@@ -158,6 +181,16 @@ impl ScanReport {
         matches: Vec<ScanMatch>,
         suppressed: Vec<ScanMatch>,
     ) -> Self {
+        Self::with_withheld(file, matches, suppressed, Vec::new())
+    }
+
+    /// Create a report recording both reasons a finding can be withheld.
+    pub fn with_withheld(
+        file: String,
+        matches: Vec<ScanMatch>,
+        suppressed: Vec<ScanMatch>,
+        low_confidence: Vec<ScanMatch>,
+    ) -> Self {
         let critical_count = matches
             .iter()
             .filter(|m| m.severity == Severity::Critical)
@@ -178,6 +211,7 @@ impl ScanReport {
             file,
             matches,
             suppressed,
+            low_confidence,
             critical_count,
             high_count,
             medium_count,
@@ -193,6 +227,11 @@ impl ScanReport {
     /// How many findings this file's own directives withheld.
     pub fn suppressed_count(&self) -> usize {
         self.suppressed.len()
+    }
+
+    /// How many findings the markdown-context threshold withheld.
+    pub fn low_confidence_count(&self) -> usize {
+        self.low_confidence.len()
     }
 }
 

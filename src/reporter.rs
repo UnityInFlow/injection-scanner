@@ -34,6 +34,7 @@ pub fn format_text(reports: &[ScanReport]) -> String {
     }
 
     let total_suppressed: usize = reports.iter().map(|r| r.suppressed_count()).sum();
+    let total_low_confidence: usize = reports.iter().map(|r| r.low_confidence_count()).sum();
     let total_critical: usize = reports.iter().map(|r| r.critical_count).sum();
     let total_high: usize = reports.iter().map(|r| r.high_count).sum();
     let total_medium: usize = reports.iter().map(|r| r.medium_count).sum();
@@ -41,7 +42,14 @@ pub fn format_text(reports: &[ScanReport]) -> String {
     let total = total_critical + total_high + total_medium + total_low;
 
     if total == 0 {
-        output.push_str("No injection patterns detected.\n");
+        // Not flatly "nothing detected" when something *was* detected and then
+        // withheld — that reads as a clean bill of health, and the line below
+        // would contradict it.
+        if total_low_confidence > 0 || total_suppressed > 0 {
+            output.push_str("No injection patterns reported.\n");
+        } else {
+            output.push_str("No injection patterns detected.\n");
+        }
     } else {
         output.push_str(&format!(
             "\n{} finding(s): {} critical, {} high, {} medium, {} low\n",
@@ -67,6 +75,23 @@ pub fn format_text(reports: &[ScanReport]) -> String {
         output.push_str(&format!(
             "{total_suppressed} {findings} suppressed by directives in {files_with_suppressions} \
              scanned {files}. Re-run with --no-suppress to see {them}.\n"
+        ));
+    }
+
+    // The context threshold is the *scanner's* judgement, not the document's,
+    // so it is reported separately from suppression above — but it is still
+    // reported. A payload in a fenced block is inert in a rendered README and
+    // live in a page flattened into an agent's context; the scanner cannot tell
+    // which, so it must not go silent about the call it made.
+    if total_low_confidence > 0 {
+        let (findings, them) = if total_low_confidence == 1 {
+            ("finding", "it")
+        } else {
+            ("findings", "them")
+        };
+        output.push_str(&format!(
+            "{total_low_confidence} {findings} withheld as documentation (code blocks, inline \
+             spans, tables). Re-run with --strict to see {them}.\n"
         ));
     }
 
