@@ -49,6 +49,45 @@ cat skill.md | injection-scanner check -
 injection-scanner check CLAUDE.md --format json
 ```
 
+### Controlling what gets walked
+
+`check .` honours `.gitignore` and never descends into build output — `.git`,
+`target`, `node_modules`, `vendor`, `dist`, `.venv` and friends. On this
+repository that is the difference between **100ms and 10ms**; across an
+eight-repo tree, 1.46s and 0.31s.
+
+| Flag | Effect |
+|---|---|
+| `--exclude <glob>` | Skip matching paths (repeatable) |
+| `--include <glob>` | Scan matching paths whatever their extension (repeatable) |
+| `--no-ignore` | Don't honour `.gitignore` |
+| `--max-file-size <bytes>` | Skip files above the cap (default 10 MB) |
+| `--follow-symlinks` | Follow symlinks (off by default — a loop is a hang) |
+| `--jobs <n>` | Traversal threads (0 = automatic) |
+
+```bash
+injection-scanner check ./corpus --include '**/*.json' --include '**/*.mdx'
+injection-scanner check . --exclude '**/fixtures/**'
+```
+
+The built-in deny-list is not a `.gitignore` rule and is **not** lifted by
+`--no-ignore` or reachable by `--include`. `--no-ignore` means "don't trust this
+repository's ignore rules", which is reasonable on a checkout you didn't write;
+it doesn't mean "scan 40,000 files of build output".
+
+Nothing is skipped silently. Files the walker reached and declined are counted on
+stderr, and if `.gitignore` rules were applied it says so — because those prune
+whole subtrees before the walker sees them, so they can't be itemised:
+
+```
+note: .gitignore rules were applied — paths they exclude were not scanned and are
+      not counted above. Use --no-ignore to include them.
+note: 27 file(s) not scanned — not a scanned file type. Use --include <glob> to add them.
+```
+
+That disclosure matters more than it looks: a skills pack shipping a `.gitignore`
+containing `*` would otherwise scan nothing and report a clean bill of health.
+
 ## Pattern Categories
 
 | Category | Patterns | Default Severity | Examples |

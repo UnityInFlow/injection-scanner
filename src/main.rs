@@ -17,6 +17,7 @@ use injection_scanner::pattern::ScanReport;
 use injection_scanner::patterns::load_all_patterns;
 use injection_scanner::reporter::{format_json, format_text};
 use injection_scanner::scanner::Scanner;
+use injection_scanner::walk::{walk, SkipReason, WalkOptions, DEFAULT_MAX_FILE_SIZE};
 
 #[derive(Parser)]
 #[command(name = "injection-scanner")]
@@ -94,6 +95,36 @@ enum Commands {
         /// Overridden by `--strict`, which is equivalent to 0.0.
         #[arg(long, value_name = "SCORE")]
         min_confidence: Option<f32>,
+
+        // ---- directory walking (issue #22) ----
+        /// Skip paths matching this glob (repeatable)
+        ///
+        /// Applied on top of the unconditional deny-list, which already covers
+        /// `.git`, `target`, `node_modules` and friends.
+        #[arg(long, value_name = "GLOB")]
+        exclude: Vec<String>,
+        /// Scan paths matching this glob whatever their extension (repeatable)
+        ///
+        /// Cannot override the unconditional deny-list — `--include '**/*.json'`
+        /// will not pull in `target/`.
+        #[arg(long, value_name = "GLOB")]
+        include: Vec<String>,
+        /// Do not honour .gitignore
+        ///
+        /// Means "do not trust this repository's ignore rules", which is
+        /// reasonable on a checkout you did not write. It does NOT disable the
+        /// built-in deny-list: nothing agent-facing lives in `target/`.
+        #[arg(long)]
+        no_ignore: bool,
+        /// Skip files larger than this many bytes
+        #[arg(long, value_name = "BYTES", default_value_t = DEFAULT_MAX_FILE_SIZE)]
+        max_file_size: u64,
+        /// Follow symlinks (off by default — a symlink loop is a hang)
+        #[arg(long)]
+        follow_symlinks: bool,
+        /// Traversal threads (0 = choose automatically)
+        #[arg(long, value_name = "N", default_value_t = 0)]
+        jobs: usize,
     },
 }
 
@@ -145,49 +176,6 @@ fn scan_file(
     scanner.scan_with_confidence(path, content, &suppressions, min_confidence)
 }
 
-/// Collect scannable files under `dir`, isolating per-directory failures.
-///
-/// An unreadable subdirectory is skipped and counted, not propagated: a single
-/// permission-denied directory previously aborted the whole walk, which is the
-/// same defect as the per-file case in issue #14 one level up. Failure to read
-/// the directory the user actually named is still a hard error — that one is
-/// reported by the caller.
-fn walkdir(dir: &PathBuf, skipped: &mut Vec<(PathBuf, String)>) -> Result<Vec<PathBuf>> {
-    let mut files = Vec::new();
-    let entries =
-        fs::read_dir(dir).with_context(|| format!("Failed to read directory {}", dir.display()))?;
-
-    for entry in entries {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(e) => {
-                skipped.push((dir.clone(), describe_read_error(&e)));
-                continue;
-            }
-        };
-        let path = entry.path();
-        if path.is_file() {
-            let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
-            if matches!(ext, "md" | "yaml" | "yml" | "txt" | "toml") {
-                files.push(path);
-            }
-        } else if path.is_dir() {
-            match walkdir(&path, skipped) {
-                Ok(nested) => files.extend(nested),
-                Err(e) => skipped.push((path, root_cause(&e))),
-            }
-        }
-    }
-    Ok(files)
-}
-
-/// Innermost message of an `anyhow` chain, for a one-line skip warning.
-fn root_cause(e: &anyhow::Error) -> String {
-    e.chain()
-        .last()
-        .map_or_else(|| e.to_string(), |c| c.to_string())
-}
-
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
@@ -200,6 +188,12 @@ fn main() -> Result<()> {
             no_suppress,
             strict,
             min_confidence,
+            exclude,
+            include,
+            no_ignore,
+            max_file_size,
+            follow_symlinks,
+            jobs,
         } => {
             let min_confidence = resolve_min_confidence(strict, min_confidence)?;
             let loaded = load_all_patterns(patterns.as_deref())
@@ -273,7 +267,6 @@ fn main() -> Result<()> {
                         min_confidence,
                     ));
                 } else if target.is_dir() {
-                    let mut skipped_dirs: Vec<(PathBuf, String)> = Vec::new();
                     // Per-file error isolation. Previously a single unreadable or
                     // non-UTF-8 file propagated with `?` and killed the entire
                     // walk, which in CI reads as a scanner crash rather than a
@@ -285,12 +278,51 @@ fn main() -> Result<()> {
                     // `JSON.parse(output) as Array<...>`. A JSON envelope carrying
                     // `skipped` is deferred to v0.1.0 as a coordinated breaking
                     // change (audit L-02).
-                    let walked = walkdir(&target, &mut skipped_dirs)?;
-                    for (dir, reason) in &skipped_dirs {
+                    let options = WalkOptions {
+                        excludes: exclude,
+                        includes: include,
+                        respect_gitignore: !no_ignore,
+                        max_file_size,
+                        follow_symlinks,
+                        jobs,
+                    };
+                    let walked = walk(&target, &options)?;
+
+                    // Two classes, reported differently on purpose. An
+                    // unreadable entry or an oversized file is a gap the user
+                    // may want to close, and is named individually. "Not a
+                    // scanned file type" is the overwhelming majority on any
+                    // real tree — naming each one would bury the first class in
+                    // thousands of lines — so it is summarised instead. Neither
+                    // is silent: a scanner that says "clean" about files it
+                    // never opened is worse than one that says nothing.
+                    let mut unscanned_types = 0usize;
+                    for entry in &walked.skipped {
+                        if entry.reason == SkipReason::UnscannedType {
+                            unscanned_types += 1;
+                            continue;
+                        }
                         skipped += 1;
-                        eprintln!("warning: skipped directory {} — {}", dir.display(), reason);
+                        eprintln!(
+                            "warning: skipped {} — {}",
+                            entry.path.display(),
+                            entry.reason.describe()
+                        );
                     }
-                    for entry in walked {
+                    if walked.ignore_rules_applied {
+                        eprintln!(
+                            "note: .gitignore rules were applied — paths they exclude were not \
+                             scanned and are not counted above. Use --no-ignore to include them."
+                        );
+                    }
+                    if unscanned_types > 0 {
+                        eprintln!(
+                            "note: {unscanned_types} file(s) not scanned — not a scanned file \
+                             type. Use --include <glob> to add them."
+                        );
+                    }
+
+                    for entry in walked.files {
                         match fs::read_to_string(&entry) {
                             Ok(content) => reports.push(scan_file(
                                 &entry.to_string_lossy(),
