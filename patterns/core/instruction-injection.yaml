@@ -9,10 +9,18 @@ patterns:
     tags: [injection]
   - id: PI011
     name: system-override
-    pattern: "(?i)\\[?SYSTEM\\s*(OVERRIDE|PROMPT|MESSAGE)\\]?"
+    # The brackets used to be optional, which made the bare phrase "system
+    # prompt" a CRITICAL finding — the ordinary technical term, in every
+    # document that discusses prompting. What this pattern is actually after is
+    # a forged message DELIMITER, so it now requires delimiter shape: bracketed,
+    # or SHOUTED at the start of a line the way a real header would be, or the
+    # llama-style <<SYS>> marker. `(?-i)` on the line-start arm is what keeps
+    # "System prompt: loaded from config" out; patterns compile
+    # case-insensitively by default.
+    pattern: "(\\[SYSTEM\\s*(OVERRIDE|PROMPT|MESSAGE)\\]|(?-i:^\\s*SYSTEM\\s+(OVERRIDE|PROMPT|MESSAGE)\\b)|<<SYS>>)"
     severity: CRITICAL
-    description: "System-level instruction injection"
-    remediation: "Remove system override. Only actual system prompts should use SYSTEM prefix."
+    description: "Forged system-message delimiter"
+    remediation: "Remove the forged system delimiter. Only the real system turn should be framed this way."
     tags: [injection]
   - id: PI012
     name: hidden-html-instruction

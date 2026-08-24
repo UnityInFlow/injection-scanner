@@ -21,6 +21,7 @@
 //! reported. A scanner that says "clean" about files it never opened is worse
 //! than one that says nothing, because the first answer gets believed.
 
+use std::fs;
 use std::path::{Path, PathBuf};
 
 use ignore::overrides::OverrideBuilder;
@@ -52,12 +53,63 @@ pub const ALWAYS_EXCLUDED: &[&str] = &[
     ".tox",
 ];
 
-/// Extensions scanned by default.
+/// Extensions scanned by default (issue #23).
 ///
-/// Deliberately unchanged from the hand-rolled walker in this change. Widening
-/// it is issue #23, and doing both at once would make it impossible to tell a
-/// walker regression from a file-type regression.
-pub const DEFAULT_EXTENSIONS: &[&str] = &["md", "yaml", "yml", "txt", "toml"];
+/// The old five — `md`, `yaml`, `yml`, `txt`, `toml` — missed most of what an
+/// agent actually ingests. An MCP manifest is JSON, a docs site feeding a RAG
+/// pipeline is MDX or HTML, an eval dataset is JSONL, and every editor that
+/// competes with this one keeps its rules in a file this scanner had never
+/// heard of.
+///
+/// The list stays a list rather than becoming "every text file", because
+/// `check .` on a real repository has a time budget. `--all-files` is there for
+/// when that is the wrong trade.
+pub const DEFAULT_EXTENSIONS: &[&str] = &[
+    // Prose and specs
+    "md",
+    "mdx",
+    "markdown",
+    "rst",
+    "txt",
+    // Structured config an agent loads directly
+    "yaml",
+    "yml",
+    "toml",
+    "json",
+    "jsonc",
+    "json5",
+    "xml",
+    // Datasets and RAG ingest
+    "jsonl",
+    "ndjson",
+    "csv",
+    "tsv",
+    // Rendered documents — the delivery path where markup does not survive
+    "html",
+    "htm",
+    // Other agents' rule files that happen to carry an extension
+    "mdc",
+    "cursorrules",
+    "clinerules",
+];
+
+/// Whole filenames scanned by default, matched case-sensitively.
+///
+/// `Path::extension` returns `None` for a leading-dot name, so `.cursorrules`
+/// is invisible to any extension check — it is all stem, no extension. These
+/// are the agent-facing files that carry their identity in the name instead.
+pub const DEFAULT_FILENAMES: &[&str] = &[
+    ".cursorrules",
+    ".clinerules",
+    ".windsurfrules",
+    ".aiderrules",
+    ".goosehints",
+    ".continuerules",
+    "AGENTS",
+    "SKILL",
+    "PROMPT",
+    "Modelfile",
+];
 
 /// Default size cap, in bytes.
 ///
@@ -73,6 +125,8 @@ pub enum SkipReason {
     UnscannedType,
     /// Larger than the configured cap.
     TooLarge { size: u64, limit: u64 },
+    /// Looks like binary content — a NUL byte in the first block.
+    Binary,
     /// The directory entry itself could not be read.
     Unreadable(String),
 }
@@ -85,6 +139,7 @@ impl SkipReason {
             SkipReason::TooLarge { size, limit } => {
                 format!("{size} bytes exceeds the {limit} byte limit (--max-file-size)")
             }
+            SkipReason::Binary => "looks like binary content".to_string(),
             SkipReason::Unreadable(message) => message.clone(),
         }
     }
@@ -114,6 +169,9 @@ pub struct WalkOptions {
     pub follow_symlinks: bool,
     /// Traversal threads. `0` lets the walker choose.
     pub jobs: usize,
+    /// Scan every file, whatever its name, subject to the deny-list, ignore
+    /// rules, size cap and the binary check.
+    pub all_files: bool,
 }
 
 impl Default for WalkOptions {
@@ -125,6 +183,7 @@ impl Default for WalkOptions {
             max_file_size: DEFAULT_MAX_FILE_SIZE,
             follow_symlinks: false,
             jobs: 0,
+            all_files: false,
         }
     }
 }
@@ -155,16 +214,56 @@ pub struct Walked {
 /// An `--include` glob wins over the extension list: that is the entire point of
 /// the flag. It cannot override [`ALWAYS_EXCLUDED`], which is enforced earlier by
 /// the walker's directory filter.
-fn is_scannable(path: &Path, overrides: Option<&ignore::overrides::Override>) -> bool {
+fn is_scannable(
+    path: &Path,
+    overrides: Option<&ignore::overrides::Override>,
+    all_files: bool,
+) -> bool {
     if let Some(overrides) = overrides {
         // `matched` is `Whitelist` only for an explicit `--include` hit.
         if overrides.matched(path, false).is_whitelist() {
             return true;
         }
     }
-    path.extension()
+    if all_files {
+        return true;
+    }
+    if path
+        .extension()
         .and_then(|e| e.to_str())
         .is_some_and(|ext| DEFAULT_EXTENSIONS.contains(&ext))
+    {
+        return true;
+    }
+    // Whole-name match, for the leading-dot and extensionless agent files that
+    // `extension()` cannot see.
+    path.file_name()
+        .and_then(|n| n.to_str())
+        .is_some_and(|name| DEFAULT_FILENAMES.contains(&name))
+}
+
+/// Does this file look like binary content?
+///
+/// A NUL byte in the first block is the same heuristic `grep` and `git` use, and
+/// it is good enough: no text encoding this scanner can read produces one, and
+/// every binary format worth skipping produces one early.
+///
+/// Only consulted for files reached by `--all-files` or an `--include` glob. The
+/// default extension set is curated, so paying a read on every `.md` to confirm
+/// it is text would be pure cost. This is the price of asking for everything.
+fn looks_binary(path: &Path) -> bool {
+    use std::io::Read;
+
+    let Ok(mut file) = fs::File::open(path) else {
+        // Unreadable is not "binary" — the scan attempt will fail and report
+        // itself with a real reason, which is more useful than this guess.
+        return false;
+    };
+    let mut buffer = [0u8; 1024];
+    match file.read(&mut buffer) {
+        Ok(n) => buffer[..n].contains(&0),
+        Err(_) => false,
+    }
 }
 
 /// Walk `root`, returning the files to scan and the ones deliberately skipped.
@@ -252,10 +351,27 @@ pub fn walk(root: &Path, options: &WalkOptions) -> anyhow::Result<Walked> {
         }
         let path = entry.path();
 
-        if !is_scannable(path, includes.as_ref()) {
+        if !is_scannable(path, includes.as_ref(), options.all_files) {
             skipped.push(Skipped {
                 path: path.to_path_buf(),
                 reason: SkipReason::UnscannedType,
+            });
+            continue;
+        }
+
+        // Only for files the curated list did not choose. See `looks_binary`.
+        let by_name = path
+            .extension()
+            .and_then(|e| e.to_str())
+            .is_some_and(|ext| DEFAULT_EXTENSIONS.contains(&ext))
+            || path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(|name| DEFAULT_FILENAMES.contains(&name));
+        if !by_name && looks_binary(path) {
+            skipped.push(Skipped {
+                path: path.to_path_buf(),
+                reason: SkipReason::Binary,
             });
             continue;
         }

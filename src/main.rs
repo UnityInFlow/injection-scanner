@@ -125,6 +125,13 @@ enum Commands {
         /// Traversal threads (0 = choose automatically)
         #[arg(long, value_name = "N", default_value_t = 0)]
         jobs: usize,
+        /// Scan every file, not just known agent-facing types
+        ///
+        /// Still honours the deny-list, .gitignore and the size cap, and skips
+        /// anything with a NUL byte in its first block. Use it on a corpus you
+        /// did not assemble, where the extension tells you nothing.
+        #[arg(long)]
+        all_files: bool,
     },
 }
 
@@ -194,6 +201,7 @@ fn main() -> Result<()> {
             max_file_size,
             follow_symlinks,
             jobs,
+            all_files,
         } => {
             let min_confidence = resolve_min_confidence(strict, min_confidence)?;
             let loaded = load_all_patterns(patterns.as_deref())
@@ -285,6 +293,7 @@ fn main() -> Result<()> {
                         max_file_size,
                         follow_symlinks,
                         jobs,
+                        all_files,
                     };
                     let walked = walk(&target, &options)?;
 

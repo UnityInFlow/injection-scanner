@@ -49,6 +49,33 @@ cat skill.md | injection-scanner check -
 injection-scanner check CLAUDE.md --format json
 ```
 
+### What gets scanned
+
+By default: prose and specs (`.md`, `.mdx`, `.markdown`, `.rst`, `.txt`),
+structured config an agent loads (`.yaml`, `.yml`, `.toml`, `.json`, `.jsonc`,
+`.json5`, `.xml`), datasets and RAG ingest (`.jsonl`, `.ndjson`, `.csv`, `.tsv`),
+rendered documents (`.html`, `.htm`), and other agents' rule files — including
+the leading-dot ones an extension check cannot see, like `.cursorrules`,
+`.clinerules` and `.windsurfrules`.
+
+Rendered HTML matters more than it looks. A payload inside a fenced code block is
+inert in a README, but the same page flattened into an agent's context arrives
+without its fence markers. Scanning a directory of rendered pages used to report
+nothing at all:
+
+```bash
+$ injection-scanner check ./delivered      # before
+note: 6 file(s) not scanned — not a scanned file type.
+No injection patterns detected.
+
+$ injection-scanner check ./delivered      # now
+8 finding(s): 5 critical, 3 high
+```
+
+Use `--all-files` for a corpus whose extensions tell you nothing. It still
+honours the deny-list, `.gitignore` and the size cap, and skips anything with a
+NUL byte in its first block — so `--all-files` does not mean "feed me a JPEG".
+
 ### Controlling what gets walked
 
 `check .` honours `.gitignore` and never descends into build output — `.git`,
@@ -64,6 +91,7 @@ eight-repo tree, 1.46s and 0.31s.
 | `--max-file-size <bytes>` | Skip files above the cap (default 10 MB) |
 | `--follow-symlinks` | Follow symlinks (off by default — a loop is a hang) |
 | `--jobs <n>` | Traversal threads (0 = automatic) |
+| `--all-files` | Scan every file, not just known agent-facing types |
 
 ```bash
 injection-scanner check ./corpus --include '**/*.json' --include '**/*.mdx'

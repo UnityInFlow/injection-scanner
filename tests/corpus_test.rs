@@ -39,7 +39,12 @@ fn corpus(name: &str) -> PathBuf {
         .join(name)
 }
 
-/// Every markdown file in a corpus directory, sorted, excluding its README.
+/// Every specimen in a corpus directory, sorted, excluding its README.
+///
+/// Every file, not only `*.md`. The corpus has to cover the formats the walker
+/// covers, and #23 widened that to JSON, HTML, MDX and the rest — a corpus that
+/// silently globbed one extension would have gone quiet about exactly the file
+/// types being added.
 ///
 /// The README explains the corpus rather than being a specimen, and it quotes
 /// the payloads it is describing.
@@ -47,7 +52,7 @@ fn specimens(dir: &Path) -> Vec<PathBuf> {
     let mut files: Vec<_> = fs::read_dir(dir)
         .unwrap_or_else(|e| panic!("corpus {} must be readable: {e}", dir.display()))
         .map(|entry| entry.expect("directory entry").path())
-        .filter(|p| p.extension().and_then(|e| e.to_str()) == Some("md"))
+        .filter(|p| p.is_file())
         .filter(|p| p.file_name().and_then(|n| n.to_str()) != Some("README.md"))
         .collect();
     files.sort();

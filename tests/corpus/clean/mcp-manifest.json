@@ -1,0 +1,20 @@
+{
+  "_comment": "Would-be PI011: its brackets were optional, so the bare phrase 'system prompt' matched at CRITICAL. Surfaced by #23 adding .json to the default set — 7 hits across this ecosystem, every one a field description.",
+  "name": "example-mcp-server",
+  "version": "0.1.0",
+  "description": "Reference MCP server used in the docs",
+  "tools": [
+    {
+      "name": "get_system_prompt",
+      "description": "Returns the system prompt currently configured for this agent, for debugging. The system message is not modified."
+    },
+    {
+      "name": "search_docs",
+      "description": "Full-text search across the documentation corpus"
+    }
+  ],
+  "config": {
+    "systemPrompt": "You are a helpful documentation assistant.",
+    "maxTokens": 4096
+  }
+}
