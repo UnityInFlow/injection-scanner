@@ -4,6 +4,7 @@ use regex::{Regex, RegexBuilder};
 
 use crate::allowlist::Suppressions;
 use crate::context::{ContextMap, MatchContext, DEFAULT_MIN_CONFIDENCE};
+use crate::multiline::joined_blocks;
 use crate::pattern::{PatternCategory, PatternError, ScanMatch, ScanReport, Severity};
 
 /// Upper bound on reported matches per pattern per line.
@@ -229,6 +230,58 @@ impl Scanner {
                         &mut matches
                     };
                     destination.push(cp.record(file_path, line_number, matched.as_str(), context));
+                }
+            }
+        }
+
+        // Second pass: payloads split across a line break (#24). Runs after the
+        // line pass because it only reports what that pass could not see — a
+        // match whose span crosses a break. Everything else is already filed.
+        let source_lines: Vec<&str> = content.lines().collect();
+        for block in joined_blocks(content) {
+            for cp in &self.compiled {
+                for matched in cp
+                    .regex
+                    .find_iter(&block.text)
+                    .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
+                {
+                    let span = matched.range();
+                    if !block.spans_a_break(&span) {
+                        continue;
+                    }
+                    let (first, last) = block.line_span(&span);
+
+                    // A suppression directive on ANY line the match touches
+                    // silences it. The alternative — keying only on the first
+                    // line — would let a payload evade an existing suppression
+                    // by starting one line earlier, and suppression is meant to
+                    // be a statement about the text, not about its offset.
+                    let suppressed_here =
+                        (first..=last).any(|line| suppressions.is_suppressed(line, &cp.id));
+
+                    // Context is taken from where the match STARTS — the line
+                    // and the offset within it. A payload that begins in prose
+                    // and continues into a fence is prose: the attacker chose
+                    // where to start it.
+                    //
+                    // The offset is load-bearing, not decoration. Inline-code
+                    // and table detection are questions about position within a
+                    // line, so passing a placeholder answers "prose" for
+                    // everything — and a payload quoted inside backticks across
+                    // a wrap gets reported as a live one. Our own
+                    // ROADMAP-v0.1.0.md is exactly that shape.
+                    let (start_line, offset) = block.line_and_offset(span.start);
+                    let line_text = source_lines.get(start_line - 1).copied().unwrap_or("");
+                    let context = contexts.context_at(start_line, line_text, offset);
+
+                    let destination = if suppressed_here {
+                        &mut suppressed
+                    } else if context.confidence() < min_confidence {
+                        &mut low_confidence
+                    } else {
+                        &mut matches
+                    };
+                    destination.push(cp.record(file_path, first, matched.as_str(), context));
                 }
             }
         }
