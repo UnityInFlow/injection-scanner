@@ -18,3 +18,4 @@ pub mod pattern;
 pub mod patterns;
 pub mod reporter;
 pub mod scanner;
+pub mod walk;

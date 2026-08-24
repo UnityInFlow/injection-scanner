@@ -30,6 +30,8 @@ fn forbidden_fragments() -> Vec<String> {
 fn no_integration_test_hard_codes_a_path_into_the_target_directory() {
     let tests_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
     let forbidden = forbidden_fragments();
+    // Assembled at runtime for the same reason as the fragments above.
+    let binary_name: &str = &("injection".to_string() + "-scanner");
     let this_file = Path::new(file!())
         .file_name()
         .expect("file!() always has a final component")
@@ -49,6 +51,7 @@ fn no_integration_test_hard_codes_a_path_into_the_target_directory() {
         }
         let source = fs::read_to_string(&path).expect("test source must be valid UTF-8");
         checked += 1;
+        let spawns_correctly = source.contains("CARGO_BIN_EXE");
 
         for (index, line) in source.lines().enumerate() {
             // Prose describing this very rule has to be allowed to name it.
@@ -56,15 +59,34 @@ fn no_integration_test_hard_codes_a_path_into_the_target_directory() {
             if line.trim_start().starts_with("//") {
                 continue;
             }
-            for fragment in &forbidden {
-                if line.contains(fragment.as_str()) {
-                    offenders.push(format!(
-                        "{}:{}: {}",
-                        path.file_name().and_then(|n| n.to_str()).unwrap_or("?"),
-                        index + 1,
-                        line.trim()
-                    ));
-                }
+            let report = |offenders: &mut Vec<String>| {
+                offenders.push(format!(
+                    "{}:{}: {}",
+                    path.file_name().and_then(|n| n.to_str()).unwrap_or("?"),
+                    index + 1,
+                    line.trim()
+                ));
+            };
+
+            // A target-directory path is only a hazard when it points at the
+            // *executable*. A test that creates a fixture directory happening to
+            // be named `target/debug` — to prove the walker refuses to descend
+            // into one — is doing the opposite of misbehaving, and the first
+            // version of this guard failed exactly that test.
+            if forbidden.iter().any(|f| line.contains(f.as_str())) && line.contains(binary_name) {
+                report(&mut offenders);
+                continue;
+            }
+
+            // The direct form of the invariant, checked per FILE rather than
+            // per line. Spawning through a local `binary_path()` helper is the
+            // correct shape — demanding the literal on the same line as
+            // `Command::new` would condemn the very fix this guard exists to
+            // protect. What must not exist is a file that spawns the binary
+            // without `CARGO_BIN_EXE` appearing anywhere in it, which is exactly
+            // what the three broken files looked like.
+            if line.contains("Command::new(") && !spawns_correctly {
+                report(&mut offenders);
             }
         }
     }
