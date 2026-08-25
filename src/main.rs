@@ -15,7 +15,7 @@ use injection_scanner::allowlist::{parse_suppressions, Suppressions};
 use injection_scanner::baseline::Baseline;
 use injection_scanner::context::DEFAULT_MIN_CONFIDENCE;
 use injection_scanner::pattern::{ScanReport, Severity};
-use injection_scanner::patterns::load_all_patterns;
+use injection_scanner::patterns::{grade, load_all_patterns, GradedRule};
 use injection_scanner::reporter::{format_json, format_text};
 use injection_scanner::sarif::format_sarif;
 use injection_scanner::scanner::Scanner;
@@ -532,8 +532,9 @@ fn main() -> Result<()> {
                     OutputFormat::Text => format_text(&reports),
                     // Pre-baseline run, consistent with text and JSON above:
                     // `--write-baseline` shows the scan as it was before any
-                    // finding was accepted.
-                    OutputFormat::Sarif => format_sarif(&reports)?,
+                    // finding was accepted. `grade` is computed only on this
+                    // arm, so the text and JSON paths pay nothing for it.
+                    OutputFormat::Sarif => format_sarif(&reports, &grade(&categories))?,
                 };
                 if !quiet {
                     print!("{}", output);
@@ -579,7 +580,7 @@ fn main() -> Result<()> {
             let output = match format {
                 OutputFormat::Json => format_json(&reports)?,
                 OutputFormat::Text => format_text(&reports),
-                OutputFormat::Sarif => format_sarif(&reports)?,
+                OutputFormat::Sarif => format_sarif(&reports, &grade(&categories))?,
             };
 
             if !quiet {
@@ -751,48 +752,18 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-/// A pattern with its severity already resolved against the category default.
+/// Loads patterns from disk, prints per-file load warnings, and returns the
+/// graded (effective-severity) rule set.
 ///
-/// `rules` and `explain` both need the EFFECTIVE severity — the number a user
-/// will actually see in a finding — not the optional per-pattern override. A
-/// listing that showed a blank severity for every pattern inheriting its
-/// category default would be worse than no listing.
-#[derive(serde::Serialize)]
-struct GradedRule {
-    id: String,
-    name: String,
-    severity: Severity,
-    category: String,
-    description: String,
-    remediation: String,
-    pattern: String,
-    tags: Vec<String>,
-}
-
+/// `grade` itself (in `src/patterns/mod.rs`) is pure — no I/O, no stderr —
+/// so it can also be called from the SARIF writer's call site below without
+/// pulling a second, silent load of the pattern files.
 fn load_graded(patterns: Option<&std::path::Path>) -> Result<Vec<GradedRule>> {
     let loaded = load_all_patterns(patterns)?;
     for e in &loaded.errors {
         eprintln!("warning: pattern skipped — {e}");
     }
-    let mut rules: Vec<GradedRule> = loaded
-        .categories
-        .iter()
-        .flat_map(|category| {
-            category.patterns.iter().map(move |p| GradedRule {
-                id: p.id.clone(),
-                name: p.name.clone(),
-                severity: p.severity.unwrap_or(category.default_severity),
-                category: category.category.clone(),
-                description: p.description.clone(),
-                remediation: p.remediation.clone(),
-                pattern: p.pattern.clone(),
-                tags: p.tags.clone(),
-            })
-        })
-        .collect();
-    // Sorted by id so the listing is stable and diffable.
-    rules.sort_by(|a, b| a.id.cmp(&b.id));
-    Ok(rules)
+    Ok(grade(&loaded.categories))
 }
 
 /// Marks a hook as ours, so an update can tell "mine, older" from "someone
