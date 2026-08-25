@@ -6,25 +6,46 @@ See: `.planning/PROJECT.md`
 **Milestone:** Production Readiness — v0.0.3 + v0.1.0 (opened 2026-08-21)
 
 ## Current Phase
-**Phase 2 — Correctness (v0.0.3)** · status: **all code merged to `main`; only the v0.0.3 tag remains**
+**Phase 3 — Signal Quality** · status: **in progress; QUAL-01 and CLI-09 merged, three PRs open in a stack**
 
-Zero open pull requests. The last nine merged on 2026-08-22 after a review round: #61, #55, #58, #59
-and the five dependabot action bumps (#47–#50, #60). `main` is green — fmt, clippy, 93 tests — and
-still strictly linear (this repo rebase-merges; it has no merge commits).
+`main` is green — fmt, clippy, 20 test binaries — and still strictly linear (this repo rebase-merges;
+it has no merge commits).
 
-**Next:** tag v0.0.3. Nothing blocks it.
+### Merged into `main` (2026-08-24)
+| PR | Issue | What |
+|---|---|---|
+| #65 | #20 | Markdown context awareness + `confidence` on every finding. Below-threshold findings are **recorded** in `low_confidence`, not discarded — a fenced payload must not be a traceless bypass. |
+| #69 | #22 | `ignore`-crate walker: `.gitignore`, deny-list, size cap, symlink guard, parallel + sorted. 100ms → 10ms on this repo. |
+
+### Open, in a stack (each green, each based on the one above)
+| PR | Issue | What | Blocked on |
+|---|---|---|---|
+| #71 | QUAL-03 | False-positive corpus — `clean/` and `documentation/`, asymmetry enforced under `--strict` | review |
+| #72 | #23 | Broadened file types + `--all-files`; **narrowed PI011**, whose optional brackets made "the system prompt" a CRITICAL | #71 |
+| #73 | #24 | Multi-line matching — paragraph join, reports only spans crossing a break | #72 |
+| #66 | #27 | 19 patterns from an external contributor (VedantMadane). Retuned against a real corpus; PI048 dropped. | contributor reply |
 
 ### Phase status
 | Phase | Goal | Status |
 |---|---|---|
 | 1 | Restore the Gate | ✅ Merged (PR #44) |
-| 2 | Correctness — ship v0.0.3 | ✅ Code merged — tag pending |
-| 3 | Signal Quality | Ready to start |
+| 2 | Correctness — ship v0.0.3 | ✅ Shipped 2026-08-23 |
+| 3 | Signal Quality | 🔄 In progress — QUAL-01, CLI-09 merged; QUAL-03, CLI-10, SCAN-06 in review; QUAL-02, SCAN-05 remain |
 | 4 | Integration — ship v0.1.0 | Blocked on Phase 3 |
+
+**Next:** land the stack, then QUAL-02 (#21, severity rebalance — wants #66 first) and SCAN-05
+(#26, Unicode normalization).
 
 ## Releases
 - **v0.0.1** (2026-04-01): 30 patterns, 5 categories, text/JSON output, inline suppression, stdin mode
 - **v0.0.2** (2026-06-24): 6 target-triple binaries + SHA256SUMS. Consumed by `spec-ci-plugin`.
+- **v0.0.3** (2026-08-23): 9/9 CI jobs green, SLSA v1 provenance over all six binaries bound to
+  `refs/tags/v0.0.3`. Consumer path verified end to end. `spec-ci-plugin` defaults to it as of its
+  v1.1.0.
+
+> `main` is now several behaviour-changing commits past `v0.0.3` and `Cargo.toml` still reads
+> `0.0.3`. No consumer is affected until a tag is cut — `spec-ci-plugin` pins `v0.0.3` — so a
+> v0.0.4 is a choice, not a debt.
 
 ## Open decisions carried into this milestone
 
