@@ -194,9 +194,16 @@ impl Baseline {
     /// them, so which occurrence stays visible when the budget runs out is
     /// stable across runs.
     ///
-    /// Returns the entries whose budget was never touched at all — zero
-    /// occurrences consumed — which is the definition of stale used to
-    /// surface the prunable-entry note.
+    /// Returns the stale entries: those naming a file this run actually
+    /// scanned, which consumed zero occurrences of it.
+    ///
+    /// Scoping to scanned files is load-bearing, not a refinement. The
+    /// pre-commit hook scans only STAGED files, so on a commit touching one
+    /// unrelated file every other entry consumes nothing — and reporting all
+    /// of them as prunable, on every commit, is how the one note that matters
+    /// becomes wallpaper. An entry for a file outside the run's scope says
+    /// nothing about whether its finding is gone, so this says nothing about
+    /// it either.
     pub fn apply(&self, reports: &mut [ScanReport]) -> Vec<BaselineEntry> {
         let mut budget: HashMap<Identity, usize> = HashMap::new();
         for entry in &self.entries {
@@ -213,6 +220,12 @@ impl Baseline {
                 .or_insert(0) += entry.count;
         }
         let mut touched: HashSet<Identity> = HashSet::new();
+        // Which files this run actually opened. Without it, "consumed nothing"
+        // is indistinguishable from "was never looked at".
+        let scanned: HashSet<String> = reports
+            .iter()
+            .map(|report| normalise_file(&report.file))
+            .collect();
 
         for report in reports.iter_mut() {
             let mut kept = Vec::new();
@@ -247,8 +260,12 @@ impl Baseline {
         self.entries
             .iter()
             .filter(|entry| {
+                let file = normalise_file(&entry.file);
+                if !scanned.contains(&file) {
+                    return false;
+                }
                 let identity = Identity {
-                    file: normalise_file(&entry.file),
+                    file,
                     pattern_id: entry.pattern_id.clone(),
                     digest: entry.digest.clone(),
                 };
