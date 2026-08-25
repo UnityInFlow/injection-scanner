@@ -738,3 +738,55 @@ fn duplicate_entries_for_one_fingerprint_sum_their_counts() {
          count 2 does. stdout:\n{stdout}\nstderr:\n{stderr}"
     );
 }
+
+#[test]
+fn an_entry_whose_file_was_not_scanned_is_not_called_stale() {
+    // Stale means "this file was scanned and the finding is gone", so it can
+    // only be judged about files the run actually looked at. The pre-commit
+    // hook scans ONLY staged files, so on a commit touching one unrelated file
+    // every other entry consumes zero occurrences — and reporting all of them
+    // as prunable, on every commit, is how a warning becomes wallpaper.
+    let scanned = Doc::new("scanned-file.md", "clean prose, nothing here\n");
+    let absent = Doc::new("absent-file.md", "clean prose, nothing here\n");
+    let baseline = Doc::new("partial-scan-baseline.json", "{}");
+
+    // An entry naming a file this run will never open.
+    baseline.write(&format!(
+        r#"{{"version":1,"generated_by":"test","entries":[
+            {{"file":{},"pattern_id":"PI001",
+              "digest":"sha256:{}","count":1,"first_seen_line":1}}]}}"#,
+        serde_json::to_string(absent.path()).expect("encode path"),
+        "0".repeat(64)
+    ));
+
+    let (code, _, stderr) = run(&["check", scanned.path(), "--baseline", baseline.path()]);
+
+    assert_eq!(code, 0, "the scanned file is clean: {stderr}");
+    assert!(
+        !stderr.contains("can be pruned"),
+        "an entry for a file outside this run's scope says nothing about whether \
+         the finding is gone — calling it prunable on every partial scan buries \
+         the genuinely stale entries the note exists to surface. stderr:\n{stderr}"
+    );
+}
+
+#[test]
+fn an_entry_whose_file_was_scanned_and_is_clean_is_still_called_stale() {
+    // The negative case for the test above: narrowing "stale" to scanned files
+    // must not narrow it to nothing.
+    let doc = Doc::new("went-clean.md", include_str!("fixtures/injected-skill.md"));
+    let baseline = Doc::new("went-clean-baseline.json", "{}");
+
+    let (code, _, stderr) = run(&["check", doc.path(), "--write-baseline", baseline.path()]);
+    assert_eq!(code, 0, "--write-baseline must exit 0: {stderr}");
+
+    doc.write("the payload has been removed\n");
+    let (code, _, stderr) = run(&["check", doc.path(), "--baseline", baseline.path()]);
+
+    assert_eq!(code, 0, "the file is clean now: {stderr}");
+    assert!(
+        stderr.contains("can be pruned"),
+        "this file WAS scanned and its findings are gone — that entry is a live \
+         licence to re-introduce them and must still be reported. stderr:\n{stderr}"
+    );
+}
