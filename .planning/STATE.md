@@ -6,35 +6,51 @@ See: `.planning/PROJECT.md`
 **Milestone:** Production Readiness — v0.0.3 + v0.1.0 (opened 2026-08-21)
 
 ## Current Phase
-**Phase 3 — Signal Quality** · status: **in progress; QUAL-01 and CLI-09 merged, three PRs open in a stack**
+**Phase 4 — Integration (v0.1.0)** · status: **Phase 3 complete; the adoption POC is in**
 
-`main` is green — fmt, clippy, 20 test binaries — and still strictly linear (this repo rebase-merges;
-it has no merge commits).
+`main` is green — fmt, clippy, 24 test binaries — and still strictly linear.
 
-### Merged into `main` (2026-08-24)
+### The POC works end to end
+```
+$ injection-scanner install-hook
+$ git commit -m "add deploy skill"
+./skills/deploy.md
+  :5 CRITICAL  System prompt exfiltration attempt  (PI021)  [html comment · confidence 1.0]
+  :5 CRITICAL  Attempts to override agent instructions  (PI001)  [html comment · confidence 1.0]
+
+Commit blocked: prompt-injection patterns at high or above.
+```
+That payload is obfuscated (`ignore-all-previous-instructions`) and hidden in an
+HTML comment. Both are caught, at 60ms on a 40-file repo against a 200ms budget.
+
+### Merged 2026-08-24/25
 | PR | Issue | What |
 |---|---|---|
-| #65 | #20 | Markdown context awareness + `confidence` on every finding. Below-threshold findings are **recorded** in `low_confidence`, not discarded — a fenced payload must not be a traceless bypass. |
-| #69 | #22 | `ignore`-crate walker: `.gitignore`, deny-list, size cap, symlink guard, parallel + sorted. 100ms → 10ms on this repo. |
-
-### Open, in a stack (each green, each based on the one above)
-| PR | Issue | What | Blocked on |
-|---|---|---|---|
-| #71 | QUAL-03 | False-positive corpus — `clean/` and `documentation/`, asymmetry enforced under `--strict` | review |
-| #72 | #23 | Broadened file types + `--all-files`; **narrowed PI011**, whose optional brackets made "the system prompt" a CRITICAL | #71 |
-| #73 | #24 | Multi-line matching — paragraph join, reports only spans crossing a break | #72 |
-| #66 | #27 | 19 patterns from an external contributor (VedantMadane). Retuned against a real corpus; PI048 dropped. | contributor reply |
+| #65 | #20 | Markdown context awareness; below-threshold findings recorded, never dropped |
+| #69 | #22 | `ignore`-crate walker — 100ms → 10ms on this repo |
+| #71 | QUAL-03 | False-positive corpus; `clean/` and `documentation/` asymmetry enforced |
+| #72 | #23 | Broadened file types + `--all-files`; **narrowed PI011** |
+| #73 | #24 | Multi-line matching — paragraph join |
+| #74 | #26 | Unicode normalization — separator, spacing, homoglyph, fullwidth, zero-width |
+| #75 | #21 | Severity rebalanced 12/9/7/2; criteria in `PATTERNS.md` |
+| #76 | #25 | `--fail-on`, `--quiet`, exit code 2, `rules`, `explain` |
+| #77 | #8 | `install-hook` + `.pre-commit-hooks.yaml` |
 
 ### Phase status
 | Phase | Goal | Status |
 |---|---|---|
 | 1 | Restore the Gate | ✅ Merged (PR #44) |
 | 2 | Correctness — ship v0.0.3 | ✅ Shipped 2026-08-23 |
-| 3 | Signal Quality | 🔄 In progress — QUAL-01, CLI-09 merged; QUAL-03, CLI-10, SCAN-06 in review; QUAL-02, SCAN-05 remain |
-| 4 | Integration — ship v0.1.0 | Blocked on Phase 3 |
+| 3 | Signal Quality | ✅ Complete — QUAL-01/02/03, SCAN-05/06, CLI-09/10 |
+| 4 | Integration — ship v0.1.0 | 🔄 In progress — HOOK-01, CLI-06, CLI-07 done |
 
-**Next:** land the stack, then QUAL-02 (#21, severity rebalance — wants #66 first) and SCAN-05
-(#26, Unicode normalization).
+### Phase 4 remaining (7)
+CLI-04 SARIF · CLI-08 `--baseline` · PERF-02 Aho-Corasick · SCAN-07 patterns (PR #66, awaiting
+contributor) · TEST-01 coverage gate · TEST-02 criterion benchmarks · DOCS-02 (partly done — the
+severity criteria landed with #21; the per-pattern test policy is #70)
+
+**Next:** CLI-08 `--baseline` is the highest-value remaining adoption feature — an existing
+repository cannot adopt this without it, because day one is a wall of findings.
 
 ## Releases
 - **v0.0.1** (2026-04-01): 30 patterns, 5 categories, text/JSON output, inline suppression, stdin mode
