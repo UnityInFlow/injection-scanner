@@ -6,7 +6,7 @@
 
 use std::fs;
 use std::io::Read;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use clap::{Parser, ValueEnum};
@@ -224,6 +224,15 @@ enum Commands {
         /// Severity at or above which a commit is blocked
         #[arg(long, value_enum, ignore_case = true, default_value_t = FailOn::High)]
         fail_on: FailOn,
+        /// Honour this baseline file when the hook scans (issue #25, CLI-08)
+        ///
+        /// Without it, a repository that accepted its existing findings with
+        /// `check . --write-baseline` still cannot commit: the hook would
+        /// re-report every one of them. The path is resolved to an absolute
+        /// one at install time, because the hook scans from inside a temporary
+        /// staging copy where a relative path would not exist.
+        #[arg(long, value_name = "FILE")]
+        baseline: Option<PathBuf>,
         /// Overwrite an existing hook
         #[arg(long)]
         force: bool,
@@ -491,6 +500,16 @@ fn main() -> Result<()> {
                 };
                 if !quiet {
                     print!("{}", output);
+                    // Before the confirmation, not after. Recording an accept
+                    // decision over a tree the scanner could not fully read is
+                    // exactly when the coverage gap matters most, and the
+                    // reassuring "wrote N entries" must not be the last word.
+                    if skipped > 0 {
+                        eprintln!(
+                            "warning: {} file(s) skipped and NOT scanned — they are NOT in this                              baseline; see warnings above",
+                            skipped
+                        );
+                    }
                     eprintln!(
                         "note: wrote {} baseline entr{} to {}",
                         baseline.entries.len(),
@@ -592,8 +611,23 @@ fn main() -> Result<()> {
         Commands::InstallHook {
             repo,
             fail_on,
+            baseline,
             force,
         } => {
+            // Resolved before anything is written. A hook baked with a
+            // mistyped path would fail on every commit from then on, and the
+            // error would surface far from the typo that caused it.
+            let baseline = match baseline {
+                None => None,
+                Some(path) => Some(fs::canonicalize(&path).with_context(|| {
+                    format!(
+                        "Cannot install a hook against baseline {} — write one first with \
+                         `injection-scanner check . --write-baseline {}`",
+                        path.display(),
+                        path.display()
+                    )
+                })?),
+            };
             let root = repo.unwrap_or_else(|| PathBuf::from("."));
             let hooks = git_hooks_dir(&root)?;
             let hook = hooks.join("pre-commit");
@@ -617,7 +651,7 @@ fn main() -> Result<()> {
 
             fs::create_dir_all(&hooks)
                 .with_context(|| format!("Failed to create {}", hooks.display()))?;
-            fs::write(&hook, hook_script(fail_on))
+            fs::write(&hook, hook_script(fail_on, baseline.as_deref()))
                 .with_context(|| format!("Failed to write {}", hook.display()))?;
 
             #[cfg(unix)]
@@ -631,6 +665,9 @@ fn main() -> Result<()> {
             println!(
                 "Staged files are scanned before each commit; {fail_on:?} and above block it."
             );
+            if let Some(path) = &baseline {
+                println!("Findings accepted in {} are not reported.", path.display());
+            }
             println!("Bypass once with `git commit --no-verify`.");
         }
 
@@ -762,8 +799,30 @@ fn git_hooks_dir(root: &std::path::Path) -> Result<PathBuf> {
 /// working tree — `git stash`-free and correct when a file is partially staged.
 /// Without that, a developer could stage a clean version, leave a payload
 /// unstaged, and have the hook pass on text that is not what gets committed.
-fn hook_script(fail_on: FailOn) -> String {
+/// Wraps `value` in single quotes for safe interpolation into the generated
+/// `sh` hook.
+///
+/// The hook is a file we write and a shell later executes, so an unquoted path
+/// containing a space, a `$` or a `;` would be re-parsed as shell syntax. POSIX
+/// single quotes protect everything except a single quote itself, which is
+/// closed, escaped and reopened in the usual way.
+fn shell_single_quote(value: &str) -> String {
+    format!("'{}'", value.replace('\'', r"'\''"))
+}
+
+fn hook_script(fail_on: FailOn, baseline: Option<&Path>) -> String {
     let bar = format!("{fail_on:?}").to_lowercase();
+    // The hook runs `cd "$tmp" && injection-scanner check .`, so the baseline
+    // path must be absolute — a relative one would resolve inside the throwaway
+    // staging copy and not exist. `install-hook` canonicalises it before we get
+    // here; this only has to survive the trip through `sh`.
+    let baseline_arg = match baseline {
+        None => String::new(),
+        Some(path) => format!(
+            " --baseline {}",
+            shell_single_quote(&path.to_string_lossy())
+        ),
+    };
     format!(
         r##"#!/bin/sh
 # {HOOK_MARKER}
@@ -800,7 +859,7 @@ done
 # the developer recognises, rather than at some /tmp/tmp.XXXX prefix they cannot
 # act on.
 status=0
-( cd "$tmp" && injection-scanner check . --fail-on {bar} --no-ignore ) || status=$?
+( cd "$tmp" && injection-scanner check . --fail-on {bar} --no-ignore{baseline_arg} ) || status=$?
 
 if [ "$status" -eq 1 ]; then
   echo "" >&2

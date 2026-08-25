@@ -47,7 +47,13 @@ pub struct BaselineEntry {
 /// The top-level shape here is a JSON *object*, not an array — this is a new
 /// artifact and is unrelated to the `--format json` report stream, whose
 /// array-at-top-level contract `spec-ci-plugin` depends on is untouched.
+///
+/// `#[serde(deny_unknown_fields)]` for the same reason `BaselineEntry` carries
+/// it: a file that parses despite a key its author misspelled does not mean
+/// what they think it means, and the gap only shows up as findings that stop
+/// being gated.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Baseline {
     pub version: u32,
     #[serde(default)]
@@ -84,11 +90,11 @@ fn fingerprint(matched_text: &str) -> String {
 /// Strips exactly one leading `./`, leaving an already-relative path
 /// untouched.
 ///
-/// The installed pre-commit hook runs `check .` from inside a staging copy,
-/// so hook-generated paths carry the `./` prefix while `check docs/foo.md`
-/// does not. A baseline written by one and consumed by the other must agree
-/// on the path key, or the baseline is useless in the exact workflow it
-/// exists for.
+/// `check .` reports paths with a leading `./` while `check docs/foo.md`
+/// reports the bare path, and the installed pre-commit hook uses the `check .`
+/// form (from inside a staging copy). A baseline written by one invocation and
+/// consumed by the other must agree on the path key, or the two shapes never
+/// match and the baseline looks broken for no visible reason.
 fn normalise_file(path: &str) -> String {
     path.strip_prefix("./").unwrap_or(path).to_string()
 }
@@ -194,14 +200,17 @@ impl Baseline {
     pub fn apply(&self, reports: &mut [ScanReport]) -> Vec<BaselineEntry> {
         let mut budget: HashMap<Identity, usize> = HashMap::new();
         for entry in &self.entries {
-            budget.insert(
-                Identity {
+            // Summed, not overwritten. A hand-edited or concatenated baseline
+            // can list one identity twice; taking only the last count would
+            // silently accept fewer occurrences than the file plainly grants,
+            // and the surplus would surface as findings with no explanation.
+            *budget
+                .entry(Identity {
                     file: normalise_file(&entry.file),
                     pattern_id: entry.pattern_id.clone(),
                     digest: entry.digest.clone(),
-                },
-                entry.count,
-            );
+                })
+                .or_insert(0) += entry.count;
         }
         let mut touched: HashSet<Identity> = HashSet::new();
 
