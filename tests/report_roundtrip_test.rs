@@ -150,3 +150,63 @@ fn a_withheld_finding_survives_the_round_trip_with_its_evidence() {
         "and the score that explains why it was withheld"
     );
 }
+
+/// `baselined` is additive in exactly the same way (CLI-08), and gets the
+/// same guarantee: a report written before it existed must still load.
+#[test]
+fn a_report_written_before_baselined_existed_still_loads() {
+    // A v0.0.3-shaped report: `suppressed` and `low_confidence` present,
+    // `baselined` absent.
+    let legacy = r#"{
+        "file": "doc.md",
+        "matches": [],
+        "suppressed": [],
+        "low_confidence": [],
+        "critical_count": 0,
+        "high_count": 0,
+        "medium_count": 0,
+        "low_count": 0
+    }"#;
+
+    let restored: ScanReport =
+        serde_json::from_str(legacy).expect("a pre-baselined report must still deserialize");
+    assert!(
+        restored.baselined.is_empty(),
+        "a missing `baselined` key must default to empty, not fail the parse"
+    );
+    assert_eq!(restored.file, "doc.md");
+}
+
+/// The `suppression_symmetry_test.rs` property, applied to the new array: a
+/// finding filed under "baselined" and the same finding filed under
+/// "matches" must be indistinguishable records.
+#[test]
+fn a_baselined_finding_and_the_same_finding_reported_are_the_identical_record() {
+    let finding = sample_match("PI001");
+
+    let reported = ScanReport::with_baselined(
+        "skill.md".to_string(),
+        vec![finding.clone()],
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+    );
+    let baselined = ScanReport::with_baselined(
+        "skill.md".to_string(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        vec![finding],
+    );
+
+    assert_eq!(
+        serde_json::to_value(&reported.matches[0]).expect("serialisable"),
+        serde_json::to_value(&baselined.baselined[0]).expect("serialisable"),
+        "a baselined finding and the same finding reported must be identical records — a \
+         consumer cannot describe what was accepted if the record differs in shape"
+    );
+    assert_eq!(
+        baselined.critical_count, 0,
+        "a baselined finding must not be counted in the severity tallies"
+    );
+}
