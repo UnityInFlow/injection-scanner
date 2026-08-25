@@ -1,0 +1,18 @@
+# Support for the `pre-commit` framework (https://pre-commit.com).
+#
+# Separate from `injection-scanner install-hook`, which writes a plain git hook
+# for repositories that do not use the framework. Teams that do use it manage
+# hooks declaratively and would have this one overwritten by `pre-commit
+# install`, so both entry points have to exist.
+- id: injection-scanner
+  name: Scan for prompt injection
+  description: >
+    Detects prompt-injection patterns in agent-facing files — CLAUDE.md, skill
+    files, MCP manifests, RAG documents.
+  entry: injection-scanner check
+  args: ["--fail-on", "high"]
+  language: rust
+  # Only agent-facing text. The framework passes matched filenames as arguments,
+  # so this is the same widening the walker does for a directory scan.
+  types_or: [markdown, yaml, json, toml, text, html]
+  pass_filenames: true
