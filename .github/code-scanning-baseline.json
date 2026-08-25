@@ -1,0 +1,363 @@
+{
+  "version": 1,
+  "generated_by": "injection-scanner/0.0.3",
+  "entries": [
+    {
+      "file": "examples/exfiltration-attack.md",
+      "pattern_id": "PI020",
+      "digest": "sha256:0198320de9e6f706f179ec3358786603b13afab47c57772d8ff11b316fa62976",
+      "count": 1,
+      "first_seen_line": 9
+    },
+    {
+      "file": "examples/exfiltration-attack.md",
+      "pattern_id": "PI022",
+      "digest": "sha256:3ffc3ee0ca2787efde1858819de75dfbcd3394d7917806d5982d8971c2841c75",
+      "count": 1,
+      "first_seen_line": 6
+    },
+    {
+      "file": "examples/exfiltration-attack.md",
+      "pattern_id": "PI023",
+      "digest": "sha256:b3fbe8fe42c61be3583a7b8735acd636a4dce7f82934edf89975973f1cd77f64",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "examples/exfiltration-attack.md",
+      "pattern_id": "PI024",
+      "digest": "sha256:7435cb8c4f97641416c27b869ba3d07ccaceb001ac5555cbff5799d72e7da77b",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "examples/instruction-injection-attack.md",
+      "pattern_id": "PI010",
+      "digest": "sha256:86c6d73a0a9d6476dae1e617a98428ad86acdb6345c06351d55a9cefe2fbe418",
+      "count": 1,
+      "first_seen_line": 6
+    },
+    {
+      "file": "examples/instruction-injection-attack.md",
+      "pattern_id": "PI011",
+      "digest": "sha256:89e46502d0940832e339acbba8463bf89f0b74bf0b5b2bdde88a07e9fc8b38cc",
+      "count": 1,
+      "first_seen_line": 8
+    },
+    {
+      "file": "examples/instruction-injection-attack.md",
+      "pattern_id": "PI012",
+      "digest": "sha256:e0b8060e59529d356dbfb8dfeaea1799014276c492fe2ed4e317c36f101d7764",
+      "count": 1,
+      "first_seen_line": 10
+    },
+    {
+      "file": "examples/instruction-injection-attack.md",
+      "pattern_id": "PI013",
+      "digest": "sha256:bf5a64e75ae2b2479c6f77a21343b83040958c1935879c10c5207e21dc6af8b4",
+      "count": 1,
+      "first_seen_line": 14
+    },
+    {
+      "file": "examples/instruction-injection-attack.md",
+      "pattern_id": "PI014",
+      "digest": "sha256:51ecb304ea7c76532b3e68361aaf503a72155d76dbf0cd284f198d63b7522aa3",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "examples/jailbreak-attack.md",
+      "pattern_id": "PI003",
+      "digest": "sha256:65b4526eed7b94d7436cb1511a55c4c199c4107fc43028a06cd9189e092183ad",
+      "count": 1,
+      "first_seen_line": 9
+    },
+    {
+      "file": "examples/jailbreak-attack.md",
+      "pattern_id": "PI030",
+      "digest": "sha256:a8657f3278b554fde362a535402caf9c2353fd2afa6174d222ce6f22ccb4f6ac",
+      "count": 1,
+      "first_seen_line": 6
+    },
+    {
+      "file": "examples/jailbreak-attack.md",
+      "pattern_id": "PI031",
+      "digest": "sha256:d4db10b14e9b6754cc4a5cf34caf75e0b44b1e3aa645aff1bd6b11653ed5e8c6",
+      "count": 1,
+      "first_seen_line": 9
+    },
+    {
+      "file": "examples/jailbreak-attack.md",
+      "pattern_id": "PI032",
+      "digest": "sha256:d22dde1f3492138b890526fea7b8604dc4f7bd2dee946305ab09e1491a2460e9",
+      "count": 1,
+      "first_seen_line": 10
+    },
+    {
+      "file": "examples/jailbreak-attack.md",
+      "pattern_id": "PI033",
+      "digest": "sha256:0003b2bb645b561e5d1748486a31cc1c16c41ae75777b94f0d087d981066a475",
+      "count": 1,
+      "first_seen_line": 11
+    },
+    {
+      "file": "examples/jailbreak-attack.md",
+      "pattern_id": "PI034",
+      "digest": "sha256:f7f1401c5221da8cbaca91c9deb12b1eb1324669ee4056880667f6c856014d98",
+      "count": 1,
+      "first_seen_line": 14
+    },
+    {
+      "file": "examples/jailbreak-attack.md",
+      "pattern_id": "PI036",
+      "digest": "sha256:c161d6e8cd0d1c98cd6503915ae7236af18ea5fe18ea6235b1736b681d50c54f",
+      "count": 1,
+      "first_seen_line": 15
+    },
+    {
+      "file": "examples/jailbreak-attack.md",
+      "pattern_id": "PI037",
+      "digest": "sha256:59f0d3fa6dcd18930bc5a6bca32222b1a41b1739ad6b26982673fdfd72a56af4",
+      "count": 1,
+      "first_seen_line": 15
+    },
+    {
+      "file": "examples/jailbreak-attack.md",
+      "pattern_id": "PI038",
+      "digest": "sha256:6ed15a63630611e78be796e4324392892cc155b1db726a209edc0ba03f67b3b6",
+      "count": 1,
+      "first_seen_line": 16
+    },
+    {
+      "file": "examples/mixed-attack.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:a202ee6e402bb4a0ae16157ab7e1cd7ff08fde9a966cb7ea5caa819a155810b2",
+      "count": 1,
+      "first_seen_line": 6
+    },
+    {
+      "file": "examples/mixed-attack.md",
+      "pattern_id": "PI003",
+      "digest": "sha256:4d4cfafe4e2c98415a3efce14e87252cff6739286ddbe653176e1568a52b6e08",
+      "count": 1,
+      "first_seen_line": 8
+    },
+    {
+      "file": "examples/mixed-attack.md",
+      "pattern_id": "PI011",
+      "digest": "sha256:89e46502d0940832e339acbba8463bf89f0b74bf0b5b2bdde88a07e9fc8b38cc",
+      "count": 1,
+      "first_seen_line": 8
+    },
+    {
+      "file": "examples/mixed-attack.md",
+      "pattern_id": "PI020",
+      "digest": "sha256:0198320de9e6f706f179ec3358786603b13afab47c57772d8ff11b316fa62976",
+      "count": 1,
+      "first_seen_line": 11
+    },
+    {
+      "file": "examples/mixed-attack.md",
+      "pattern_id": "PI022",
+      "digest": "sha256:18fec9dca782594b78ba449194e2704dca14bd89de62ee1e6a5f32c810d1045e",
+      "count": 1,
+      "first_seen_line": 19
+    },
+    {
+      "file": "examples/mixed-attack.md",
+      "pattern_id": "PI023",
+      "digest": "sha256:d459032cb212139ea5f9a53343513aa1d9448e0dd6f713c60a8d35d510dcd13e",
+      "count": 1,
+      "first_seen_line": 19
+    },
+    {
+      "file": "examples/mixed-attack.md",
+      "pattern_id": "PI030",
+      "digest": "sha256:a8657f3278b554fde362a535402caf9c2353fd2afa6174d222ce6f22ccb4f6ac",
+      "count": 1,
+      "first_seen_line": 15
+    },
+    {
+      "file": "examples/mixed-attack.md",
+      "pattern_id": "PI033",
+      "digest": "sha256:1b41b8582a87031e8ccc5be75838b6aa42199282930e07477663689c2d034480",
+      "count": 1,
+      "first_seen_line": 16
+    },
+    {
+      "file": "examples/role-override-attack.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:a202ee6e402bb4a0ae16157ab7e1cd7ff08fde9a966cb7ea5caa819a155810b2",
+      "count": 1,
+      "first_seen_line": 6
+    },
+    {
+      "file": "examples/role-override-attack.md",
+      "pattern_id": "PI003",
+      "digest": "sha256:5c152464347e688f899dca459578b8d9b11309e6191593b145d16de5211badbd",
+      "count": 1,
+      "first_seen_line": 9
+    },
+    {
+      "file": "examples/role-override-attack.md",
+      "pattern_id": "PI004",
+      "digest": "sha256:942fe772826cde07ded0561adff67d47e84bac472f39a4f371af4ea844df5f63",
+      "count": 1,
+      "first_seen_line": 10
+    },
+    {
+      "file": "examples/role-override-attack.md",
+      "pattern_id": "PI005",
+      "digest": "sha256:e57547b85eb174d0380e6e24d2addec0dd3fde86ba08ca7dba0eec5569fae0fa",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "examples/role-override-attack.md",
+      "pattern_id": "PI006",
+      "digest": "sha256:bdaf105c23f6e3c7387788bf0da95bd52766cb75ba9c52b4f2ef4dc1606ed1b5",
+      "count": 1,
+      "first_seen_line": 14
+    },
+    {
+      "file": "examples/role-override-attack.md",
+      "pattern_id": "PI007",
+      "digest": "sha256:eb11c513fcea5b2dec1383fa9ca383e7b1b912e87e15368df4ad2e2cbc2502f9",
+      "count": 1,
+      "first_seen_line": 10
+    },
+    {
+      "file": "examples/suppressed-documentation.md",
+      "pattern_id": "PI030",
+      "digest": "sha256:a8657f3278b554fde362a535402caf9c2353fd2afa6174d222ce6f22ccb4f6ac",
+      "count": 1,
+      "first_seen_line": 18
+    },
+    {
+      "file": "patterns/core/exfiltration.yaml",
+      "pattern_id": "PI025",
+      "digest": "sha256:d2249765a239a67ad19b8a40659eebef8a8a7c8f63f56c0651348c1487935c64",
+      "count": 1,
+      "first_seen_line": 36
+    },
+    {
+      "file": "patterns/core/jailbreak.yaml",
+      "pattern_id": "PI038",
+      "digest": "sha256:d28b8665ba38a8ce9f0aebaca3e21246ec3a545ce4e7e23c4f57f7c168bd19e6",
+      "count": 1,
+      "first_seen_line": 60
+    },
+    {
+      "file": "patterns/core/role-override.yaml",
+      "pattern_id": "PI003",
+      "digest": "sha256:52c7aa4f2b7781832ba19f19c306e29602f79984c49346e903af8e11ab9b57d1",
+      "count": 1,
+      "first_seen_line": 18
+    },
+    {
+      "file": "patterns/core/role-override.yaml",
+      "pattern_id": "PI003",
+      "digest": "sha256:9a6d47775bf337a606d485de26fab0cfa4199bc0a14ae31f385339bf24fe73a3",
+      "count": 1,
+      "first_seen_line": 18
+    },
+    {
+      "file": "patterns/core/role-override.yaml",
+      "pattern_id": "PI006",
+      "digest": "sha256:bdaf105c23f6e3c7387788bf0da95bd52766cb75ba9c52b4f2ef4dc1606ed1b5",
+      "count": 1,
+      "first_seen_line": 40
+    },
+    {
+      "file": "tests/fixtures/allowlisted.md",
+      "pattern_id": "PI006",
+      "digest": "sha256:32ce6360f4166ccf8e2d1e725299da30d961740766c914e822c57c8c51152318",
+      "count": 1,
+      "first_seen_line": 10
+    },
+    {
+      "file": "tests/fixtures/injected-skill.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:a202ee6e402bb4a0ae16157ab7e1cd7ff08fde9a966cb7ea5caa819a155810b2",
+      "count": 1,
+      "first_seen_line": 6
+    },
+    {
+      "file": "tests/fixtures/injected-skill.md",
+      "pattern_id": "PI003",
+      "digest": "sha256:72fdba0519d99be8aa1c5375e469f56ef302105cb3233f24beba80c8cc81e089",
+      "count": 1,
+      "first_seen_line": 9
+    },
+    {
+      "file": "tests/fixtures/injected-skill.md",
+      "pattern_id": "PI011",
+      "digest": "sha256:89e46502d0940832e339acbba8463bf89f0b74bf0b5b2bdde88a07e9fc8b38cc",
+      "count": 1,
+      "first_seen_line": 9
+    },
+    {
+      "file": "tests/fixtures/injected-skill.md",
+      "pattern_id": "PI020",
+      "digest": "sha256:0198320de9e6f706f179ec3358786603b13afab47c57772d8ff11b316fa62976",
+      "count": 1,
+      "first_seen_line": 12
+    },
+    {
+      "file": "tests/fixtures/injected-skill.md",
+      "pattern_id": "PI030",
+      "digest": "sha256:a8657f3278b554fde362a535402caf9c2353fd2afa6174d222ce6f22ccb4f6ac",
+      "count": 1,
+      "first_seen_line": 14
+    },
+    {
+      "file": "tests/fixtures/injected-skill.md",
+      "pattern_id": "PI033",
+      "digest": "sha256:1b41b8582a87031e8ccc5be75838b6aa42199282930e07477663689c2d034480",
+      "count": 1,
+      "first_seen_line": 16
+    },
+    {
+      "file": "tools/injection-lab/corpus/01-prose-role-override.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:2847bd141d1ca1b6d8f0f4badfde24547b96cbfa7c11f6fc6c2bedd05f057e52",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "tools/injection-lab/corpus/01-prose-role-override.md",
+      "pattern_id": "PI003",
+      "digest": "sha256:98d9b0004e0aa7e5d98c8dd7b6a1adbf99409531fb28a535801fed982e866487",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "tools/injection-lab/corpus/03-html-comment-exfil.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:2847bd141d1ca1b6d8f0f4badfde24547b96cbfa7c11f6fc6c2bedd05f057e52",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "tools/injection-lab/corpus/03-html-comment-exfil.md",
+      "pattern_id": "PI020",
+      "digest": "sha256:7130f7a31a537c3348b96730a8c44b683ed99d140b172970dc2cb7ae6baa7d9f",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "tools/injection-lab/corpus/03-html-comment-exfil.md",
+      "pattern_id": "PI022",
+      "digest": "sha256:0997895bca023dc1ac1e0d122b9b6f7d3f92aecee99a537a6e879eed220250b5",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "tools/injection-lab/corpus/05-frontmatter-injection.md",
+      "pattern_id": "PI013",
+      "digest": "sha256:d578dec9776aaee0c8676f4af14d7c0b834ecdb92541634c7e2e2ef020b4b376",
+      "count": 1,
+      "first_seen_line": 3
+    }
+  ]
+}

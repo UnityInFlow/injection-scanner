@@ -54,7 +54,7 @@ documentation.
 - [ ] **#28** Pattern validation — invalid regexes are silently dropped; duplicate IDs undetected `P1`
 
 ### Requirements being closed
-- [ ] **#5** SARIF 2.1.0 output — CLI-04 `P1`
+- [x] **#5** SARIF 2.1.0 output — CLI-04 `P1`
 - [ ] **#8** `install-hook` + `.pre-commit-hooks.yaml` — HOOK-01 `P1`
 - [ ] **#4** Aho-Corasick prefilter — land *after* #13 `P1`
 - [~] **#29** Measure what the docs assert: coverage gate, criterion benchmarks, false-positive corpus, fuzzing `P1`

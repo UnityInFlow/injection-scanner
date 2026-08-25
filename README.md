@@ -49,6 +49,83 @@ cat skill.md | injection-scanner check -
 injection-scanner check CLAUDE.md --format json
 ```
 
+### SARIF output
+
+```bash
+injection-scanner check . --format sarif > results.sarif
+```
+
+A SARIF result is deliberately **one thing**: one `results[]` entry per finding in
+`--format json`'s `matches` array — the same findings the exit code already acts on.
+`suppressed`, `low_confidence` and `baselined` findings stay visible in
+`--format json`, but they never become a SARIF result. Uploading a `results` array
+that included them would put a document's own disarmed or documentation-context
+findings in front of reviewers as if they were live alerts — exactly the noise
+`--baseline` and markdown-context scoring exist to quiet.
+
+| Native severity | SARIF `level` | Rule `security-severity` |
+|---|---|---|
+| CRITICAL | `error` | `9.0` |
+| HIGH | `error` | `7.0` |
+| MEDIUM | `warning` | `5.0` |
+| LOW | `note` | `2.0` |
+
+SARIF's `level` only has three useful slots, so CRITICAL and HIGH both land on
+`error` — the native severity is not lost, it survives in two places: every
+result's `properties.severity`, and (what GitHub's code-scanning UI actually reads
+to band a Security-tab alert) each rule's `properties["security-severity"]`. The
+`rules[]` array lists every loaded pattern, not only the ones that fired, and each
+result's `ruleId`/`ruleIndex` resolve into it.
+
+Findings are identified across runs by `partialFingerprints`, reusing the same
+sha256-over-`matched_text` digest `--baseline` uses (see
+[Adopting On An Existing Repository](#adopting-on-an-existing-repository)) plus an
+occurrence ordinal, so two identical payloads in one file get two distinct SARIF
+identities instead of collapsing into one alert.
+
+Upload to GitHub code scanning behind a trigger a fork cannot fire — never
+`pull_request`, which would hand a fork's build scripts a `security-events: write`
+token:
+
+```yaml
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  code-scanning:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@<pinned-sha> # vX.Y.Z
+      - run: cargo build --release --locked
+      - run: |
+          ./target/release/injection-scanner check . \
+            --baseline .github/code-scanning-baseline.json \
+            --format sarif > results.sarif
+      - uses: github/codeql-action/upload-sarif@<pinned-sha> # v3.37.8
+        with:
+          sarif_file: results.sarif
+          category: injection-scanner
+```
+
+See `.github/workflows/code-scanning.yml` in this repository for the full,
+SHA-pinned version, and `docs/adr/ADR-003-sarif-output.md` for why the baseline is
+there, why `rank` was rejected in favour of `security-severity`, and why `ci.yml`
+is never the workflow that gains `security-events: write`.
+
+`rules` has no SARIF form. A rules-only document would have `tool.driver.rules`
+populated and `results: []` — indistinguishable, to a code-scanning consumer, from
+"this analysis found nothing" — and uploading it would close every open alert in
+every category it lists. `--format sarif` is rejected by clap on `rules` at parse
+time for exactly this reason.
+
 ### What gets scanned
 
 By default: prose and specs (`.md`, `.mdx`, `.markdown`, `.rst`, `.txt`),
@@ -235,6 +312,58 @@ withheld rather than reported: `suppressed` (an in-file directive disarmed it),
 [Adopting On An Existing Repository](#adopting-on-an-existing-repository)). All
 three are additive with `#[serde(default)]`, so older reports still deserialize,
 and none of them affect `critical_count` and friends.
+
+### SARIF output
+
+One `results[]` entry per `matches` entry above — `rules[]` and `results[]`
+truncated to one each here; see [SARIF output](#sarif-output) for the full
+severity mapping and the code-scanning upload.
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "injection-scanner",
+          "version": "0.0.3",
+          "informationUri": "https://github.com/UnityInFlow/injection-scanner",
+          "rules": [
+            {
+              "id": "PI001",
+              "name": "ignore-previous-instructions",
+              "shortDescription": { "text": "Attempts to override agent instructions" },
+              "fullDescription": { "text": "Attempts to override agent instructions" },
+              "help": { "text": "Remove instruction override text. If documenting attacks, use code blocks." },
+              "properties": { "tags": ["security", "role_override"], "security-severity": "9.0" }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "PI001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": { "text": "Attempts to override agent instructions" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "tests/fixtures/injected-skill.md" },
+                "region": { "startLine": 6 }
+              }
+            }
+          ],
+          "partialFingerprints": { "matchedTextSha256/v1": "sha256:a202ee.../1" },
+          "properties": { "severity": "CRITICAL" }
+        }
+      ]
+    }
+  ]
+}
+```
 
 ## Documentation Is Not an Attack
 
