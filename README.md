@@ -116,6 +116,37 @@ note: 27 file(s) not scanned — not a scanned file type. Use --include <glob> t
 That disclosure matters more than it looks: a skills pack shipping a `.gitignore`
 containing `*` would otherwise scan nothing and report a clean bill of health.
 
+## Obfuscation Is Not a Bypass
+
+Every pattern used to match raw bytes, so a find-and-replace defeated the whole
+library. All five of these are now detected:
+
+```
+ignore-all-previous-instructions          separator injection
+i g n o r e   a l l   p r e v i o u s     spacing
+іgnore all previous instructions          Cyrillic і (U+0456) homoglyph
+ｉｇｎｏｒｅ all previous instructions        fullwidth
+ig<U+200B>nore all previous instructions  zero-width interleave
+```
+
+A normalization pass folds compatibility forms, strips invisible characters,
+maps Unicode confusables onto their ASCII twin and collapses injected
+separators — then re-matches. Findings **quote the original text**, not the
+normalized form, so what you are told is in your file is what you can search for:
+
+```
+:1 CRITICAL  Attempts to override agent instructions  (PI001)
+             matched: "ignore-all-previous-instructions"
+```
+
+Two limits worth knowing. Fully despaced text (`i g n o r e a l l p r e v i o u s`,
+no double spaces) is not rejoined — the result would be `ignoreallprevious` and
+every pattern joins its words with `\s+`, so matching it means rewriting the
+pattern set rather than the input. And a pattern library is its own worst input:
+a `name:` field like `ignore-previous-instructions` normalizes into the attack it
+names. This repo suppresses its own with inline directives, which is what
+`PATTERNS.md` recommends for any library.
+
 ## Line Breaks Are Not a Bypass
 
 Matching used to be strictly per line, so wrapping a payload cost an attacker one

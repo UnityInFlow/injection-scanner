@@ -2,13 +2,13 @@ category: role_override
 default_severity: CRITICAL
 patterns:
   - id: PI001
-    name: ignore-previous-instructions
+    name: ignore-previous-instructions  # injection-scanner:ignore PI001
     pattern: "ignore\\s+(all\\s+)?previous\\s+instructions"
     description: "Attempts to override agent instructions"
     remediation: "Remove instruction override text. If documenting attacks, use code blocks."
     tags: [role-override]
   - id: PI002
-    name: ignore-prior-context
+    name: ignore-prior-context  # injection-scanner:ignore PI002
     pattern: "ignore\\s+(all\\s+)?prior\\s+context"
     description: "Attempts to discard prior context"
     remediation: "Remove context override text."
@@ -21,7 +21,7 @@ patterns:
     remediation: "Remove role override. Use explicit skill scoping instead."
     tags: [role-override]
   - id: PI004
-    name: act-as-without-restrictions
+    name: act-as-without-restrictions  # injection-scanner:ignore PI004
     pattern: "act\\s+as\\s+.*without\\s+restrictions"
     description: "Unrestricted role assignment"
     remediation: "Remove unrestricted role assignment."
