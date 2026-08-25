@@ -6,7 +6,7 @@ See: `.planning/PROJECT.md`
 **Milestone:** Production Readiness — v0.0.3 + v0.1.0 (opened 2026-08-21)
 
 ## Current Phase
-**Phase 4 — Integration (v0.1.0)** · status: **Phase 3 complete; the adoption POC is in**
+**Phase 4 — Integration (v0.1.0)** · status: **CLI-08 `--baseline` landed; 6 items remain**
 
 `main` is green — fmt, clippy, 24 test binaries — and still strictly linear.
 
@@ -42,15 +42,23 @@ HTML comment. Both are caught, at 60ms on a 40-file repo against a 200ms budget.
 | 1 | Restore the Gate | ✅ Merged (PR #44) |
 | 2 | Correctness — ship v0.0.3 | ✅ Shipped 2026-08-23 |
 | 3 | Signal Quality | ✅ Complete — QUAL-01/02/03, SCAN-05/06, CLI-09/10 |
-| 4 | Integration — ship v0.1.0 | 🔄 In progress — HOOK-01, CLI-06, CLI-07 done |
+| 4 | Integration — ship v0.1.0 | 🔄 In progress — HOOK-01, CLI-06, CLI-07, CLI-08 done |
 
-### Phase 4 remaining (7)
-CLI-04 SARIF · CLI-08 `--baseline` · PERF-02 Aho-Corasick · SCAN-07 patterns (PR #66, awaiting
-contributor) · TEST-01 coverage gate · TEST-02 criterion benchmarks · DOCS-02 (partly done — the
-severity criteria landed with #21; the per-pattern test policy is #70)
+### Phase 4 remaining (6)
+CLI-04 SARIF · PERF-02 Aho-Corasick · SCAN-07 patterns (PR #66, awaiting contributor) ·
+TEST-01 coverage gate · TEST-02 criterion benchmarks · DOCS-02 (partly done — the severity
+criteria landed with #21; the per-pattern test policy is #70)
 
-**Next:** CLI-08 `--baseline` is the highest-value remaining adoption feature — an existing
-repository cannot adopt this without it, because day one is a wall of findings.
+**Next:** CLI-04 SARIF is the last unmet *original* v0.0.1 promise still in this phase's success
+criteria ("validates against the 2.1.0 schema and uploads to GitHub code scanning"), and `--format
+sarif` silently returning text is the audit finding that opened this milestone. TEST-01's coverage
+gate is the alternative — the ">80% on core logic" constraint both CLAUDE.md files state is met at
+~92% but still ungated, so nothing stops it regressing.
+
+## Quick Tasks Completed
+| Task | Requirement | Branch | Result |
+|---|---|---|---|
+| `260825-tc7` `--baseline` | CLI-08 | `feat/cli-08-baseline` | 3 commits, 196 tests green, not yet PR'd |
 
 ## Releases
 - **v0.0.1** (2026-04-01): 30 patterns, 5 categories, text/JSON output, inline suppression, stdin mode
@@ -97,6 +105,32 @@ log; an independent reviewer's `gh api orgs/UnityInFlow/actions/runner-groups` r
 org-admin rights. The Phase 1 design is correct either way, but someone with org admin should confirm.
 
 ## Session Notes
+- 2026-08-25: **CLI-08 `--baseline` shipped** on `feat/cli-08-baseline` (3 commits, 196 tests, fmt +
+  clippy clean). Two flags: `--write-baseline <FILE>` accepts the current state and exits 0 by
+  design; `--baseline <FILE>` moves accepted findings into a **fourth** withheld array,
+  `ScanReport.baselined`, alongside `suppressed` and `low_confidence`. Same rule as those two:
+  filed under the reason they are withheld, never dropped.
+  **The design decision worth carrying forward is why the payload is hashed rather than stored.**
+  `json` is in `DEFAULT_EXTENSIONS`, so a committed `baseline.json` holding verbatim payloads would
+  be flagged by the very next scan — the adoption artifact would become a finding source. Confirmed
+  live, not just in a test: `check . --baseline b.json` scans `./b.json` as its own report and finds
+  nothing. Hashing also closes a real attack, since the adversary authors the scanned text and a
+  weak digest would let a *new* payload be tuned onto an already-accepted fingerprint. Identity is
+  `(file, pattern_id, sha256(matched_text))` — **line number deliberately excluded**, so editing
+  above a finding does not force regeneration, plus an occurrence `count` so baselining two
+  occurrences accepts two and not an unlimited number. Cost accepted: a PR reviewer sees
+  `PI001 in docs/foo.md ×2`, not the text. Recorded in `docs/adr/ADR-002-baseline-fingerprints.md`.
+  Verified independently of the executor's report, against the real binary: doubling a payload past
+  its `count` still exits 1; a stale entry is named on stderr and exits 0; malformed, unknown-version
+  and missing baselines are hard errors; both flags together and `--write-baseline` with `check -`
+  are rejected, the latter before stdin is read and without creating the file; `--format json` still
+  parses as `Vec<ScanReport>` with the baselined record carrying full evidence.
+  **Two process notes.** (1) The executor ran in an isolated worktree and the merge-back helper
+  produced a **merge commit**, which contradicts this repo's strictly-linear history — flattened to
+  the three commits before committing anything. Check this on every worktree-isolated task.
+  (2) Task 2's adversarial tests **passed on first run**, because Task 1 built the complete slice
+  rather than the minimum. They are real tests but they never failed first, so they are weaker
+  evidence than the plan intended; the behaviours were re-proven by hand against the binary instead.
 - 2026-08-22 (later): Review round on the four open PRs, then all nine merged. The blocking finding
   — `suppression_trust_test.rs` still hand-building its binary path — turned out to be **three**
   files, not one: `pattern_validation_test.rs` and `scan_resilience_test.rs` were already on `main`
