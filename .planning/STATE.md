@@ -58,7 +58,7 @@ gate is the alternative — the ">80% on core logic" constraint both CLAUDE.md f
 ## Quick Tasks Completed
 | Task | Requirement | Branch | Result |
 |---|---|---|---|
-| `260825-tc7` `--baseline` | CLI-08 | `feat/cli-08-baseline` | 3 commits, 196 tests green, not yet PR'd |
+| `260825-tc7` `--baseline` | CLI-08 | `feat/cli-08-baseline` | 5 commits, 203 tests green, reviewed + fixed, not yet PR'd |
 
 ## Releases
 - **v0.0.1** (2026-04-01): 30 patterns, 5 categories, text/JSON output, inline suppression, stdin mode
@@ -105,6 +105,29 @@ log; an independent reviewer's `gh api orgs/UnityInFlow/actions/runner-groups` r
 org-admin rights. The Phase 1 design is correct either way, but someone with org admin should confirm.
 
 ## Session Notes
+- 2026-08-25 (review): Reviewed the CLI-08 diff against the repo's Rust checklist and found one
+  blocking issue the tests could not have caught, because no test crossed the two features.
+  **`--baseline` and `install-hook` did not compose.** The generated hook hardcodes
+  `check . --fail-on <bar> --no-ignore`; there was no way to pass a baseline. Reproduced end to
+  end: a repo that adopts a baseline, then installs the hook, cannot commit at all — the exact wall
+  CLI-08 exists to remove, rebuilt one layer down. The README made it worse by name-dropping the
+  hook in the baseline section ("exactly how the installed pre-commit hook invokes the scanner"),
+  so the docs promised an integration that did not exist. `install-hook --baseline` now exists, the
+  path is canonicalised at install time (the hook scans from a temp staging copy, so a relative path
+  would resolve there and not exist) and an unresolvable path is refused at install rather than on
+  someone's next commit. Three smaller fixes: `--write-baseline` was jumping over the
+  "N file(s) skipped and NOT scanned" summary; `Baseline` lacked the `deny_unknown_fields` that
+  `BaselineEntry` carries on the identical rationale; duplicate identities overwrote instead of
+  summing. 203 tests.
+  **Carry forward — the security property that actually mattered held, and it was worth checking.**
+  `digest` is over `matched_text`, which `scanner.rs` sets from `original_slice` — the ORIGINAL
+  bytes, not the normalized form. Verified live: baseline an ASCII payload, swap one `o` for
+  Cyrillic `о`, and it still exits 1. Had `matched_text` been the normalized text, every baselined
+  finding would have become a free pass for its whole obfuscation family. Any future feature that
+  keys on `matched_text` needs this same check.
+  **Carry forward — the gap was at a feature seam, and green tests hid it.** Both features were
+  individually well tested; nothing exercised them together. HOOK-01 shipped one task earlier and
+  CLI-08 the next, and neither task's plan owned the seam.
 - 2026-08-25: **CLI-08 `--baseline` shipped** on `feat/cli-08-baseline` (3 commits, 196 tests, fmt +
   clippy clean). Two flags: `--write-baseline <FILE>` accepts the current state and exits 0 by
   design; `--baseline <FILE>` moves accepted findings into a **fourth** withheld array,
