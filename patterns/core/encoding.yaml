@@ -3,12 +3,20 @@ default_severity: HIGH
 patterns:
   - id: PI040
     name: unicode-rtl-override
+    # MEDIUM: Lumps explicit overrides (U+202D/E) with the LRM/RLM marks that every
+    # Arabic and Hebrew document uses legitimately. Splitting the two is worth
+    # doing and needs a new ID, so it belongs with #27 rather than here.
+    severity: MEDIUM
     pattern: "\\x{202E}|\\x{202D}|\\x{202C}|\\x{200F}|\\x{200E}"
     description: "Unicode direction override character — can hide text direction"
     remediation: "Remove Unicode direction override characters. These make text visually misleading."
     tags: [encoding, unicode]
   - id: PI041
     name: zero-width-chars
+    # LOW: One zero-width character. Deliberate obfuscation is a RUN of them,
+    # which PI042 reports at CRITICAL. A single one is more often a paste
+    # artefact from a word processor or a web page.
+    severity: LOW
     pattern: "\\x{200B}|\\x{FEFF}|\\x{200C}|\\x{200D}"
     description: "Zero-width characters — can hide instructions invisible to humans"
     remediation: "Remove zero-width characters. These can hide instructions that LLMs still process."

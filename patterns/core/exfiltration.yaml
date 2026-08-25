@@ -33,8 +33,10 @@ patterns:
     tags: [exfiltration]
   - id: PI025
     name: fetch-url
+    # MEDIUM: Documentation says "fetch https://api.example.com" constantly. A URL
+    # fetch may be the whole point of the tool being documented.
+    severity: MEDIUM
     pattern: "fetch\\s+https?://[^\\s]+"
-    severity: HIGH
     description: "External URL fetch request"
     remediation: "Review URL fetch — may be legitimate or exfiltration vector."
     tags: [exfiltration, url]
