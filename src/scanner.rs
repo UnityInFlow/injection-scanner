@@ -5,6 +5,7 @@ use regex::{Regex, RegexBuilder};
 use crate::allowlist::Suppressions;
 use crate::context::{ContextMap, MatchContext, DEFAULT_MIN_CONFIDENCE};
 use crate::multiline::joined_blocks;
+use crate::normalize::{normalize, Normalized};
 use crate::pattern::{PatternCategory, PatternError, ScanMatch, ScanReport, Severity};
 
 /// Upper bound on reported matches per pattern per line.
@@ -286,6 +287,106 @@ impl Scanner {
             }
         }
 
+        // Third pass: obfuscated payloads (#26). Runs against normalized text
+        // with every offset mapped back, so findings still name a real line and
+        // quote text the user can find in their own file.
+        //
+        // Deduplication is by (pattern, line): if the raw or multi-line pass
+        // already reported that pattern on that line, the normalized pass has
+        // nothing to add. Obfuscation is a property of the text, not a second
+        // finding about it.
+        if let Some(normalized) = normalize(content) {
+            let already: std::collections::HashSet<(String, usize)> = matches
+                .iter()
+                .chain(suppressed.iter())
+                .chain(low_confidence.iter())
+                .map(|m| (m.pattern_id.clone(), m.line))
+                .collect();
+
+            // Matched LINE BY LINE, not over the whole normalized document.
+            // `\s` matches a newline, so scanning the joined text let a pattern
+            // span line breaks — quietly making this a second multi-line pass,
+            // but without the paragraph boundaries #24 established. It joined
+            // straight across a blank list item that the multi-line pass
+            // correctly refuses to cross.
+            //
+            // Newlines survive normalization one-for-one, so these lines
+            // correspond to the source lines exactly.
+            let mut normalized_line_start = 0usize;
+            for (line_index, normalized_line) in normalized.text.lines().enumerate() {
+                let line_start = normalized_line_start;
+                normalized_line_start += normalized_line.len() + 1;
+
+                for cp in &self.compiled {
+                    for matched in cp
+                        .regex
+                        .find_iter(normalized_line)
+                        .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
+                    {
+                        let at = normalized.original_offset(line_start + matched.start());
+                        let line_number = line_index + 1;
+                        if already.contains(&(cp.id.clone(), line_number)) {
+                            continue;
+                        }
+
+                        let line_text = source_lines.get(line_index).copied().unwrap_or("");
+                        let offset = at
+                            - content[..at.min(content.len())]
+                                .rfind('\n')
+                                .map_or(0, |n| n + 1);
+                        let context = contexts.context_at(line_number, line_text, offset);
+
+                        let destination = if suppressions.is_suppressed(line_number, &cp.id) {
+                            &mut suppressed
+                        } else if context.confidence() < min_confidence {
+                            &mut low_confidence
+                        } else {
+                            &mut matches
+                        };
+                        // The ORIGINAL text is quoted, not the normalized form.
+                        // A user told their file contains "ignore all previous
+                        // instructions" when it visibly contains
+                        // "ignore-all-previous-instructions" cannot act on that.
+                        let quoted = original_slice(content, &normalized, line_start, &matched);
+                        destination.push(cp.record(file_path, line_number, &quoted, context));
+                    }
+                }
+            }
+        }
+
         ScanReport::with_withheld(file_path.to_string(), matches, suppressed, low_confidence)
     }
+}
+
+/// The original text a normalized match came from.
+///
+/// Reporting the normalized form would tell the user their file contains
+/// `ignore all previous instructions` when it visibly contains
+/// `ignore-all-previous-instructions` — a quote they cannot find with a search,
+/// about a file they are being asked to fix.
+fn original_slice(
+    content: &str,
+    normalized: &Normalized,
+    line_start: usize,
+    matched: &regex::Match<'_>,
+) -> String {
+    let start = normalized.original_offset(line_start + matched.start());
+    let end = normalized
+        .original_offset(line_start + matched.end().saturating_sub(1))
+        .saturating_add(1)
+        .min(content.len());
+    if start >= end {
+        return matched.as_str().to_string();
+    }
+    // Snap to char boundaries; the map points at the start of the source char,
+    // but a multi-byte char at the end would slice mid-sequence.
+    let mut lo = start;
+    while lo > 0 && !content.is_char_boundary(lo) {
+        lo -= 1;
+    }
+    let mut hi = end;
+    while hi < content.len() && !content.is_char_boundary(hi) {
+        hi += 1;
+    }
+    content[lo..hi].to_string()
 }

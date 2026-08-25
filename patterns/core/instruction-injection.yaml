@@ -14,10 +14,10 @@ patterns:
     # document that discusses prompting. What this pattern is actually after is
     # a forged message DELIMITER, so it now requires delimiter shape: bracketed,
     # or SHOUTED at the start of a line the way a real header would be, or the
-    # llama-style <<SYS>> marker. `(?-i)` on the line-start arm is what keeps
+    # llama-style <<SYS>> marker. `(?-i)` on the line-start arm is what keeps  # injection-scanner:ignore PI011
     # "System prompt: loaded from config" out; patterns compile
     # case-insensitively by default.
-    pattern: "(\\[SYSTEM\\s*(OVERRIDE|PROMPT|MESSAGE)\\]|(?-i:^\\s*SYSTEM\\s+(OVERRIDE|PROMPT|MESSAGE)\\b)|<<SYS>>)"
+    pattern: "(\\[SYSTEM\\s*(OVERRIDE|PROMPT|MESSAGE)\\]|(?-i:^\\s*SYSTEM\\s+(OVERRIDE|PROMPT|MESSAGE)\\b)|<<SYS>>)"  # injection-scanner:ignore PI011
     severity: CRITICAL
     description: "Forged system-message delimiter"
     remediation: "Remove the forged system delimiter. Only the real system turn should be framed this way."

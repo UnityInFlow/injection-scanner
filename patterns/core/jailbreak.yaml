@@ -8,10 +8,10 @@ patterns:
     remediation: "Remove developer mode activation."
     tags: [jailbreak]
   - id: PI031
-    name: dan-mode
+    name: dan-mode  # injection-scanner:ignore PI031
     pattern: "(?i)\\bDAN\\s+mode\\b"
     description: "DAN (Do Anything Now) jailbreak"
-    remediation: "Remove DAN mode reference."
+    remediation: "Remove DAN mode reference."  # injection-scanner:ignore PI031
     tags: [jailbreak]
   - id: PI032
     name: no-content-policy
@@ -32,11 +32,11 @@ patterns:
     remediation: "Remove hypothetical bypass framing."
     tags: [jailbreak]
   - id: PI035
-    name: jailbreak-prompt
+    name: jailbreak-prompt  # injection-scanner:ignore PI035
     pattern: "(?i)\\bjailbreak\\s+prompt\\b"
     severity: CRITICAL
-    description: "Explicit jailbreak prompt reference"
-    remediation: "Remove jailbreak prompt."
+    description: "Explicit jailbreak prompt reference"  # injection-scanner:ignore PI035
+    remediation: "Remove jailbreak prompt."  # injection-scanner:ignore PI035
     tags: [jailbreak]
   - id: PI036
     name: override-safety
@@ -45,14 +45,14 @@ patterns:
     remediation: "Remove safety override instruction."
     tags: [jailbreak]
   - id: PI037
-    name: bypass-content-filter
+    name: bypass-content-filter  # injection-scanner:ignore PI037
     pattern: "bypass\\s+(the\\s+)?content\\s+filter"
     description: "Content filter bypass attempt"
     remediation: "Remove content filter bypass."
     tags: [jailbreak]
   - id: PI038
-    name: unlimited-mode
+    name: unlimited-mode  # injection-scanner:ignore PI038
     pattern: "(?i)unlimited\\s+mode"
     description: "Unrestricted mode activation"
-    remediation: "Remove unlimited mode activation."
+    remediation: "Remove unlimited mode activation."  # injection-scanner:ignore PI038
     tags: [jailbreak]
