@@ -376,12 +376,54 @@ injection-scanner check ./untrusted-skills --no-suppress
 Rule of thumb: **suppression is for your own repository; `--no-suppress` is for everyone else's
 content.**
 
+## Choosing What Fails the Build
+
+```bash
+injection-scanner check . --fail-on critical   # only unambiguous payloads block
+injection-scanner check . --fail-on medium     # default is low: anything blocks
+injection-scanner check . --quiet              # exit code only, for hooks
+```
+
+`--fail-on` raises the bar for **failing**, not for **reporting**. Findings below
+it are still printed — a user who cannot see them cannot judge whether the bar is
+right — but the exit code becomes `2` rather than `1`.
+
+That third code is the point. Without it, `--fail-on critical` would exit `0` on
+a file full of HIGH findings, and any pipeline checking for zero would call it
+clean.
+
+## Finding Out What a Rule Means
+
+```bash
+$ injection-scanner rules
+ID       SEVERITY  CATEGORY               NAME
+PI001    CRITICAL  role_override          ignore-previous-instructions
+PI003    MEDIUM    role_override          you-are-now
+PI041    LOW       encoding               zero-width-chars
+
+$ injection-scanner explain PI035
+PI035  jailbreak-prompt  [LOW]
+Category:    jailbreak
+Detects:     Explicit jailbreak prompt reference
+Remediation: Remove jailbreak prompt.
+Pattern:     (?i)\bjailbreak\s+prompt\b
+
+Suppress one occurrence with:
+  <!-- injection-scanner:ignore PI035 -->
+```
+
+`rules --format json` is machine-readable. Both show the **effective** severity,
+resolved against the category default.
+
 ## Exit Codes
 
 | Code | Meaning |
 |---|---|
-| 0 | No findings |
-| 1 | One or more findings detected |
+| `0` | No findings |
+| `1` | Findings at or above `--fail-on` |
+| `2` | Findings, but all below `--fail-on` |
+
+`2` matches the convention `spec-linter` uses elsewhere in this ecosystem.
 
 ## Part of UnityInFlow
 
