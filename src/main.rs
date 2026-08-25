@@ -12,6 +12,7 @@ use anyhow::{Context, Result};
 use clap::{Parser, ValueEnum};
 
 use injection_scanner::allowlist::{parse_suppressions, Suppressions};
+use injection_scanner::baseline::Baseline;
 use injection_scanner::context::DEFAULT_MIN_CONFIDENCE;
 use injection_scanner::pattern::{ScanReport, Severity};
 use injection_scanner::patterns::load_all_patterns;
@@ -187,6 +188,24 @@ enum Commands {
         /// did not assemble, where the extension tells you nothing.
         #[arg(long)]
         all_files: bool,
+
+        // ---- incremental adoption (issue #25, CLI-08) ----
+        /// Withhold findings already accepted in this baseline file
+        ///
+        /// An existing repository cannot adopt this scanner if day one is a
+        /// wall of findings. Findings whose fingerprint is recorded here are
+        /// moved out of `matches` and into `baselined`; they do not affect
+        /// the exit code. Generate one with --write-baseline first.
+        #[arg(long, value_name = "FILE")]
+        baseline: Option<PathBuf>,
+        /// Scan, then record every finding as accepted into this file
+        ///
+        /// Means "accept the current state" — this always exits 0, even when
+        /// CRITICAL findings were found, because writing the baseline IS the
+        /// decision. Not valid with `check -`: stdin has no stable file
+        /// identity to record a baseline against.
+        #[arg(long, value_name = "FILE", conflicts_with = "baseline")]
+        write_baseline: Option<PathBuf>,
     },
     /// List every loaded pattern
     Rules {
@@ -288,8 +307,20 @@ fn main() -> Result<()> {
             all_files,
             fail_on,
             quiet,
+            baseline,
+            write_baseline,
         } => {
             let min_confidence = resolve_min_confidence(strict, min_confidence)?;
+
+            // Fail before stdin is consumed so a piped producer sees the
+            // error rather than a closed pipe.
+            if path == "-" && write_baseline.is_some() {
+                anyhow::bail!(
+                    "--write-baseline is not valid with `check -`: stdin has no stable file \
+                     identity to record a baseline against."
+                );
+            }
+
             let loaded = load_all_patterns(patterns.as_deref())
                 .context("Failed to load embedded patterns")?;
             let categories = loaded.categories;
@@ -441,6 +472,48 @@ fn main() -> Result<()> {
                 }
             }
 
+            // `--write-baseline` means "accept the current state": write the
+            // baseline, show the run exactly as an unflagged one would, and
+            // exit CLEAN even though CRITICAL findings may be present — that
+            // is the whole point of the flag (D-2).
+            if let Some(write_baseline_path) = &write_baseline {
+                let baseline = Baseline::from_reports(&reports);
+                baseline.save(write_baseline_path).with_context(|| {
+                    format!(
+                        "Failed to write baseline to {}",
+                        write_baseline_path.display()
+                    )
+                })?;
+
+                let output = match format {
+                    OutputFormat::Json => format_json(&reports)?,
+                    OutputFormat::Text => format_text(&reports),
+                };
+                if !quiet {
+                    print!("{}", output);
+                    eprintln!(
+                        "note: wrote {} baseline entr{} to {}",
+                        baseline.entries.len(),
+                        if baseline.entries.len() == 1 {
+                            "y"
+                        } else {
+                            "ies"
+                        },
+                        write_baseline_path.display()
+                    );
+                }
+                std::process::exit(exit::CLEAN);
+            }
+
+            // `--baseline` moves accepted findings out of `matches` before
+            // anything downstream — formatting, the stderr notes, and the
+            // exit-code walk below — ever sees them.
+            let mut stale_entries = Vec::new();
+            if let Some(baseline_path) = &baseline {
+                let loaded = Baseline::load(baseline_path)?;
+                stale_entries = loaded.apply(&mut reports);
+            }
+
             // Exhaustive by construction — a new variant will not compile until
             // it has a writer, which is the point of the enum.
             let output = match format {
@@ -450,6 +523,20 @@ fn main() -> Result<()> {
 
             if !quiet {
                 print!("{}", output);
+            }
+
+            // A stale entry is a live licence to re-introduce the finding it
+            // once accepted, so it is named — not just counted — so it can be
+            // pruned from the committed file.
+            if !quiet {
+                for entry in &stale_entries {
+                    eprintln!(
+                        "note: baseline entry {} in {} matched nothing this run and can be \
+                         pruned — an entry matching nothing is a standing licence to \
+                         re-introduce the finding it once accepted.",
+                        entry.pattern_id, entry.file
+                    );
+                }
             }
 
             if skipped > 0 {

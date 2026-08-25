@@ -35,6 +35,7 @@ pub fn format_text(reports: &[ScanReport]) -> String {
 
     let total_suppressed: usize = reports.iter().map(|r| r.suppressed_count()).sum();
     let total_low_confidence: usize = reports.iter().map(|r| r.low_confidence_count()).sum();
+    let total_baselined: usize = reports.iter().map(|r| r.baselined_count()).sum();
     let total_critical: usize = reports.iter().map(|r| r.critical_count).sum();
     let total_high: usize = reports.iter().map(|r| r.high_count).sum();
     let total_medium: usize = reports.iter().map(|r| r.medium_count).sum();
@@ -45,7 +46,7 @@ pub fn format_text(reports: &[ScanReport]) -> String {
         // Not flatly "nothing detected" when something *was* detected and then
         // withheld — that reads as a clean bill of health, and the line below
         // would contradict it.
-        if total_low_confidence > 0 || total_suppressed > 0 {
+        if total_low_confidence > 0 || total_suppressed > 0 || total_baselined > 0 {
             output.push_str("No injection patterns reported.\n");
         } else {
             output.push_str("No injection patterns detected.\n");
@@ -92,6 +93,21 @@ pub fn format_text(reports: &[ScanReport]) -> String {
         output.push_str(&format!(
             "{total_low_confidence} {findings} withheld as documentation (code blocks, inline \
              spans, tables). Re-run with --strict to see {them}.\n"
+        ));
+    }
+
+    // A baseline is an accept-risk decision recorded in a committed file, not
+    // a property of the scanned document or the scanner's own judgement — so
+    // it gets a third, separate note, in the same voice as the two above.
+    if total_baselined > 0 {
+        let (findings, them) = if total_baselined == 1 {
+            ("finding", "it")
+        } else {
+            ("findings", "them")
+        };
+        output.push_str(&format!(
+            "{total_baselined} {findings} accepted by the baseline. Re-run without --baseline \
+             to see {them}.\n"
         ));
     }
 

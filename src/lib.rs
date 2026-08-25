@@ -13,6 +13,7 @@
 #![deny(clippy::unwrap_used)]
 
 pub mod allowlist;
+pub mod baseline;
 pub mod context;
 pub mod multiline;
 pub mod normalize;
