@@ -465,9 +465,25 @@ for the full rationale.
 A baseline entry that matches nothing in a given run is reported on stderr as
 stale: it is a live licence to re-introduce the finding it once accepted, and should
 be pruned. Generate and consume a baseline with comparable invocations — the path is
-part of an entry's identity, so a baseline written by `check .` (exactly how the
-installed pre-commit hook invokes the scanner) matches a later `check .`, but not
-necessarily a differently-rooted invocation.
+part of an entry's identity, so a baseline written by `check .` matches a later
+`check .`, but not necessarily a differently-rooted invocation.
+
+### With the pre-commit hook
+
+The hook does **not** pick a baseline up from the working directory; tell it which
+one to honour at install time:
+
+```bash
+injection-scanner install-hook --baseline .injection-scanner-baseline.json
+```
+
+Without this, a repository that just accepted its findings still cannot commit — the
+hook re-reports every one of them. The path is resolved to an absolute one when the
+hook is written, because the hook scans from inside a temporary staging copy where a
+relative path would not exist, and a baseline that cannot be found is refused at
+install time rather than on someone's next commit. New findings still block, and so
+does the *same* payload in a *new* file: the path is part of an entry's identity, so
+accepting yesterday's debt never becomes a licence to add more of it.
 
 `--baseline` and `--write-baseline` are mutually exclusive, and `--write-baseline`
 is rejected against `check -`: stdin has no stable file identity to record a

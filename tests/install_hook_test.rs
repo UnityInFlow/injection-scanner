@@ -243,3 +243,137 @@ fn the_pre_commit_framework_manifest_is_valid() {
         );
     }
 }
+
+// ---- the hook composed with a baseline (CLI-08 x HOOK-01) ----
+//
+// These guard the seam the two features meet at. `--baseline` is worth nothing
+// to an adopting team if the hook — the thing that actually blocks their
+// commits — cannot honour it. Found in review: the adoption flow read clean
+// when driven by hand and still blocked every commit once the hook was
+// installed.
+
+/// Writes a baseline for the repo's current content and returns its path.
+fn write_baseline(repo: &Repo, rel: &str) -> PathBuf {
+    let path = repo.0.join(rel);
+    let out = Command::new(binary())
+        .args(["check", "."])
+        .arg("--write-baseline")
+        .arg(&path)
+        .current_dir(&repo.0)
+        .output()
+        .expect("run scanner");
+    assert!(
+        out.status.success(),
+        "--write-baseline must exit 0: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(path.exists(), "no baseline written to {}", path.display());
+    path
+}
+
+#[test]
+fn a_hook_installed_with_a_baseline_lets_the_accepted_state_commit() {
+    let repo = Repo::new("baseline-accepts");
+    repo.write("legacy.md", include_str!("fixtures/injected-skill.md"));
+    repo.git(&["add", "-A"]);
+    let baseline = write_baseline(&repo, ".injection-scanner-baseline.json");
+
+    let (ok, output) = repo.scanner(&[
+        "install-hook",
+        "--baseline",
+        baseline.to_str().expect("utf-8 path"),
+    ]);
+    assert!(ok, "install-hook --baseline failed: {output}");
+
+    let (committed, output) = commit(&repo, "adopt the existing state");
+    assert!(
+        committed,
+        "a repository that accepted its findings into a baseline must be able to \
+         commit — this is the entire point of CLI-08, and it is worthless if the \
+         hook that gates the commit ignores the baseline. Output:\n{output}"
+    );
+}
+
+#[test]
+fn a_hook_installed_with_a_baseline_still_blocks_a_new_finding() {
+    let repo = Repo::new("baseline-still-blocks");
+    repo.write("legacy.md", include_str!("fixtures/injected-skill.md"));
+    repo.git(&["add", "-A"]);
+    let baseline = write_baseline(&repo, ".injection-scanner-baseline.json");
+    let (ok, output) = repo.scanner(&[
+        "install-hook",
+        "--baseline",
+        baseline.to_str().expect("utf-8 path"),
+    ]);
+    assert!(ok, "install-hook --baseline failed: {output}");
+
+    // A brand-new file carrying the same payload is NOT in the baseline: the
+    // path is part of an entry's identity. Accepting yesterday's debt must
+    // never become a licence to add more of it.
+    repo.write("fresh.md", include_str!("fixtures/injected-skill.md"));
+    repo.git(&["add", "-A"]);
+
+    let (committed, output) = commit(&repo, "sneak in a new payload");
+    assert!(
+        !committed,
+        "a baseline accepts the findings it recorded and nothing else — a NEW \
+         file with the same payload must still block the commit, or the baseline \
+         is a blanket amnesty. Output:\n{output}"
+    );
+}
+
+#[test]
+fn the_baseline_path_is_absolute_in_the_generated_hook() {
+    let repo = Repo::new("baseline-abs");
+    repo.write("legacy.md", include_str!("fixtures/injected-skill.md"));
+    repo.git(&["add", "-A"]);
+    write_baseline(&repo, ".injection-scanner-baseline.json");
+
+    // Invoked the way a user does it: from inside the repository, with a
+    // relative path. Resolving that against the caller's cwd is what makes the
+    // absolutisation below load-bearing.
+    let out = Command::new(binary())
+        .args([
+            "install-hook",
+            "--baseline",
+            ".injection-scanner-baseline.json",
+        ])
+        .current_dir(&repo.0)
+        .output()
+        .expect("run scanner");
+    assert!(
+        out.status.success(),
+        "install-hook --baseline failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+
+    let script = fs::read_to_string(repo.hook()).expect("read hook");
+    let line = script
+        .lines()
+        .find(|l| l.contains("--baseline"))
+        .expect("the generated hook must pass --baseline");
+    assert!(
+        line.contains(&format!(
+            "{}",
+            repo.0.join(".injection-scanner-baseline.json").display()
+        )),
+        "the hook runs from inside a temp staging copy, so a RELATIVE baseline \
+         path resolves against that copy and does not exist — it must be \
+         absolutised at install time. Got: {line}"
+    );
+}
+
+#[test]
+fn install_hook_rejects_a_baseline_that_does_not_exist() {
+    let repo = Repo::new("baseline-missing");
+    let (ok, output) = repo.scanner(&["install-hook", "--baseline", "nope.json"]);
+    assert!(
+        !ok,
+        "installing a hook against a nonexistent baseline would produce a hook \
+         that fails on every commit, long after the typo was made. Output:\n{output}"
+    );
+    assert!(
+        !repo.hook().exists(),
+        "a rejected install must not leave a hook behind: {output}"
+    );
+}

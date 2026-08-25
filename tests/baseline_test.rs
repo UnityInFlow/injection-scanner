@@ -633,3 +633,108 @@ fn baselined_findings_carry_full_evidence_and_the_top_level_stays_an_array() {
 
     let _ = std::fs::remove_file(&baseline);
 }
+
+// ---- review follow-ups ----
+
+#[test]
+fn writing_a_baseline_still_reports_that_files_went_unscanned() {
+    // `--write-baseline` exits early to force exit code 0, and in doing so it
+    // used to jump over the "N file(s) skipped and NOT scanned" summary. That
+    // summary is deliberately the LAST line of a normal run so it cannot be
+    // missed; losing it here means accepting a baseline while being told less
+    // about the gaps in it than an ordinary scan would tell you.
+    let dir = std::env::temp_dir().join(format!(
+        "injscan-baseline-skip-{}-{}",
+        std::process::id(),
+        unique_suffix()
+    ));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("create tempdir");
+    std::fs::copy(fixture_path(), dir.join("a.md")).expect("copy fixture");
+    // Invalid UTF-8: unreadable as text, so the walker skips it.
+    std::fs::write(dir.join("binary.md"), [0xff, 0xfe, 0x00, 0x01]).expect("write binary");
+    let baseline = dir.join("b.json");
+
+    let (code, _, stderr) = run(&[
+        "check",
+        dir.to_str().expect("utf-8 path"),
+        "--write-baseline",
+        baseline.to_str().expect("utf-8 path"),
+    ]);
+    let _ = std::fs::remove_dir_all(&dir);
+
+    assert_eq!(code, 0, "--write-baseline must still exit 0: {stderr}");
+    assert!(
+        stderr.contains("file(s) skipped and NOT scanned"),
+        "a baseline written over a tree with unscanned files must say so — the \
+         user is recording an accept decision over coverage they do not have. \
+         stderr was:\n{stderr}"
+    );
+}
+
+#[test]
+fn an_unknown_top_level_field_in_a_baseline_is_rejected() {
+    // `BaselineEntry` already denies unknown fields on exactly this reasoning:
+    // a mistyped key must fail the parse rather than yield a file that quietly
+    // means something other than what its author wrote. The same argument
+    // applies one level up.
+    let doc = Doc::new("unknown-field.md", "clean prose, nothing to find here\n");
+    let baseline = Doc::new(
+        "unknown-field-baseline.json",
+        r#"{"version":1,"generated_by":"x","entries":[],"entires":[]}"#,
+    );
+
+    let (code, stdout, stderr) = run(&["check", doc.path(), "--baseline", baseline.path()]);
+
+    assert_ne!(
+        code, 0,
+        "an unrecognised top-level key means the file does not say what its \
+         author thinks it says — parsing it anyway is how a baseline silently \
+         stops gating. stdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+    assert!(
+        stderr.contains(baseline.path()),
+        "the error must name the offending file: {stderr}"
+    );
+}
+
+#[test]
+fn duplicate_entries_for_one_fingerprint_sum_their_counts() {
+    // A hand-edited or concatenated baseline can carry the same identity twice.
+    // Overwriting rather than summing silently narrows the accepted budget, so
+    // findings the file plainly accepts get reported anyway — confusing, and it
+    // trains people to distrust the tool. Two entries of count 1 mean two.
+    let payload = std::fs::read_to_string(fixture_path()).expect("read fixture");
+    let doc = Doc::new("dup-entries.md", &format!("{payload}\n{payload}\n"));
+    let written = Doc::new("dup-entries-baseline.json", "{}");
+
+    // Write a baseline that accepts BOTH occurrences, then split each entry
+    // into two entries of half the count. Summing must be equivalent.
+    let (code, _, stderr) = run(&["check", doc.path(), "--write-baseline", written.path()]);
+    assert_eq!(code, 0, "--write-baseline must exit 0: {stderr}");
+
+    let raw = std::fs::read_to_string(&written.0).expect("read baseline");
+    let mut value: serde_json::Value = serde_json::from_str(&raw).expect("baseline is JSON");
+    let entries = value["entries"].as_array().expect("entries array").clone();
+    let mut split = Vec::new();
+    for entry in entries {
+        let count = entry["count"].as_u64().expect("count");
+        assert_eq!(
+            count, 2,
+            "the fixture was duplicated, so each fingerprint should be accepted twice"
+        );
+        let mut half = entry.clone();
+        half["count"] = serde_json::json!(1);
+        split.push(half.clone());
+        split.push(half);
+    }
+    value["entries"] = serde_json::Value::Array(split);
+    written.write(&serde_json::to_string_pretty(&value).expect("re-serialize"));
+
+    let (code, stdout, stderr) = run(&["check", doc.path(), "--baseline", written.path()]);
+    assert_eq!(
+        code, 0,
+        "two entries of count 1 accept the same two occurrences one entry of \
+         count 2 does. stdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+}
