@@ -197,6 +197,18 @@ enum Commands {
         #[arg(long, value_enum, ignore_case = true, default_value_t = OutputFormat::Text)]
         format: OutputFormat,
     },
+    /// Install a git pre-commit hook that scans staged files
+    InstallHook {
+        /// Repository to install into (default: the current one)
+        #[arg(long, value_name = "DIR")]
+        repo: Option<PathBuf>,
+        /// Severity at or above which a commit is blocked
+        #[arg(long, value_enum, ignore_case = true, default_value_t = FailOn::High)]
+        fail_on: FailOn,
+        /// Overwrite an existing hook
+        #[arg(long)]
+        force: bool,
+    },
     /// Show everything known about one pattern
     Explain {
         /// Pattern id, e.g. PI001 (case-insensitive)
@@ -490,6 +502,51 @@ fn main() -> Result<()> {
             }
         }
 
+        Commands::InstallHook {
+            repo,
+            fail_on,
+            force,
+        } => {
+            let root = repo.unwrap_or_else(|| PathBuf::from("."));
+            let hooks = git_hooks_dir(&root)?;
+            let hook = hooks.join("pre-commit");
+
+            if hook.exists() && !force {
+                let existing = fs::read_to_string(&hook).unwrap_or_default();
+                if existing.contains(HOOK_MARKER) {
+                    println!("Hook already installed at {}.", hook.display());
+                    println!("Re-run with --force to update it.");
+                    return Ok(());
+                }
+                // Never silently replace someone else's hook. A pre-commit hook
+                // is often the only thing standing between a repository and a
+                // committed secret.
+                anyhow::bail!(
+                    "{} already exists and was not written by this tool.\n\
+                     Inspect it, then re-run with --force to replace it.",
+                    hook.display()
+                );
+            }
+
+            fs::create_dir_all(&hooks)
+                .with_context(|| format!("Failed to create {}", hooks.display()))?;
+            fs::write(&hook, hook_script(fail_on))
+                .with_context(|| format!("Failed to write {}", hook.display()))?;
+
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                fs::set_permissions(&hook, fs::Permissions::from_mode(0o755))
+                    .with_context(|| format!("Failed to make {} executable", hook.display()))?;
+            }
+
+            println!("Installed pre-commit hook at {}.", hook.display());
+            println!(
+                "Staged files are scanned before each commit; {fail_on:?} and above block it."
+            );
+            println!("Bypass once with `git commit --no-verify`.");
+        }
+
         Commands::Explain { id, patterns } => {
             let categories = load_graded(patterns.as_deref())?;
             let wanted = id.to_uppercase();
@@ -570,4 +627,103 @@ fn load_graded(patterns: Option<&std::path::Path>) -> Result<Vec<GradedRule>> {
     // Sorted by id so the listing is stable and diffable.
     rules.sort_by(|a, b| a.id.cmp(&b.id));
     Ok(rules)
+}
+
+/// Marks a hook as ours, so an update can tell "mine, older" from "someone
+/// else's, do not touch".
+const HOOK_MARKER: &str = "injection-scanner:install-hook";
+
+/// Where git wants hooks for this repository.
+///
+/// Reads `core.hooksPath` and the real `.git` location from git itself rather
+/// than assuming `.git/hooks`. Both assumptions break on a worktree — where
+/// `.git` is a FILE pointing elsewhere — and on any repository that has
+/// configured a shared hooks directory.
+fn git_hooks_dir(root: &std::path::Path) -> Result<PathBuf> {
+    let run = |args: &[&str]| -> Option<String> {
+        let out = std::process::Command::new("git")
+            .arg("-C")
+            .arg(root)
+            .args(args)
+            .output()
+            .ok()?;
+        out.status
+            .success()
+            .then(|| String::from_utf8_lossy(&out.stdout).trim().to_string())
+            .filter(|s| !s.is_empty())
+    };
+
+    let common = run(&["rev-parse", "--path-format=absolute", "--git-common-dir"])
+        .context("Not a git repository (or git is not on PATH)")?;
+
+    Ok(match run(&["config", "--get", "core.hooksPath"]) {
+        Some(configured) => {
+            let path = PathBuf::from(&configured);
+            if path.is_absolute() {
+                path
+            } else {
+                root.join(path)
+            }
+        }
+        None => PathBuf::from(common).join("hooks"),
+    })
+}
+
+/// The hook script.
+///
+/// Scans only what is STAGED, and scans the staged content rather than the
+/// working tree — `git stash`-free and correct when a file is partially staged.
+/// Without that, a developer could stage a clean version, leave a payload
+/// unstaged, and have the hook pass on text that is not what gets committed.
+fn hook_script(fail_on: FailOn) -> String {
+    let bar = format!("{fail_on:?}").to_lowercase();
+    format!(
+        r##"#!/bin/sh
+# {HOOK_MARKER}
+#
+# Scans staged content for prompt-injection patterns before each commit.
+# Regenerate with: injection-scanner install-hook --force
+#
+# Bypass once with: git commit --no-verify
+set -eu
+
+if ! command -v injection-scanner >/dev/null 2>&1; then
+  echo "injection-scanner not on PATH; skipping the injection scan." >&2
+  exit 0
+fi
+
+# Added, copied and modified paths only. A deleted file has nothing to scan, and
+# a rename is caught under its new path.
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -n "$staged" ] || exit 0
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+printf '%s\n' "$staged" | while IFS= read -r path; do
+  [ -n "$path" ] || continue
+  mkdir -p "$tmp/$(dirname "$path")"
+  # The STAGED blob, not the working tree. A partially staged file has to be
+  # judged on what is actually about to be committed — otherwise a developer
+  # can stage a clean version, leave a payload unstaged, and pass.
+  git show ":$path" > "$tmp/$path" 2>/dev/null || true
+done
+
+# Run from inside the staging copy so findings are reported at ./path, the path
+# the developer recognises, rather than at some /tmp/tmp.XXXX prefix they cannot
+# act on.
+status=0
+( cd "$tmp" && injection-scanner check . --fail-on {bar} --no-ignore ) || status=$?
+
+if [ "$status" -eq 1 ]; then
+  echo "" >&2
+  echo "Commit blocked: prompt-injection patterns at {bar} or above." >&2
+  echo "Explain a finding with: injection-scanner explain <PI0XX>" >&2
+  echo "Commit anyway with:     git commit --no-verify" >&2
+  exit 1
+fi
+
+exit 0
+"##
+    )
 }

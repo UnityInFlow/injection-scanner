@@ -376,6 +376,53 @@ injection-scanner check ./untrusted-skills --no-suppress
 Rule of thumb: **suppression is for your own repository; `--no-suppress` is for everyone else's
 content.**
 
+## Pre-commit Hook
+
+```bash
+$ injection-scanner install-hook
+Installed pre-commit hook at .git/hooks/pre-commit.
+Staged files are scanned before each commit; High and above block it.
+Bypass once with `git commit --no-verify`.
+
+$ git commit -m "update spec"
+./docs/CLAUDE.md
+  :3 CRITICAL  Attempts to override agent instructions  (PI001)
+
+Commit blocked: prompt-injection patterns at high or above.
+Explain a finding with: injection-scanner explain <PI0XX>
+Commit anyway with:     git commit --no-verify
+```
+
+**60ms** on a 40-file repository, against the 200ms budget.
+
+Three things it gets right that a naive hook does not:
+
+- **Scans staged content, not the working tree.** A partially staged file is
+  judged on what is actually about to be committed — otherwise you could stage a
+  clean version, leave the payload unstaged, and pass.
+- **Reports repository paths.** It scans a staging copy under a temp directory,
+  but findings name `./docs/CLAUDE.md`, not a `/tmp` path that no longer exists
+  by the time you read it.
+- **Never replaces a hook it did not write.** A pre-commit hook is often the only
+  thing between a repository and a committed secret. It refuses and tells you
+  about `--force`.
+
+`--fail-on` defaults to `high` here rather than `low`, so MEDIUM heuristics
+inform without blocking. Change it with
+`install-hook --fail-on critical`.
+
+Using the [pre-commit framework](https://pre-commit.com) instead? This repo ships
+a `.pre-commit-hooks.yaml`, because `pre-commit install` would overwrite the hook
+above:
+
+```yaml
+repos:
+  - repo: https://github.com/UnityInFlow/injection-scanner
+    rev: v0.0.3
+    hooks:
+      - id: injection-scanner
+```
+
 ## Choosing What Fails the Build
 
 ```bash
