@@ -81,7 +81,20 @@ struct Identity {
 /// crafted-collision surface: the adversary authors the scanned text, so a
 /// weak digest would let a *new* payload be tuned onto an already-accepted
 /// fingerprint (T-QT-02).
-fn fingerprint(matched_text: &str) -> String {
+///
+/// **Two consumers as of CLI-04 (issue #5):** the committed baseline above,
+/// and `src/sarif.rs`'s `partialFingerprints` — SARIF's own mechanism for
+/// keeping a code-scanning alert identified across runs. Changing this
+/// function moves both, which is the property that makes the reuse worth
+/// having: the baseline and a GitHub alert agree on what "the same finding"
+/// means, rather than maintaining two independent, driftable definitions.
+/// The SARIF side appends an occurrence ordinal (`/N`) on top of this digest
+/// — see [`crate::sarif::format_sarif`] — because the bare digest alone
+/// collapses two identical payloads in one file into one identity, which is
+/// insufficient for SARIF's `(ruleId, uri, partialFingerprint)` alert key
+/// even though it is sufficient for the baseline's `(file, pattern_id,
+/// digest)` + `count` scheme.
+pub fn fingerprint(matched_text: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(matched_text.as_bytes());
     format!("sha256:{:x}", hasher.finalize())

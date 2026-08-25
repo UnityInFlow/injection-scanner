@@ -1,4 +1,4 @@
-use crate::pattern::{PatternCategory, PatternError};
+use crate::pattern::{PatternCategory, PatternError, Severity};
 
 /// Pattern categories that loaded, alongside the failures that did not.
 ///
@@ -136,4 +136,53 @@ pub fn load_all_patterns(
     }
 
     Ok(loaded)
+}
+
+/// A pattern with its severity already resolved against the category default.
+///
+/// `rules`, `explain` and the SARIF writer (`src/sarif.rs`, CLI-04) all need
+/// the EFFECTIVE severity — the one a user or a code-scanning consumer will
+/// actually see — not the optional per-pattern override. Moved here (from
+/// `src/main.rs`) verbatim, field order and the `Serialize` derive included,
+/// because `rules --format json` serializes it and that output must not
+/// change.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct GradedRule {
+    pub id: String,
+    pub name: String,
+    pub severity: Severity,
+    pub category: String,
+    pub description: String,
+    pub remediation: String,
+    pub pattern: String,
+    pub tags: Vec<String>,
+}
+
+/// Resolves the effective severity of every pattern in `categories`, sorted
+/// by id.
+///
+/// Pure — no I/O, no stderr output — so it is safe to call from the SARIF
+/// writer as well as from the CLI. Loading patterns from disk and printing
+/// the per-file load warnings remain the caller's responsibility; see
+/// `load_graded` in `src/main.rs`, the thin wrapper that does both and then
+/// calls this.
+pub fn grade(categories: &[PatternCategory]) -> Vec<GradedRule> {
+    let mut rules: Vec<GradedRule> = categories
+        .iter()
+        .flat_map(|category| {
+            category.patterns.iter().map(move |p| GradedRule {
+                id: p.id.clone(),
+                name: p.name.clone(),
+                severity: p.severity.unwrap_or(category.default_severity),
+                category: category.category.clone(),
+                description: p.description.clone(),
+                remediation: p.remediation.clone(),
+                pattern: p.pattern.clone(),
+                tags: p.tags.clone(),
+            })
+        })
+        .collect();
+    // Sorted by id so the listing is stable and diffable.
+    rules.sort_by(|a, b| a.id.cmp(&b.id));
+    rules
 }
