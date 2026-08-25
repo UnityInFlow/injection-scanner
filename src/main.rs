@@ -13,7 +13,7 @@ use clap::{Parser, ValueEnum};
 
 use injection_scanner::allowlist::{parse_suppressions, Suppressions};
 use injection_scanner::context::DEFAULT_MIN_CONFIDENCE;
-use injection_scanner::pattern::ScanReport;
+use injection_scanner::pattern::{ScanReport, Severity};
 use injection_scanner::patterns::load_all_patterns;
 use injection_scanner::reporter::{format_json, format_text};
 use injection_scanner::scanner::Scanner;
@@ -55,6 +55,50 @@ impl std::fmt::Display for OutputFormat {
             OutputFormat::Json => write!(f, "json"),
         }
     }
+}
+
+/// Severity at or above which findings fail the build.
+///
+/// Separate from `Severity` on purpose: this is a CLI concept with an ordering
+/// and a `clap::ValueEnum` derive, and giving the domain type a CLI parser would
+/// couple the pattern library to the argument parser.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, clap::ValueEnum)]
+enum FailOn {
+    Critical,
+    High,
+    Medium,
+    Low,
+}
+
+impl FailOn {
+    /// Does a finding at `severity` meet this bar?
+    fn is_met_by(self, severity: Severity) -> bool {
+        let rank = |s| match s {
+            Severity::Critical => 3,
+            Severity::High => 2,
+            Severity::Medium => 1,
+            Severity::Low => 0,
+        };
+        let bar = match self {
+            FailOn::Critical => 3,
+            FailOn::High => 2,
+            FailOn::Medium => 1,
+            FailOn::Low => 0,
+        };
+        rank(severity) >= bar
+    }
+}
+
+/// Exit codes, which are this tool's real interface to CI.
+///
+/// `2` exists so "we found things, none met your bar" is distinguishable from
+/// "clean". Collapsing those two would make `--fail-on critical` silently hide
+/// every HIGH finding from a pipeline that only checks for zero. Matches the
+/// convention `spec-linter` already uses in this ecosystem.
+mod exit {
+    pub const CLEAN: i32 = 0;
+    pub const FAILED: i32 = 1;
+    pub const BELOW_THRESHOLD: i32 = 2;
 }
 
 #[derive(clap::Subcommand)]
@@ -125,6 +169,17 @@ enum Commands {
         /// Traversal threads (0 = choose automatically)
         #[arg(long, value_name = "N", default_value_t = 0)]
         jobs: usize,
+        /// Fail only at or above this severity
+        ///
+        /// Below it, findings are still printed but the exit code is 2 rather
+        /// than 1 — "there is something here, it did not meet your bar".
+        #[arg(long, value_enum, ignore_case = true, default_value_t = FailOn::Low)]
+        fail_on: FailOn,
+        /// Print nothing; communicate through the exit code alone
+        ///
+        /// For hooks and CI steps that only branch on the result.
+        #[arg(long, short)]
+        quiet: bool,
         /// Scan every file, not just known agent-facing types
         ///
         /// Still honours the deny-list, .gitignore and the size cap, and skips
@@ -132,6 +187,23 @@ enum Commands {
         /// did not assemble, where the extension tells you nothing.
         #[arg(long)]
         all_files: bool,
+    },
+    /// List every loaded pattern
+    Rules {
+        /// Additional patterns directory
+        #[arg(long)]
+        patterns: Option<PathBuf>,
+        /// Output format
+        #[arg(long, value_enum, ignore_case = true, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Show everything known about one pattern
+    Explain {
+        /// Pattern id, e.g. PI001 (case-insensitive)
+        id: String,
+        /// Additional patterns directory
+        #[arg(long)]
+        patterns: Option<PathBuf>,
     },
 }
 
@@ -202,6 +274,8 @@ fn main() -> Result<()> {
             follow_symlinks,
             jobs,
             all_files,
+            fail_on,
+            quiet,
         } => {
             let min_confidence = resolve_min_confidence(strict, min_confidence)?;
             let loaded = load_all_patterns(patterns.as_deref())
@@ -362,7 +436,9 @@ fn main() -> Result<()> {
                 OutputFormat::Text => format_text(&reports),
             };
 
-            print!("{}", output);
+            if !quiet {
+                print!("{}", output);
+            }
 
             if skipped > 0 {
                 eprintln!(
@@ -371,8 +447,127 @@ fn main() -> Result<()> {
                 );
             }
 
-            let has_findings = reports.iter().any(|r| r.has_findings());
-            std::process::exit(if has_findings { 1 } else { 0 });
+            let mut at_or_above = false;
+            let mut below = false;
+            for report in &reports {
+                for finding in &report.matches {
+                    if fail_on.is_met_by(finding.severity) {
+                        at_or_above = true;
+                    } else {
+                        below = true;
+                    }
+                }
+            }
+            std::process::exit(match (at_or_above, below) {
+                (true, _) => exit::FAILED,
+                (false, true) => exit::BELOW_THRESHOLD,
+                (false, false) => exit::CLEAN,
+            });
+        }
+
+        Commands::Rules { patterns, format } => {
+            let categories = load_graded(patterns.as_deref())?;
+            match format {
+                OutputFormat::Json => println!("{}", serde_json::to_string_pretty(&categories)?),
+                OutputFormat::Text => {
+                    println!("{:<8} {:<9} {:<22} NAME", "ID", "SEVERITY", "CATEGORY");
+                    for rule in &categories {
+                        // Severity is rendered to a String first: a width
+                        // specifier only pads a custom Display impl if that impl
+                        // routes through `Formatter::pad`, and this one does
+                        // not — so `{:<9}` silently did nothing and the columns
+                        // ran together.
+                        println!(
+                            "{:<8} {:<9} {:<22} {}",
+                            rule.id,
+                            rule.severity.to_string(),
+                            rule.category,
+                            rule.name
+                        );
+                    }
+                    println!("\n{} pattern(s).", categories.len());
+                }
+            }
+        }
+
+        Commands::Explain { id, patterns } => {
+            let categories = load_graded(patterns.as_deref())?;
+            let wanted = id.to_uppercase();
+            let rule = categories
+                .iter()
+                .find(|r| r.id.to_uppercase() == wanted)
+                .with_context(|| {
+                    // A bare "not found" leaves the user guessing whether they
+                    // mistyped or the pattern does not exist at all.
+                    let near: Vec<&str> = categories
+                        .iter()
+                        .map(|r| r.id.as_str())
+                        .filter(|other| other.get(..3) == wanted.get(..3))
+                        .collect();
+                    if near.is_empty() {
+                        format!("No pattern {id}. Run `injection-scanner rules` to list them.")
+                    } else {
+                        format!("No pattern {id}. Nearby ids: {}", near.join(", "))
+                    }
+                })?;
+
+            println!("{}  {}  [{}]", rule.id, rule.name, rule.severity);
+            println!("Category:    {}", rule.category);
+            println!("Detects:     {}", rule.description);
+            println!("Remediation: {}", rule.remediation);
+            println!("Pattern:     {}", rule.pattern);
+            if !rule.tags.is_empty() {
+                println!("Tags:        {}", rule.tags.join(", "));
+            }
+            println!(
+                "\nSuppress one occurrence with:\n  <!-- injection-scanner:ignore {} -->",
+                rule.id
+            );
         }
     }
+    Ok(())
+}
+
+/// A pattern with its severity already resolved against the category default.
+///
+/// `rules` and `explain` both need the EFFECTIVE severity — the number a user
+/// will actually see in a finding — not the optional per-pattern override. A
+/// listing that showed a blank severity for every pattern inheriting its
+/// category default would be worse than no listing.
+#[derive(serde::Serialize)]
+struct GradedRule {
+    id: String,
+    name: String,
+    severity: Severity,
+    category: String,
+    description: String,
+    remediation: String,
+    pattern: String,
+    tags: Vec<String>,
+}
+
+fn load_graded(patterns: Option<&std::path::Path>) -> Result<Vec<GradedRule>> {
+    let loaded = load_all_patterns(patterns)?;
+    for e in &loaded.errors {
+        eprintln!("warning: pattern skipped — {e}");
+    }
+    let mut rules: Vec<GradedRule> = loaded
+        .categories
+        .iter()
+        .flat_map(|category| {
+            category.patterns.iter().map(move |p| GradedRule {
+                id: p.id.clone(),
+                name: p.name.clone(),
+                severity: p.severity.unwrap_or(category.default_severity),
+                category: category.category.clone(),
+                description: p.description.clone(),
+                remediation: p.remediation.clone(),
+                pattern: p.pattern.clone(),
+                tags: p.tags.clone(),
+            })
+        })
+        .collect();
+    // Sorted by id so the listing is stable and diffable.
+    rules.sort_by(|a, b| a.id.cmp(&b.id));
+    Ok(rules)
 }
