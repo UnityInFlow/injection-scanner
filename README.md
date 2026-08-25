@@ -228,6 +228,14 @@ tests/fixtures/injected-skill.md
 ]
 ```
 
+Three more arrays can appear alongside `matches`, one per reason a finding can be
+withheld rather than reported: `suppressed` (an in-file directive disarmed it),
+`low_confidence` (markdown context scored it as documentation), and `baselined` (a
+`--baseline` file accepted it in a prior run — see
+[Adopting On An Existing Repository](#adopting-on-an-existing-repository)). All
+three are additive with `#[serde(default)]`, so older reports still deserialize,
+and none of them affect `critical_count` and friends.
+
 ## Documentation Is Not an Attack
 
 A security guide that quotes `ignore all previous instructions` is documenting an
@@ -422,6 +430,48 @@ repos:
     hooks:
       - id: injection-scanner
 ```
+
+## Adopting On An Existing Repository
+
+An existing repository cannot adopt this scanner if day one is a wall of findings.
+`--baseline` accepts the current state once, so only *new* findings fail the build
+from then on:
+
+```bash
+injection-scanner check . --write-baseline .injection-scanner-baseline.json
+injection-scanner check . --baseline .injection-scanner-baseline.json
+```
+
+`--write-baseline` always exits `0` — by design. Writing the baseline **is** the
+accept decision, so it cannot also be the thing that fails the build, even when the
+scan found CRITICAL findings.
+
+Accepted findings are moved, never dropped. `--format json` carries them in a
+fourth array, `baselined`, alongside `matches`, `suppressed` and `low_confidence` —
+same shape, same full evidence, filed under a third distinct reason a finding can be
+withheld: a human accepted it once and recorded that decision. Severity tallies
+(`critical_count` and friends) never count a baselined finding.
+
+The file stores a **hash** of the matched text, never the payload itself — because
+`json` is scanned by default (see `DEFAULT_EXTENSIONS` above), and a committed
+baseline full of verbatim payloads would itself become a finding source on the next
+scan. Each entry also carries a `count`, so accepting one occurrence of a pattern
+accepts exactly one: a third identical occurrence is still reported. Line number is
+deliberately **not** part of an entry's identity — editing anything above a finding
+does not invalidate its baseline entry, so the file stays a record of a decision
+rather than churn on every commit. See `docs/adr/ADR-002-baseline-fingerprints.md`
+for the full rationale.
+
+A baseline entry that matches nothing in a given run is reported on stderr as
+stale: it is a live licence to re-introduce the finding it once accepted, and should
+be pruned. Generate and consume a baseline with comparable invocations — the path is
+part of an entry's identity, so a baseline written by `check .` (exactly how the
+installed pre-commit hook invokes the scanner) matches a later `check .`, but not
+necessarily a differently-rooted invocation.
+
+`--baseline` and `--write-baseline` are mutually exclusive, and `--write-baseline`
+is rejected against `check -`: stdin has no stable file identity to record a
+baseline against.
 
 ## Choosing What Fails the Build
 
