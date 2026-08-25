@@ -17,6 +17,7 @@ use injection_scanner::context::DEFAULT_MIN_CONFIDENCE;
 use injection_scanner::pattern::{ScanReport, Severity};
 use injection_scanner::patterns::load_all_patterns;
 use injection_scanner::reporter::{format_json, format_text};
+use injection_scanner::sarif::format_sarif;
 use injection_scanner::scanner::Scanner;
 use injection_scanner::walk::{walk, SkipReason, WalkOptions, DEFAULT_MAX_FILE_SIZE};
 
@@ -38,15 +39,20 @@ struct Cli {
 /// malformed input to the *consumer* rather than as an error here. Clap now
 /// rejects unknown values at parse time and lists the valid ones.
 ///
-/// SARIF is deliberately absent until it is actually implemented (issue #5).
-/// Adding the variant before the writer exists would recreate the same class of
-/// silent failure this type was introduced to remove.
+/// SARIF is now implemented (`src/sarif.rs`, issue #5, CLI-04). The invariant
+/// this enum protects is unchanged by adding the variant: a new format still
+/// cannot compile without both a `Display` arm and a writer at every match
+/// site, so `--format sarif` can never again silently fall back to
+/// human-readable text carrying a findings exit code — which is what happened
+/// before this type existed.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
 enum OutputFormat {
     /// Human-readable output for terminals.
     Text,
     /// Machine-readable JSON for CI consumers.
     Json,
+    /// SARIF 2.1.0, for GitHub code scanning and other SARIF consumers.
+    Sarif,
 }
 
 impl std::fmt::Display for OutputFormat {
@@ -54,6 +60,33 @@ impl std::fmt::Display for OutputFormat {
         match self {
             OutputFormat::Text => write!(f, "text"),
             OutputFormat::Json => write!(f, "json"),
+            OutputFormat::Sarif => write!(f, "sarif"),
+        }
+    }
+}
+
+/// Output formats `rules` can emit.
+///
+/// Deliberately NOT `OutputFormat`. A rules-only SARIF document would have
+/// `tool.driver.rules` populated and `results: []` — to a code-scanning
+/// consumer that is not "here is the rule catalogue", it is "this analysis
+/// found nothing", and uploading it closes every open alert in the category.
+/// Giving `rules` its own enum keeps clap rejecting `--format sarif` on this
+/// subcommand at parse time, with the valid list, exactly as it did before
+/// `OutputFormat` gained the variant.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+enum RulesFormat {
+    /// Human-readable output for terminals.
+    Text,
+    /// Machine-readable JSON for CI consumers.
+    Json,
+}
+
+impl std::fmt::Display for RulesFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RulesFormat::Text => write!(f, "text"),
+            RulesFormat::Json => write!(f, "json"),
         }
     }
 }
@@ -213,8 +246,8 @@ enum Commands {
         #[arg(long)]
         patterns: Option<PathBuf>,
         /// Output format
-        #[arg(long, value_enum, ignore_case = true, default_value_t = OutputFormat::Text)]
-        format: OutputFormat,
+        #[arg(long, value_enum, ignore_case = true, default_value_t = RulesFormat::Text)]
+        format: RulesFormat,
     },
     /// Install a git pre-commit hook that scans staged files
     InstallHook {
@@ -497,6 +530,10 @@ fn main() -> Result<()> {
                 let output = match format {
                     OutputFormat::Json => format_json(&reports)?,
                     OutputFormat::Text => format_text(&reports),
+                    // Pre-baseline run, consistent with text and JSON above:
+                    // `--write-baseline` shows the scan as it was before any
+                    // finding was accepted.
+                    OutputFormat::Sarif => format_sarif(&reports)?,
                 };
                 if !quiet {
                     print!("{}", output);
@@ -534,10 +571,15 @@ fn main() -> Result<()> {
             }
 
             // Exhaustive by construction — a new variant will not compile until
-            // it has a writer, which is the point of the enum.
+            // it has a writer, which is the point of the enum. `reports` here
+            // is already post-baseline: `matches` no longer holds anything
+            // `--baseline` accepted, so SARIF's D-1 guarantee and the
+            // baseline's accept decision agree by construction rather than by
+            // a second filter.
             let output = match format {
                 OutputFormat::Json => format_json(&reports)?,
                 OutputFormat::Text => format_text(&reports),
+                OutputFormat::Sarif => format_sarif(&reports)?,
             };
 
             if !quiet {
@@ -586,8 +628,8 @@ fn main() -> Result<()> {
         Commands::Rules { patterns, format } => {
             let categories = load_graded(patterns.as_deref())?;
             match format {
-                OutputFormat::Json => println!("{}", serde_json::to_string_pretty(&categories)?),
-                OutputFormat::Text => {
+                RulesFormat::Json => println!("{}", serde_json::to_string_pretty(&categories)?),
+                RulesFormat::Text => {
                     println!("{:<8} {:<9} {:<22} NAME", "ID", "SEVERITY", "CATEGORY");
                     for rule in &categories {
                         // Severity is rendered to a String first: a width
