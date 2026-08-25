@@ -3,6 +3,8 @@ default_severity: HIGH
 patterns:
   - id: PI010
     name: new-task-injection
+    # MEDIUM: Every ticket template and to-do list literally begins "New task:".
+    severity: MEDIUM
     pattern: "(?i)^\\s*new\\s+task\\s*:"
     description: "Injected task instruction"
     remediation: "Remove injected task. Legitimate tasks should use proper skill format."
@@ -41,6 +43,9 @@ patterns:
     tags: [injection]
   - id: PI014
     name: developer-wants
+    # MEDIUM: Hit as a false positive in this project's own planning docs, in prose
+    # describing agent behaviour.
+    severity: MEDIUM
     pattern: "the\\s+developer\\s+wants\\s+you\\s+to"
     description: "Authority impersonation via developer claim"
     remediation: "Remove false developer attribution."

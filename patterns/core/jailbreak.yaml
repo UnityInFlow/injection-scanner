@@ -27,14 +27,19 @@ patterns:
     tags: [jailbreak]
   - id: PI034
     name: hypothetical-scenario
+    # MEDIUM: Fiction, teaching material and threat modelling all frame things
+    # hypothetically.
+    severity: MEDIUM
     pattern: "in\\s+this\\s+hypothetical\\s+scenario\\s+where\\s+you\\s+can"
     description: "Hypothetical scenario jailbreak"
     remediation: "Remove hypothetical bypass framing."
     tags: [jailbreak]
   - id: PI035
     name: jailbreak-prompt  # injection-scanner:ignore PI035
+    # LOW: Names the concept rather than carrying a payload. Any security
+    # write-up, this repo's own docs included, discusses jailbreak prompts.
+    severity: LOW
     pattern: "(?i)\\bjailbreak\\s+prompt\\b"
-    severity: CRITICAL
     description: "Explicit jailbreak prompt reference"  # injection-scanner:ignore PI035
     remediation: "Remove jailbreak prompt."  # injection-scanner:ignore PI035
     tags: [jailbreak]
@@ -52,6 +57,8 @@ patterns:
     tags: [jailbreak]
   - id: PI038
     name: unlimited-mode  # injection-scanner:ignore PI038
+    # MEDIUM: "Unlimited mode" is a subscription tier as often as it is a jailbreak.
+    severity: MEDIUM
     pattern: "(?i)unlimited\\s+mode"
     description: "Unrestricted mode activation"
     remediation: "Remove unlimited mode activation."  # injection-scanner:ignore PI038

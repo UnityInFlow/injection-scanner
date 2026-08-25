@@ -15,8 +15,11 @@ patterns:
     tags: [role-override]
   - id: PI003
     name: you-are-now
+    # MEDIUM: "You are now ready to proceed" / "you are now on call" — the
+    # phrasing is ordinary English. Role reassignment needs the surrounding
+    # intent, which a regex does not have.
+    severity: MEDIUM
     pattern: "you\\s+are\\s+now\\s+\\w+"
-    severity: HIGH
     description: "Role reassignment attempt"
     remediation: "Remove role override. Use explicit skill scoping instead."
     tags: [role-override]
@@ -34,6 +37,9 @@ patterns:
     tags: [role-override]
   - id: PI006
     name: forget-everything
+    # HIGH: "Forget everything you know about X" is a teaching device. Strong
+    # signal, but not the no-benign-reading bar CRITICAL asks for.
+    severity: HIGH
     pattern: "forget\\s+everything\\s+you\\s+know"
     description: "Memory wipe attempt"
     remediation: "Remove memory wipe instruction."
