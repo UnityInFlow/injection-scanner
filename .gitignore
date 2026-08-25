@@ -10,3 +10,8 @@
 
 # Session scratch
 scratchpad/
+
+# Injection lab runtime artefacts
+tools/injection-lab/delivered/
+tools/injection-lab/access.log
+tools/injection-lab/server.out
