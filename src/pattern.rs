@@ -168,8 +168,25 @@ pub struct ScanReport {
     /// `spec-ci-plugin`'s `JSON.parse(output) as Array<...>` is unaffected.
     #[serde(default)]
     pub low_confidence: Vec<ScanMatch>,
+    /// Findings withheld because a `--baseline <FILE>` accepted them in a
+    /// prior run.
+    ///
+    /// Deliberately the **same** `ScanMatch` the `matches` array holds, filed
+    /// under a THIRD distinct reason a finding can be withheld: `suppressed`
+    /// means the scanned document disarmed the scanner, `low_confidence`
+    /// means the scanner judged it documentation, and `baselined` means a
+    /// human accepted it once and recorded that decision in a committed
+    /// baseline file. Recorded rather than discarded, for the same reason
+    /// the other two are: a decision worth acting on is a decision worth
+    /// being able to see.
+    ///
+    /// Additive field — the top-level JSON stays an array of report objects,
+    /// so `spec-ci-plugin`'s `JSON.parse(output) as Array<...>` is unaffected.
+    #[serde(default)]
+    pub baselined: Vec<ScanMatch>,
     /// Severity tallies over `matches` **only** — suppressed findings are not
-    /// counted here, and neither are `low_confidence` ones.
+    /// counted here, neither are `low_confidence` ones, nor are `baselined`
+    /// ones.
     ///
     /// These answer "what is the user being asked to act on", which is what
     /// drives exit codes and CI gates; a suppressed finding is by definition
@@ -208,6 +225,23 @@ impl ScanReport {
         suppressed: Vec<ScanMatch>,
         low_confidence: Vec<ScanMatch>,
     ) -> Self {
+        Self::with_baselined(file, matches, suppressed, low_confidence, Vec::new())
+    }
+
+    /// Create a report recording all three reasons a finding can be
+    /// withheld, including baseline acceptance.
+    ///
+    /// The only constructor that recomputes the severity tallies — a
+    /// baselined finding must move through here, not be spliced into an
+    /// already-built report, because these tallies are what drive the exit
+    /// code and CI gates.
+    pub fn with_baselined(
+        file: String,
+        matches: Vec<ScanMatch>,
+        suppressed: Vec<ScanMatch>,
+        low_confidence: Vec<ScanMatch>,
+        baselined: Vec<ScanMatch>,
+    ) -> Self {
         let critical_count = matches
             .iter()
             .filter(|m| m.severity == Severity::Critical)
@@ -229,6 +263,7 @@ impl ScanReport {
             matches,
             suppressed,
             low_confidence,
+            baselined,
             critical_count,
             high_count,
             medium_count,
@@ -249,6 +284,11 @@ impl ScanReport {
     /// How many findings the markdown-context threshold withheld.
     pub fn low_confidence_count(&self) -> usize {
         self.low_confidence.len()
+    }
+
+    /// How many findings a `--baseline` file withheld.
+    pub fn baselined_count(&self) -> usize {
+        self.baselined.len()
     }
 }
 
