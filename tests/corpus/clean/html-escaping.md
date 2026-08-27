@@ -7,9 +7,9 @@ Always escape interpolated values. The renderer emits:
 
     &lt;script&gt;alert&#40;1&#41;&#59;&lt;/script&gt;
 
-for input that would otherwise execute. Numeric forms are equivalent —
-`&#72;&#101;&#108;&#108;&#111;` renders as `Hello`, and `&#x48;&#x65;&#x6C;&#x6C;&#x6F;`
-is the hexadecimal spelling of the same thing.
+for input that would otherwise execute. Short numeric forms are fine —
+`&#72;&#101;&#108;` is three entities (below the PI047 run threshold), and a
+named entity like `&amp;` never counts.
 
 Use `&amp;` for a literal ampersand, `&lt;` and `&gt;` for angle brackets, and
 `&quot;` inside attribute values.

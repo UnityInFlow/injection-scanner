@@ -50,3 +50,20 @@ patterns:
     description: "Training override attempt"
     remediation: "Remove training override."
     tags: [role-override]
+  - id: PI008
+    name: from-now-on-you-are
+    # HIGH: tighter than PI003 — requires identity assignment (a/an/the/my + noun
+    # or named attacker persona). Ordinary responsibility prose ("you are
+    # responsible for") does not match.
+    severity: HIGH
+    pattern: "(from\\s+now\\s+on|starting\\s+now|for\\s+the\\s+rest\\s+of\\s+this\\s+conversation)\\s*,?\\s*you\\s+are\\s+(?:(?:a|an|the|my)\\s+\\w+|(?:DAN|AIM|STAN|DUDE|unrestricted|jailbroken|evil)\\b)"
+    description: "Sustained role reassignment for the remainder of the conversation"
+    remediation: "Remove ongoing role-override phrasing. Scope roles explicitly instead."
+    tags: [role-override]
+  - id: PI009
+    name: reset-instructions
+    severity: HIGH
+    pattern: "(reset\\s+your\\s+instructions|your\\s+true\\s+instructions\\s+are)"
+    description: "Attempts to replace or reset the real system instructions"
+    remediation: "Remove instruction-reset language."
+    tags: [role-override]

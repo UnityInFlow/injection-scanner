@@ -50,3 +50,34 @@ patterns:
     description: "Authority impersonation via developer claim"
     remediation: "Remove false developer attribution."
     tags: [injection, impersonation]
+  - id: PI015
+    name: conceal-from-user
+    pattern: "(do\\s+not\\s+(tell|mention)\\s+(the\\s+user|this)|keep\\s+this\\s+secret\\s+from\\s+the\\s+user|without\\s+informing\\s+the\\s+user)"
+    description: "Instruction to conceal actions or content from the user"
+    remediation: "Remove concealment directives. Agent actions should remain visible to the user."
+    tags: [injection, concealment]
+  - id: PI016
+    name: markdown-hidden-comment
+    pattern: "\\[(?://|comment)\\]:\\s*(?:#|<>)\\s*\\([^\\)]*(?:ignore|execute|send|run|override|disregard|reveal|output|forget|system)[^\\)]*\\)"
+    description: "Markdown reference-link comment carrying an imperative payload"
+    remediation: "Remove hidden markdown reference comments that embed instructions."
+    tags: [injection, markdown]
+  - id: PI017
+    name: hidden-html-styling
+    # color:#0000 was invalid CSS and missed the real 3/6-digit black cases.
+    pattern: "(<(?:span|div)[^>]*(?:style\\s*=\\s*[\"'][^\"']*(?:display\\s*:\\s*none|font-size\\s*:\\s*0|color\\s*:\\s*#(?:fff|ffffff|000|000000))|\\bhidden\\b)[^>]*>|style\\s*=\\s*[\"'][^\"']*(?:display\\s*:\\s*none|font-size\\s*:\\s*0|color\\s*:\\s*#(?:fff|ffffff|000|000000)))"
+    description: "HTML styling used to hide injected instructions from human readers"
+    remediation: "Remove hidden/invisible HTML styling around instructional text."
+    tags: [injection, html]
+  - id: PI018
+    name: priority-escalation
+    pattern: "(IMPORTANT|CRITICAL\\s+INSTRUCTION|ATTENTION)\\s*:\\s*(do|ignore|send|execute|run|override|disregard|forget|reveal|output|print|always|never|you\\s+must)\\b"
+    description: "Priority-marked imperative used to escalate injected instructions"
+    remediation: "Remove urgency-framed imperatives that attempt to override normal instruction priority."
+    tags: [injection]
+  - id: PI019
+    name: pre-response-hook
+    pattern: "(before\\s+responding\\s*,?\\s*first|prepend\\s+every\\s+answer\\s+with|at\\s+the\\s+start\\s+of\\s+each\\s+reply)"
+    description: "Forced pre-response behavior hook on every answer"
+    remediation: "Remove instructions that hijack the start of every model response."
+    tags: [injection]

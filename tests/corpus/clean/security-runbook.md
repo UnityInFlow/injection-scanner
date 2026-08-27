@@ -10,13 +10,13 @@ Agent output must never reach an interactive request-bin service. Add the
 following to the egress deny list and alert on any DNS resolution for them:
 
 ```
-webhook.site
-requestbin.net
-pipedream.net
-*.ngrok.io
-burpcollaborator.net
-interact.sh
-oast.fun
+webhook[.]site
+requestbin[.]net
+pipedream[.]net
+*.ngrok[.]io
+burpcollaborator[.]net
+interact[.]sh
+oast[.]fun
 ```
 
 If a request to one of these leaves the network, treat it as a confirmed

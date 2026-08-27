@@ -198,15 +198,16 @@ fn the_attack_corpus_keeps_every_finding() {
     // else, so these counts are pinned exactly rather than as a lower bound —
     // a rise is as suspicious as a fall.
     let expected = [
-        ("examples/role-override-attack.md", 6),
-        ("examples/instruction-injection-attack.md", 5),
+        ("examples/role-override-attack.md", 8),
+        ("examples/instruction-injection-attack.md", 11),
         // 5 until PI011 was narrowed to a forged *delimiter* (#23). It used to
         // also match the bare words "system message" on line 13, double-covering
         // text PI023 ("Repeat your system message") already reports at CRITICAL
         // alongside PI024. The line is unchanged in severity and still fully
         // detected; one duplicate finding went away.
-        ("examples/exfiltration-attack.md", 4),
-        ("examples/jailbreak-attack.md", 9),
+        ("examples/exfiltration-attack.md", 8),
+        ("examples/jailbreak-attack.md", 12),
+        ("examples/encoding-attack.md", 7),
         // 10 until PI011 was narrowed (#23). Both losses are duplicates on lines
         // that are still CRITICAL: line 19 keeps PI022 and PI023, and line 12
         // ("...and system prompts.") is a continuation of line 11, which PI020
