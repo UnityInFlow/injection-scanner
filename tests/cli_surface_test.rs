@@ -145,10 +145,14 @@ fn explain_is_case_insensitive_and_names_the_suppression_directive() {
 /// pattern does not exist.
 #[test]
 fn explain_suggests_nearby_ids_for_an_unknown_pattern() {
-    let (code, _, stderr) = run(&["explain", "PI009"]);
+    // PI048 is deliberately unfilled (base64 deferred to #30).
+    let (code, _, stderr) = run(&["explain", "PI048"]);
     assert_ne!(code, 0);
     assert!(
-        stderr.contains("PI001") || stderr.contains("Nearby"),
+        stderr.contains("PI001")
+            || stderr.contains("PI047")
+            || stderr.contains("PI049")
+            || stderr.contains("Nearby"),
         "an unknown id should point somewhere useful:\n{stderr}"
     );
 

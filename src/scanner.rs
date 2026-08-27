@@ -23,6 +23,13 @@ struct CompiledPattern {
     description: String,
     remediation: String,
     regex: Regex,
+    /// When true, skip this pattern on the normalized (#26) pass.
+    ///
+    /// Homoglyph detectors look for mixed scripts in the *raw* bytes. The
+    /// confusable skeleton leaves a Latin/non-Latin mash that is not a real
+    /// mixed-script token in the source, so running them on normalized text
+    /// flags every bilingual document.
+    raw_only: bool,
 }
 
 impl CompiledPattern {
@@ -132,6 +139,7 @@ impl Scanner {
                         description: pattern.description.clone(),
                         remediation: pattern.remediation.clone(),
                         regex,
+                        raw_only: pattern.tags.iter().any(|t| t == "homoglyph"),
                     }),
                     Err(source) => errors.push(PatternError::InvalidRegex {
                         id: pattern.id.clone(),
@@ -318,6 +326,9 @@ impl Scanner {
                 normalized_line_start += normalized_line.len() + 1;
 
                 for cp in &self.compiled {
+                    if cp.raw_only {
+                        continue;
+                    }
                     for matched in cp
                         .regex
                         .find_iter(normalized_line)

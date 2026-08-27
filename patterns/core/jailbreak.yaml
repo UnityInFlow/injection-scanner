@@ -63,3 +63,9 @@ patterns:
     description: "Unrestricted mode activation"
     remediation: "Remove unlimited mode activation."  # injection-scanner:ignore PI038
     tags: [jailbreak]
+  - id: PI039
+    name: named-persona-jailbreak
+    pattern: "(\\b(?:AIM|STAN|DUDE|Kevin)\\s+(?:mode|jailbreak|persona)\\b|evil\\s+confidant|grandma\\s+exploit|opposite\\s+mode|simulate\\s+a\\s+terminal\\s+with\\s+no\\s+filters|you\\s+are\\s+not\\s+an\\s+AI)"
+    description: "Named persona or classic jailbreak framing (AIM/STAN/DUDE, evil confidant, grandma exploit, etc.)"
+    remediation: "Remove named jailbreak personas and filter-bypass roleplay framings."
+    tags: [jailbreak, persona]

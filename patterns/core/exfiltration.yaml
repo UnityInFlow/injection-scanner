@@ -40,3 +40,33 @@ patterns:
     description: "External URL fetch request"
     remediation: "Review URL fetch — may be legitimate or exfiltration vector."
     tags: [exfiltration, url]
+  - id: PI026
+    name: markdown-beacon
+    # HIGH: only an exfil channel if the agent renders markdown and fetches URLs.
+    # CRITICAL fails CI on prose repos with legitimate tracking pixels.
+    severity: HIGH
+    pattern: "!?\\[[^\\]]*\\]\\(https?://[^\\s\\)]*\\?[^\\s\\)]*="
+    description: "Markdown image/link beacon that can exfiltrate context via query parameters"
+    remediation: "Remove markdown links/images whose query string encodes secrets or conversation data."
+    tags: [exfiltration, markdown, url]
+  - id: PI027
+    name: known-collector-domain
+    severity: HIGH
+    # [\\w.]+ (dot only) so evil-ngrok.io does not match as a fake subdomain.
+    pattern: "(webhook\\.site|requestbin(?:\\.net|\\.com)|pipedream\\.net|[\\w.]+\\.ngrok(?:\\.io|-free\\.app|\\.app)|burpcollaborator\\.net|interact\\.sh|oast\\.fun)"
+    description: "Known out-of-band interaction / request-bin collector domain"
+    remediation: "Remove references to interactive callback and request-bin services used for exfiltration."
+    tags: [exfiltration, url]
+  - id: PI028
+    name: pipe-to-shell
+    pattern: "((?:curl|wget)\\s+[^\\n|;]*\\|\\s*(?:ba)?sh\\b|iwr\\s+[^\\n|;]*\\|\\s*iex\\b)"
+    description: "Remote script download piped directly to a shell interpreter"
+    remediation: "Remove pipe-to-shell one-liners. Download, review, then execute deliberately if needed."
+    tags: [exfiltration, shell]
+  - id: PI029
+    name: email-the-contents
+    severity: HIGH
+    pattern: "(email\\s+the\\s+contents\\s+to|send\\s+a\\s+copy\\s+of\\s+this\\s+conversation\\s+to|forward\\s+the\\s+transcript)"
+    description: "Instruction to email or forward conversation contents externally"
+    remediation: "Remove instructions that forward transcripts or conversation contents outside authorized channels."
+    tags: [exfiltration]

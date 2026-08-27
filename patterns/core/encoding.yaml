@@ -28,3 +28,50 @@ patterns:
     description: "Sequence of zero-width characters — likely encoded hidden instruction"
     remediation: "Remove zero-width character sequence. This is almost certainly an injection attempt."
     tags: [encoding, unicode, steganography]
+  - id: PI043
+    name: unicode-tag-block
+    pattern: "[\\x{E0000}-\\x{E007F}]"
+    severity: CRITICAL
+    description: "Unicode Tags block (U+E0000–U+E007F) used for invisible ASCII smuggling"
+    remediation: "Remove Unicode tag characters. They render as nothing but are still tokenized."
+    tags: [encoding, unicode, steganography]
+  - id: PI044
+    name: bidi-isolates
+    pattern: "\\x{2066}|\\x{2067}|\\x{2068}|\\x{2069}"
+    description: "Unicode bidi isolates (LRI/RLI/FSI/PDI) from the Trojan Source family"
+    remediation: "Remove bidi isolate characters that can reorder visible text deceptively."
+    tags: [encoding, unicode]
+  - id: PI045
+    name: homoglyph-mixed-script
+    # case_sensitive: true stops case-fold surprises. U+03BC (GREEK SMALL LETTER
+    # MU) is excluded from the Greek range: NFKC maps U+00B5 MICRO SIGN to U+03BC,
+    # and the confusable skeleton leaves mu in place, so "250µs" would otherwise
+    # match on the normalized pass (#26).
+    pattern: "([A-Za-z][\\x{0370}-\\x{03BB}\\x{03BD}-\\x{03FF}\\x{0400}-\\x{04FF}\\x{0500}-\\x{052F}]|[\\x{0370}-\\x{03BB}\\x{03BD}-\\x{03FF}\\x{0400}-\\x{04FF}\\x{0500}-\\x{052F}][A-Za-z])"
+    case_sensitive: true
+    severity: MEDIUM
+    description: "Cyrillic/Greek confusable mixed into otherwise Latin text"
+    remediation: "Replace mixed-script confusables with plain ASCII/Latin characters."
+    tags: [encoding, unicode, homoglyph]
+  - id: PI046
+    name: soft-hyphen-obfuscation
+    pattern: "(\\x{00AD}|\\x{2060}|[\\x{0300}-\\x{036F}]{3,})"
+    severity: MEDIUM
+    description: "Soft hyphen, word joiner, or combining-mark spam used to split keywords"
+    remediation: "Remove soft hyphens, word joiners, and combining-mark spam from instructional text."
+    tags: [encoding, unicode]
+  - id: PI047
+    name: html-entity-encoded
+    pattern: "((?:&#\\d{2,7};){4,}|(?:&#x[0-9a-fA-F]{2,6};){4,})"
+    severity: MEDIUM
+    description: "Numeric HTML entity run encoding a hidden payload"
+    remediation: "Decode and remove HTML-entity-encoded instruction payloads; keep plain text instead."
+    tags: [encoding, html]
+  - id: PI049
+    name: ansi-escape-sequence
+    # MEDIUM: ordinary colored terminal captures use the same CSI sequences.
+    severity: MEDIUM
+    pattern: "\\x{1B}\\[[0-9;?]*[A-Za-z]"
+    description: "ANSI escape sequence that can hide or restyle text in CLI agent output"
+    remediation: "Strip ANSI escape sequences from untrusted content before display or model input."
+    tags: [encoding, ansi]
