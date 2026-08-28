@@ -80,6 +80,8 @@ enum RulesFormat {
     Text,
     /// Machine-readable JSON for CI consumers.
     Json,
+    /// The generated pattern catalogue, for `docs/PATTERN-CATALOGUE.md`.
+    Markdown,
 }
 
 impl std::fmt::Display for RulesFormat {
@@ -87,6 +89,7 @@ impl std::fmt::Display for RulesFormat {
         match self {
             RulesFormat::Text => write!(f, "text"),
             RulesFormat::Json => write!(f, "json"),
+            RulesFormat::Markdown => write!(f, "markdown"),
         }
     }
 }
@@ -627,8 +630,24 @@ fn main() -> Result<()> {
         }
 
         Commands::Rules { patterns, format } => {
+            // Markdown renders from the raw categories, not from GradedRule:
+            // the catalogue shows `example`/`counter_example`, and widening
+            // GradedRule would widen the `rules --format json` key set that
+            // tests/json_contract_test.rs pins for downstream consumers.
+            if matches!(format, RulesFormat::Markdown) {
+                let loaded = load_all_patterns(patterns.as_deref())?;
+                for e in &loaded.errors {
+                    eprintln!("warning: pattern skipped — {e}");
+                }
+                print!(
+                    "{}",
+                    injection_scanner::catalogue::render(&loaded.categories)
+                );
+                return Ok(());
+            }
             let categories = load_graded(patterns.as_deref())?;
             match format {
+                RulesFormat::Markdown => unreachable!("handled above"),
                 RulesFormat::Json => println!("{}", serde_json::to_string_pretty(&categories)?),
                 RulesFormat::Text => {
                     println!("{:<8} {:<9} {:<22} NAME", "ID", "SEVERITY", "CATEGORY");

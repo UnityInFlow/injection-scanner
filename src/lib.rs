@@ -14,6 +14,7 @@
 
 pub mod allowlist;
 pub mod baseline;
+pub mod catalogue;
 pub mod context;
 pub mod multiline;
 pub mod normalize;
