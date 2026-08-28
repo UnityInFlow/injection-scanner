@@ -1,0 +1,53 @@
+name: False positive
+description: A legitimate document was flagged as a prompt injection attempt.
+title: "fix: reduce false positives in PI0XX"
+labels: ["false-positive"]
+body:
+  - type: input
+    id: pattern_id
+    attributes:
+      label: Pattern ID
+      description: e.g. PI0XX. Printed in the default text output of every released version.
+      placeholder: PI0XX
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: injection-scanner version
+      description: Output of `injection-scanner --version`.
+      placeholder: injection-scanner 0.0.3
+    validations:
+      required: true
+
+  - type: dropdown
+    id: document_type
+    attributes:
+      label: Document type
+      description: What the flagged document legitimately is.
+      options:
+        - Security write-up
+        - API reference
+        - Prompt-engineering guide
+        - Changelog
+        - Test fixture
+        - Other (say which, in the repro field)
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: The smallest, redacted piece of text that fires the pattern.
+      render: markdown
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        A fix for this usually means adding the document to `tests/corpus/clean/`, which
+        `tests/corpus_test.rs` asserts produces zero findings. A specimen you can commit publicly
+        — even a trimmed one — is the single most useful thing you can attach to this issue.

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/UnityInFlow/injection-scanner/security/advisories/new
+    about: Crashes, ReDoS, path traversal, resource exhaustion, or a tampered release asset. Do not open a public issue for these — see the security policy below first.
+  - name: Read the security policy
+    url: https://github.com/UnityInFlow/injection-scanner/blob/main/SECURITY.md
+    about: What is in scope for a private report, and why a missed detection is not one of those things.
+  - name: Pattern contribution guide
+    url: https://github.com/UnityInFlow/injection-scanner/blob/main/PATTERNS.md
+    about: Read this before opening a pattern proposal — format, ID ranges, and the severity-grading criteria.

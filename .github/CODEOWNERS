@@ -1,0 +1,42 @@
+# CODEOWNERS — what this file does and does not do
+#
+# This file makes GitHub auto-request review from the listed owner on a PR
+# that touches a matching path. It does NOT block a merge: the `main` branch
+# ruleset requires a PR and the `fmt · clippy · test · build` status check,
+# but it does not require code-owner review. Treat every entry below as
+# "gets a review request", not "cannot merge without approval".
+#
+# GitHub also does not request review from a PR's own author, so the
+# practical value of this file is on fork PRs — which is exactly the
+# contribution path PATTERNS.md and CONTRIBUTING.md are built around.
+#
+# CODEOWNERS is last-match-wins, so entries are ordered broad to narrow:
+# a catch-all first, then progressively more specific, more dangerous paths.
+
+# Catch-all: everything not matched more specifically below.
+* @hermanngeorge15
+
+# Workflow changes can exfiltrate the GITHUB_TOKEN, weaken a permission
+# scope, or ship a different binary than the one that was reviewed.
+/.github/workflows/ @hermanngeorge15
+
+# The detection library. A weakened or narrowed regex here is a silent
+# capability loss — it does not fail a test, it just stops catching things.
+/patterns/ @hermanngeorge15
+
+# The scanning engine itself.
+/src/ @hermanngeorge15
+
+# The security policy and this file, so neither can be quietly loosened.
+/SECURITY.md @hermanngeorge15
+/.github/CODEOWNERS @hermanngeorge15
+
+# Not on `main` yet — arrives with PR #82 (feat/cli-04-sarif), alongside
+# .github/workflows/code-scanning.yml. Listed now as deliberate forward
+# protection: an attacker-supplied entry in this file could silence a real
+# code-scanning alert. A CODEOWNERS pattern matching nothing today is not an
+# error, so this line is harmless until the file exists — it is already
+# covered by the /.github/workflows/ pattern above once code-scanning.yml
+# lands there, but is spelled out explicitly since the baseline file itself
+# lives outside workflows/.
+/.github/code-scanning-baseline.json @hermanngeorge15
