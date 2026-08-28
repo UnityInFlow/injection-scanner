@@ -101,7 +101,7 @@ Injection whose payload is *durability* — surviving past the current session.
 Payloads that arrive through *fetched* content — the vector the tool's README promises to cover but
 currently has zero patterns for.
 
-- AI-addressed preambles: "if you are an AI reading this", "ATTENTION AI ASSISTANT", "AI agents:"
+- AI-addressed preambles: `if you are an AI reading this`, `ATTENTION AI ASSISTANT`, `AI agents:`
 - Instructions inside GitHub issue/PR bodies, commit messages, code comments aimed at review agents
 - HTML `<meta name="ai-instructions">` and similar pseudo-directives
 - Injection inside `robots.txt`-style or `llms.txt` files
