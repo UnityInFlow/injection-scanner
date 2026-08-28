@@ -198,15 +198,17 @@ fn the_documentation_corpus_depends_on_context_awareness() {
 fn no_new_pattern_escapes_the_attack_corpus() {
     /// Patterns no `examples/*-attack.md` currently reaches.
     ///
-    /// Six of these — every one but `PI002` — additionally have no unit test
-    /// naming them, so they have no coverage anywhere. All six were verified by
+    /// Five of these — every one but `PI002` — additionally have no unit test
+    /// naming them, so they have no coverage anywhere. All were verified by
     /// hand to fire on a payload matching their description at the time this
     /// list was written; they are untested, not broken. Shrinking this list is
     /// always welcome. Growing it requires deleting this comment, which is the
     /// point.
     const UNEXERCISED: &[&str] = &[
         "PI002", // ignore-prior-context
-        "PI021", // post-system-prompt
+        // PI021 came off this list in #95: widening it from the single verb
+        // `POST` to a verb x object matrix means `examples/exfiltration-attack.md`
+        // now reaches it. The list shrinking is the ratchet working.
         "PI025", // fetch-url
         "PI035", // jailbreak-prompt
         "PI040", // unicode-rtl-override

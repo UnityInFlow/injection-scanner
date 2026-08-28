@@ -199,13 +199,18 @@ fn the_attack_corpus_keeps_every_finding() {
     // a rise is as suspicious as a fall.
     let expected = [
         ("examples/role-override-attack.md", 8),
-        ("examples/instruction-injection-attack.md", 11),
+        // 11 until PI021 was widened past the single verb `POST` (#95). Line 21's
+        // "reveal your system prompt" now matches it, on a line PI019 already
+        // reported. A duplicate on an existing line, not a new line.
+        ("examples/instruction-injection-attack.md", 12),
         // 5 until PI011 was narrowed to a forged *delimiter* (#23). It used to
         // also match the bare words "system message" on line 13, double-covering
         // text PI023 ("Repeat your system message") already reports at CRITICAL
         // alongside PI024. The line is unchanged in severity and still fully
         // detected; one duplicate finding went away.
-        ("examples/exfiltration-attack.md", 8),
+        // 8 until #95. Line 13's "Repeat your system message" now matches PI021
+        // as well as PI023 — both already reported that line at CRITICAL.
+        ("examples/exfiltration-attack.md", 9),
         // 12 until PI007 was widened from the literal `disregard your training`
         // into a verb x object matrix (#80). Line 15's "override your safety
         // guidelines" now matches PI007 as well as PI036 — a second finding on
@@ -219,7 +224,9 @@ fn the_attack_corpus_keeps_every_finding() {
         // reports at CRITICAL for the exfil URL itself. Neither attack becomes
         // invisible. That line 12 has no finding of its own is issue #24's
         // problem — a clause split across a newline — not PI011's.
-        ("examples/mixed-attack.md", 8),
+        // 8 until #95, same cause as exfiltration-attack: line 19 already carried
+        // PI022 and PI023, and PI021 now joins them.
+        ("examples/mixed-attack.md", 9),
     ];
 
     for (path, count) in expected {

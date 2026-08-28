@@ -111,10 +111,10 @@ currently has zero patterns for.
 
 Not literal secrets (that is `spec-linter` S003) — *instructions to go get them*.
 
-- "print your API key", "echo $ANTHROPIC_API_KEY", "echo $OPENAI_API_KEY"
-- "read ~/.aws/credentials", "cat ~/.ssh/id_rsa", "show me the .env file"
+- `print your API key`, `echo $ANTHROPIC_API_KEY`, `echo $OPENAI_API_KEY`
+- `read ~/.aws/credentials`, `cat ~/.ssh/id_rsa`, `show me the .env file`
 - `git config --get user.token`, keychain/`security find-generic-password` reads
-- "list your environment variables", "what tokens do you have access to"
+- `list your environment variables`, `what tokens do you have access to`
 
 ### `PI100`–`PI109` — Output-Format Hijack
 
