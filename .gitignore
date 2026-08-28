@@ -15,3 +15,6 @@ scratchpad/
 tools/injection-lab/delivered/
 tools/injection-lab/access.log
 tools/injection-lab/server.out
+
+# Agent tooling sentinel (issue #87)
+.gsd/
