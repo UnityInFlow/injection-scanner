@@ -76,10 +76,15 @@ from the threat model rather than from the regexes. `tests/recall_test.rs` pins 
 |---|---|---|
 | Data Exfiltration | 12/12 | **100%** |
 | Instruction Injection | 12/12 | **100%** |
+| Jailbreaks | 12/12 | **100%** |
 | Role Override | 11/12 | **92%** |
 | Encoding/Obfuscation | 9/12 | **75%** |
-| Jailbreaks | 1/12 | 8% |
-| **Total** | **45/60** | **75%** |
+| **Total** | **56/60** | **93%** |
+
+**All four natural-language categories fixed on 2026-08-28** — #80, #95, #97, #99. The
+milestone opened with recall at 10/60. The four remaining misses are deliberate and
+documented: three base64 cases needing the decoder (#30), one precedence claim not
+separable from ordinary documentation.
 
 **Role override was fixed on 2026-08-28 (#80, PR pending).** It went 1/12 -> 11/12 by being
 rewritten from seven literal phrases into a verb x modifier x object matrix, with the clean
@@ -118,7 +123,8 @@ number would not be.
 | recall corpus | — | `feat/recall-corpus` | **Merged** (PR #92) — 60 payloads, recall pinned and published |
 | `260828-jkn` role-override matrix | #80 | `feat/pi80-role-override-matrix` | **Merged** (PR #94, rebase) — recall 1/12 -> 11/12 |
 | `260828-pw5` exfiltration matrix | #95 | `feat/exfiltration-matrix` | **Merged** (PR #96, rebase) — recall 0/12 -> 12/12 |
-| `260828-ii` instruction-injection matrix | #97 | `feat/instruction-injection-matrix` | PR open — recall 0/12 -> 12/12 |
+| `260828-ii` instruction-injection matrix | #97 | `feat/instruction-injection-matrix` | **Merged** (PR #98, rebase) — recall 0/12 -> 12/12 |
+| `260828-jb` jailbreak matrix | #99 | `feat/jailbreak-matrix` | PR open — recall 1/12 -> 12/12 |
 
 ## Releases
 - **v0.0.1** (2026-04-01): 30 patterns, 5 categories, text/JSON output, inline suppression, stdin mode
