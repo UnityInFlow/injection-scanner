@@ -14,6 +14,8 @@ patterns:
     severity: HIGH  # optional -- overrides category default
     case_sensitive: false  # optional -- default false
     raw_only: false        # optional -- default false, see below
+    example: "the plainest form of the attack"          # REQUIRED
+    counter_example: "legitimate text that must not match"  # optional, expected
     description: "What this detects"
     remediation: "How to fix"
     tags: [tag1, tag2]
@@ -21,6 +23,28 @@ patterns:
 
 Unknown fields are rejected at load time, so a typo fails loudly rather than
 being silently ignored.
+
+### `example` and `counter_example`
+
+`example` is **required**. It is the plainest one-line form of the attack the
+pattern exists to catch, and it is binding: `tests/pattern_example_test.rs`
+asserts it actually matches the regex beside it.
+
+`counter_example` is optional but expected wherever the pattern could plausibly
+fire on ordinary prose. It is the false positive you were most worried about,
+written down — a test asserts it does **not** match, so the near-miss stays
+pinned instead of living in a review comment.
+
+Both are rendered into [`docs/PATTERN-CATALOGUE.md`](docs/PATTERN-CATALOGUE.md),
+which is generated. After any change to the library, regenerate it:
+
+```bash
+cargo run --release -- rules --format markdown > docs/PATTERN-CATALOGUE.md
+```
+
+`tests/catalogue_test.rs` fails if you forget. That is deliberate: a stale
+catalogue tells a reader, in the repo's own voice, that the scanner catches
+something it may no longer catch.
 
 ### `case_sensitive`
 
