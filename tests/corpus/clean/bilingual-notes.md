@@ -8,8 +8,8 @@
 Мы используем этот сканер для проверки документов перед отправкой в модель.
 Запускайте его локально перед коммитом.
 
-The Greek letters α, β and Δ appear in the complexity proof; Δ is the sampling
-interval symbol and β is the decay constant. Σ denotes the running total.
+The Greek letters α, β and Δ appear in the complexity proof; Δt is the sampling
+interval and β is the decay constant. Σ denotes the running total.
 
 Παρακαλώ διαβάστε το CONTRIBUTING.md πριν ανοίξετε pull request.
 

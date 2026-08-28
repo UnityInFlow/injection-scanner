@@ -69,6 +69,7 @@ fn case_sensitive_opt_out_is_respected() {
             pattern: "EXACTCASE".to_string(),
             severity: None,
             case_sensitive: Some(true),
+            raw_only: None,
             description: "opt-out probe".to_string(),
             remediation: String::new(),
             tags: vec![],

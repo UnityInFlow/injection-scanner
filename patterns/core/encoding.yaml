@@ -43,12 +43,23 @@ patterns:
     tags: [encoding, unicode]
   - id: PI045
     name: homoglyph-mixed-script
-    # case_sensitive: true stops case-fold surprises. U+03BC (GREEK SMALL LETTER
-    # MU) is excluded from the Greek range: NFKC maps U+00B5 MICRO SIGN to U+03BC,
-    # and the confusable skeleton leaves mu in place, so "250µs" would otherwise
-    # match on the normalized pass (#26).
-    pattern: "([A-Za-z][\\x{0370}-\\x{03BB}\\x{03BD}-\\x{03FF}\\x{0400}-\\x{04FF}\\x{0500}-\\x{052F}]|[\\x{0370}-\\x{03BB}\\x{03BD}-\\x{03FF}\\x{0400}-\\x{04FF}\\x{0500}-\\x{052F}][A-Za-z])"
+    # Only characters that are VISUALLY a Latin letter can carry a homoglyph
+    # attack, so this lists confusables explicitly instead of matching whole
+    # Unicode blocks. Blocks pulled in ordinary scientific notation and forced
+    # the clean corpus to be edited to pass: "Δt" (sampling interval), "kΩ"
+    # (impedance) and "250µs" (latency) are all Greek-adjacent-to-Latin, and
+    # none of Δ Ω μ Σ β looks like a Latin letter. Greek alpha IS kept: it
+    # is a real attack character (it substitutes for Latin "a" inside a word)
+    # and is not unit notation. Its positive case lives in tests/pattern_test.rs,
+    # which is where payload text belongs.
+    # corpus as counterexamples now, which is where the FP gate can see them.
+    #
+    # raw_only: the normalizer folds confusables back to Latin, so on the
+    # normalized pass every bilingual document looks like a mixed-script token.
+    # case_sensitive: the class is explicit, so case folding must not widen it.
+    pattern: "([A-Za-z][\\x{0410}\\x{0412}\\x{0415}\\x{041A}\\x{041C}\\x{041D}\\x{041E}\\x{0420}\\x{0421}\\x{0422}\\x{0425}\\x{0405}\\x{0406}\\x{0408}\\x{04AE}\\x{051A}\\x{051C}\\x{0430}\\x{0435}\\x{043E}\\x{0440}\\x{0441}\\x{0445}\\x{0443}\\x{0455}\\x{0456}\\x{0458}\\x{04BB}\\x{0501}\\x{0391}\\x{0392}\\x{0395}\\x{0396}\\x{0397}\\x{0399}\\x{039A}\\x{039C}\\x{039D}\\x{039F}\\x{03A1}\\x{03A4}\\x{03A5}\\x{03A7}\\x{03BF}\\x{03B9}\\x{03BD}\\x{03C1}\\x{03C5}\\x{03BA}\\x{03B1}]|[\\x{0410}\\x{0412}\\x{0415}\\x{041A}\\x{041C}\\x{041D}\\x{041E}\\x{0420}\\x{0421}\\x{0422}\\x{0425}\\x{0405}\\x{0406}\\x{0408}\\x{04AE}\\x{051A}\\x{051C}\\x{0430}\\x{0435}\\x{043E}\\x{0440}\\x{0441}\\x{0445}\\x{0443}\\x{0455}\\x{0456}\\x{0458}\\x{04BB}\\x{0501}\\x{0391}\\x{0392}\\x{0395}\\x{0396}\\x{0397}\\x{0399}\\x{039A}\\x{039C}\\x{039D}\\x{039F}\\x{03A1}\\x{03A4}\\x{03A5}\\x{03A7}\\x{03BF}\\x{03B9}\\x{03BD}\\x{03C1}\\x{03C5}\\x{03BA}\\x{03B1}][A-Za-z])"
     case_sensitive: true
+    raw_only: true
     severity: MEDIUM
     description: "Cyrillic/Greek confusable mixed into otherwise Latin text"
     remediation: "Replace mixed-script confusables with plain ASCII/Latin characters."

@@ -12,10 +12,43 @@ patterns:
     name: descriptive-name
     pattern: "regex\\s+pattern"
     severity: HIGH  # optional -- overrides category default
+    case_sensitive: false  # optional -- default false
+    raw_only: false        # optional -- default false, see below
     description: "What this detects"
     remediation: "How to fix"
     tags: [tag1, tag2]
 ```
+
+Unknown fields are rejected at load time, so a typo fails loudly rather than
+being silently ignored.
+
+### `case_sensitive`
+
+Defaults to `false`. Payloads are natural language, and an attacker
+capitalising a sentence must not defeat detection. Set it to `true` only where
+the casing itself carries the signal.
+
+### `raw_only`
+
+Defaults to `false`. Every pattern runs twice: once against the raw source
+text, and once against a Unicode-normalized copy that folds confusables,
+zero-width characters and spacing tricks back to plain Latin. That second pass
+is what stops `іgnore all previous instructions` (Cyrillic `і`) from walking
+past a pattern.
+
+`raw_only: true` **turns that second pass off for your pattern.** It exists for
+one narrow case: a detector whose signal *is* the raw bytes, such as PI045's
+mixed-script check. Normalization folds the confusable back to Latin, so on the
+normalized pass every bilingual document looks like a mixed-script token.
+
+For anything else, `raw_only: true` weakens your pattern — it hands an attacker
+the obfuscation bypass the normalized pass exists to close. Expect a reviewer
+to ask why.
+
+> **Tags never change behaviour.** `tags` is free-form metadata for grouping and
+> search. If you want to opt out of the normalized pass, set `raw_only`; naming
+> a tag `homoglyph` does nothing. This is pinned by
+> `tests/raw_only_test.rs::a_tag_alone_can_never_disable_the_normalized_pass`.
 
 ## Categories
 

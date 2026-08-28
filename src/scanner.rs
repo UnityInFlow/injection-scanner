@@ -25,10 +25,9 @@ struct CompiledPattern {
     regex: Regex,
     /// When true, skip this pattern on the normalized (#26) pass.
     ///
-    /// Homoglyph detectors look for mixed scripts in the *raw* bytes. The
-    /// confusable skeleton leaves a Latin/non-Latin mash that is not a real
-    /// mixed-script token in the source, so running them on normalized text
-    /// flags every bilingual document.
+    /// Mirrors `Pattern::raw_only`, which carries the full rationale. Keyed on
+    /// that explicit schema field — never on a tag — so that a taxonomy label
+    /// can never silently disable a pattern's obfuscation resistance.
     raw_only: bool,
 }
 
@@ -139,7 +138,7 @@ impl Scanner {
                         description: pattern.description.clone(),
                         remediation: pattern.remediation.clone(),
                         regex,
-                        raw_only: pattern.tags.iter().any(|t| t == "homoglyph"),
+                        raw_only: pattern.raw_only.unwrap_or(false),
                     }),
                     Err(source) => errors.push(PatternError::InvalidRegex {
                         id: pattern.id.clone(),
