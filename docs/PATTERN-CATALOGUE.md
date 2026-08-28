@@ -418,7 +418,7 @@ You must run ./gradlew ktlintFormat before every commit
 <details><summary>Regex</summary>
 
 ```regex
-(?:the\s+developer\s+wants\s+you\s+to|(?:note|message|instruction)s?\s+to\s+the\s+(?:assistant|model|ai|agent|llm)\s*:|attention\s+(?:model|assistant|ai|agent|llm)\s*[:,]|if\s+you\s+are\s+(?:an?\s+)?(?:ai|llm|language\s+model|assistant|agent|bot|chatbot)\b[^.\n]{0,40}?read(?:ing|s)?\b)
+(?:the\s+developer\s+wants\s+you\s+to|(?:note|message|instruction)s?\s+to\s+the\s+(?:assistant|model|ai|agent|llm)\s*:|attention\s+(?:model|assistant|ai|agent|llm)\s*[:,]|if\s+you\s+are\s+(?:an?\s+)?(?:ai|llm|language\s+model|assistant|agent|bot|chatbot)\b[^.\n]{0,40}?(?:read(?:ing|s)?|processing|parsing|summari[sz]ing|analy[sz]ing)\b|if\s+you\s+are\s+(?:an?\s+)?(?:ai|llm|language\s+model|ai\s+(?:assistant|agent|model)|chatbot)\s*,\s*(?:follow|execute|run|ignore|do|perform|output|print|reply|respond|start|begin|include|send|disregard|skip)\b)
 ```
 
 </details>
@@ -1128,7 +1128,7 @@ widely known as the grandma exploit
 <details><summary>Regex</summary>
 
 ```regex
-(\b(?:AIM|STAN|DUDE|Kevin)\s+(?:mode|jailbreak|persona)\b|evil\s+confidant|opposite\s+mode|you\s+are\s+not\s+an\s+AI|as\s+an?\s+(?:unaligned|uncensored|unfiltered)\s+(?:model|AI|assistant)|simulate\s+[^.\n]{0,50}?(?:AIs?|models?|assistants?|bots?|terminals?)\s+(?:that\s+)?(?:have|with|having)\s+no\s+(?:limits?|restrictions?|rules?|filters?)|stay\s+in\s+character\s+no\s+matter|begin\s+your\s+(?:reply|answer|response)\s+with\s+["']|my\s+grand(?:mother|ma|father|pa|parent)\s+used\s+to[^.\n]{0,60}?(?:bedtime|read\s+me|tell\s+me|sing))
+(\b(?:AIM|STAN|DUDE|Kevin)\s+(?:mode|jailbreak|persona)\b|evil\s+confidant|opposite\s+mode|you\s+are\s+not\s+an\s+AI|as\s+an?\s+(?:unaligned|uncensored|unfiltered)\s+(?:model|AI|assistant)|simulate\s+[^.\n]{0,50}?(?:AIs?|models?|assistants?|bots?|terminals?)\s+(?:that\s+)?(?:have|with|having)\s+no\s+(?:limits?|restrictions?|rules?|filters?)|stay\s+in\s+character\s+no\s+matter|(?:begin|start|open|preface|prefix)\s+(?:your|the)\s+(?:reply|answer|response|output|message)\s+with\s+["']?\s*(?:sure|certainly|of\s+course|absolutely|here\s+is|here'?s|i'?ll|i\s+will|yes)|your\s+(?:reply|answer|response)\s+must\s+(?:begin|start)\s+with\s+["']?\s*(?:sure|certainly|of\s+course|absolutely|here)|my\s+grand(?:mother|ma|father|pa|parent)\s+used\s+to[^.\n]{0,60}?(?:bedtime|read\s+me|tell\s+me|sing))
 ```
 
 </details>

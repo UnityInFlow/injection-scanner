@@ -1251,7 +1251,7 @@
     {
       "file": "tests/corpus/attack/jailbreak.md",
       "pattern_id": "PI039",
-      "digest": "sha256:547b267e8cbe82ebb65f593a4aaa7d489afae55ca4155a4deaf60844fb2a46d5",
+      "digest": "sha256:b056d66ac4784b10428a305f6f1b8efae8afac239f23a30b45fba7907be626ca",
       "count": 1,
       "first_seen_line": 15
     },

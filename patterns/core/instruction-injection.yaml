@@ -67,7 +67,7 @@ patterns:
     # ABOUT the model to it -- a labelled aside ("Note to the assistant:"), or a
     # conditional on the reader being one ("If you are an AI reading this").
     severity: MEDIUM
-    pattern: "(?:the\\s+developer\\s+wants\\s+you\\s+to|(?:note|message|instruction)s?\\s+to\\s+the\\s+(?:assistant|model|ai|agent|llm)\\s*:|attention\\s+(?:model|assistant|ai|agent|llm)\\s*[:,]|if\\s+you\\s+are\\s+(?:an?\\s+)?(?:ai|llm|language\\s+model|assistant|agent|bot|chatbot)\\b[^.\\n]{0,40}?read(?:ing|s)?\\b)"
+    pattern: "(?:the\\s+developer\\s+wants\\s+you\\s+to|(?:note|message|instruction)s?\\s+to\\s+the\\s+(?:assistant|model|ai|agent|llm)\\s*:|attention\\s+(?:model|assistant|ai|agent|llm)\\s*[:,]|if\\s+you\\s+are\\s+(?:an?\\s+)?(?:ai|llm|language\\s+model|assistant|agent|bot|chatbot)\\b[^.\\n]{0,40}?(?:read(?:ing|s)?|processing|parsing|summari[sz]ing|analy[sz]ing)\\b|if\\s+you\\s+are\\s+(?:an?\\s+)?(?:ai|llm|language\\s+model|ai\\s+(?:assistant|agent|model)|chatbot)\\s*,\\s*(?:follow|execute|run|ignore|do|perform|output|print|reply|respond|start|begin|include|send|disregard|skip)\\b)"
     description: "Authority impersonation via developer claim"
     remediation: "Remove false developer attribution."
     tags: [injection, impersonation]
