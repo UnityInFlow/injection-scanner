@@ -17,34 +17,6 @@
       "first_seen_line": 902
     },
     {
-      "file": "docs/PATTERN-CATALOGUE.md",
-      "pattern_id": "PI035",
-      "digest": "sha256:259a95c9e2c280088ad4e2b29ce26d344f4a46eb6d3ec75c371eb8f847010039",
-      "count": 2,
-      "first_seen_line": 1000
-    },
-    {
-      "file": "docs/PATTERN-CATALOGUE.md",
-      "pattern_id": "PI038",
-      "digest": "sha256:6ed15a63630611e78be796e4324392892cc155b1db726a209edc0ba03f67b3b6",
-      "count": 1,
-      "first_seen_line": 1098
-    },
-    {
-      "file": "docs/PATTERN-CATALOGUE.md",
-      "pattern_id": "PI039",
-      "digest": "sha256:86ded34966c58e452ad5dc001b244d502555886839987b75732e0d3fa5be0f3b",
-      "count": 1,
-      "first_seen_line": 1112
-    },
-    {
-      "file": "docs/PATTERN-CATALOGUE.md",
-      "pattern_id": "PI039",
-      "digest": "sha256:9a857520302f0ca3f37ec70a96d181f4d7a191738eff6cdd7e05d645260e36a4",
-      "count": 1,
-      "first_seen_line": 1112
-    },
-    {
       "file": "examples/encoding-attack.md",
       "pattern_id": "PI001",
       "digest": "sha256:d976a420b08268253406e9960ba593d7944ab21aa9f66bfecae528bd4b4c9e64",
@@ -271,6 +243,13 @@
     {
       "file": "examples/jailbreak-attack.md",
       "pattern_id": "PI032",
+      "digest": "sha256:9d150f1a5debb9f69c4353046800ae86d3a20c5290034f73d80664f79fe6f0a9",
+      "count": 1,
+      "first_seen_line": 11
+    },
+    {
+      "file": "examples/jailbreak-attack.md",
+      "pattern_id": "PI032",
       "digest": "sha256:d22dde1f3492138b890526fea7b8604dc4f7bd2dee946305ab09e1491a2460e9",
       "count": 1,
       "first_seen_line": 10
@@ -306,16 +285,9 @@
     {
       "file": "examples/jailbreak-attack.md",
       "pattern_id": "PI038",
-      "digest": "sha256:6ed15a63630611e78be796e4324392892cc155b1db726a209edc0ba03f67b3b6",
+      "digest": "sha256:a02800ec51eddd5427ee41a0bdbb81d52be0c2fcfa370e4242bcfea606cb7a0d",
       "count": 1,
       "first_seen_line": 16
-    },
-    {
-      "file": "examples/jailbreak-attack.md",
-      "pattern_id": "PI039",
-      "digest": "sha256:86ded34966c58e452ad5dc001b244d502555886839987b75732e0d3fa5be0f3b",
-      "count": 1,
-      "first_seen_line": 21
     },
     {
       "file": "examples/jailbreak-attack.md",
@@ -330,6 +302,13 @@
       "digest": "sha256:c90b3127d16bc5007a19db93be46be66c214fb14381877377b3e5d00ed703610",
       "count": 1,
       "first_seen_line": 19
+    },
+    {
+      "file": "examples/jailbreak-attack.md",
+      "pattern_id": "PI039",
+      "digest": "sha256:d1452d5b44bdead5b70163d977ed3de478de8460ea0de4e1c3f44bce8189aba5",
+      "count": 1,
+      "first_seen_line": 21
     },
     {
       "file": "examples/mixed-attack.md",
@@ -386,6 +365,13 @@
       "digest": "sha256:a8657f3278b554fde362a535402caf9c2353fd2afa6174d222ce6f22ccb4f6ac",
       "count": 1,
       "first_seen_line": 15
+    },
+    {
+      "file": "examples/mixed-attack.md",
+      "pattern_id": "PI032",
+      "digest": "sha256:9d150f1a5debb9f69c4353046800ae86d3a20c5290034f73d80664f79fe6f0a9",
+      "count": 1,
+      "first_seen_line": 16
     },
     {
       "file": "examples/mixed-attack.md",
@@ -686,91 +672,84 @@
       "pattern_id": "PI030",
       "digest": "sha256:a8657f3278b554fde362a535402caf9c2353fd2afa6174d222ce6f22ccb4f6ac",
       "count": 1,
-      "first_seen_line": 5
+      "first_seen_line": 18
     },
     {
       "file": "patterns/core/jailbreak.yaml",
       "pattern_id": "PI031",
-      "digest": "sha256:d4db10b14e9b6754cc4a5cf34caf75e0b44b1e3aa645aff1bd6b11653ed5e8c6",
+      "digest": "sha256:55008bb6d044cefdce883bf48eb2cae87404afdc4262286f2c3cf9c039c0cff1",
       "count": 1,
-      "first_seen_line": 13
+      "first_seen_line": 26
     },
     {
       "file": "patterns/core/jailbreak.yaml",
       "pattern_id": "PI032",
-      "digest": "sha256:d22dde1f3492138b890526fea7b8604dc4f7bd2dee946305ab09e1491a2460e9",
+      "digest": "sha256:75471383b9ef43b9a48636fefc35a1518a89c40178db45417691c830c4fc7116",
       "count": 1,
-      "first_seen_line": 21
+      "first_seen_line": 36
     },
     {
       "file": "patterns/core/jailbreak.yaml",
       "pattern_id": "PI033",
-      "digest": "sha256:0003b2bb645b561e5d1748486a31cc1c16c41ae75777b94f0d087d981066a475",
+      "digest": "sha256:d2378a7bc940121a1598f81552c73c368d2a7b64c970e3b8ac9d9ac47ee26958",
       "count": 1,
-      "first_seen_line": 29
+      "first_seen_line": 45
     },
     {
       "file": "patterns/core/jailbreak.yaml",
       "pattern_id": "PI034",
-      "digest": "sha256:f7f1401c5221da8cbaca91c9deb12b1eb1324669ee4056880667f6c856014d98",
+      "digest": "sha256:1518432a0b097aceba642d26a171e2566a0dd769d90ab4925b560884b6b807b3",
       "count": 1,
-      "first_seen_line": 37
+      "first_seen_line": 36
+    },
+    {
+      "file": "patterns/core/jailbreak.yaml",
+      "pattern_id": "PI034",
+      "digest": "sha256:47c3247eec97a8da937fc37b8180743a43f231ddfc1119bcb2d4af3d5f3f3922",
+      "count": 1,
+      "first_seen_line": 53
     },
     {
       "file": "patterns/core/jailbreak.yaml",
       "pattern_id": "PI035",
-      "digest": "sha256:259a95c9e2c280088ad4e2b29ce26d344f4a46eb6d3ec75c371eb8f847010039",
+      "digest": "sha256:04fcc7370fa4d448b8b28056bf23750e8c928731673730434ea1007765ee7381",
       "count": 1,
-      "first_seen_line": 48
+      "first_seen_line": 66
     },
     {
       "file": "patterns/core/jailbreak.yaml",
       "pattern_id": "PI036",
-      "digest": "sha256:c161d6e8cd0d1c98cd6503915ae7236af18ea5fe18ea6235b1736b681d50c54f",
+      "digest": "sha256:bbb4f32afe547a0d964d20ff1ff31756da7ce3a026102b190a80e46a4bec7020",
       "count": 1,
-      "first_seen_line": 59
+      "first_seen_line": 80
     },
     {
       "file": "patterns/core/jailbreak.yaml",
       "pattern_id": "PI037",
       "digest": "sha256:59f0d3fa6dcd18930bc5a6bca32222b1a41b1739ad6b26982673fdfd72a56af4",
       "count": 1,
-      "first_seen_line": 67
+      "first_seen_line": 91
     },
     {
       "file": "patterns/core/jailbreak.yaml",
       "pattern_id": "PI038",
-      "digest": "sha256:6ed15a63630611e78be796e4324392892cc155b1db726a209edc0ba03f67b3b6",
+      "digest": "sha256:a02800ec51eddd5427ee41a0bdbb81d52be0c2fcfa370e4242bcfea606cb7a0d",
       "count": 1,
-      "first_seen_line": 75
-    },
-    {
-      "file": "patterns/core/jailbreak.yaml",
-      "pattern_id": "PI038",
-      "digest": "sha256:d28b8665ba38a8ce9f0aebaca3e21246ec3a545ce4e7e23c4f57f7c168bd19e6",
-      "count": 1,
-      "first_seen_line": 78
+      "first_seen_line": 99
     },
     {
       "file": "patterns/core/jailbreak.yaml",
       "pattern_id": "PI039",
-      "digest": "sha256:86ded34966c58e452ad5dc001b244d502555886839987b75732e0d3fa5be0f3b",
+      "digest": "sha256:23ba4ca6617f515d0a55493ec376c1864d34df585b4b37a9d27e93da158aa5d5",
       "count": 1,
-      "first_seen_line": 89
+      "first_seen_line": 6
     },
     {
       "file": "patterns/core/jailbreak.yaml",
       "pattern_id": "PI039",
-      "digest": "sha256:9a857520302f0ca3f37ec70a96d181f4d7a191738eff6cdd7e05d645260e36a4",
+      "digest": "sha256:37cae603b2981168826130a4d9cfe24e45c5dc7e51f7acfc16bc0750c9e660be",
       "count": 1,
-      "first_seen_line": 89
-    },
-    {
-      "file": "patterns/core/jailbreak.yaml",
-      "pattern_id": "PI039",
-      "digest": "sha256:c90b3127d16bc5007a19db93be46be66c214fb14381877377b3e5d00ed703610",
-      "count": 1,
-      "first_seen_line": 85
+      "first_seen_line": 111
     },
     {
       "file": "patterns/core/role-override.yaml",
@@ -1200,6 +1179,90 @@
       "first_seen_line": 12
     },
     {
+      "file": "tests/corpus/attack/jailbreak.md",
+      "pattern_id": "PI031",
+      "digest": "sha256:55008bb6d044cefdce883bf48eb2cae87404afdc4262286f2c3cf9c039c0cff1",
+      "count": 1,
+      "first_seen_line": 6
+    },
+    {
+      "file": "tests/corpus/attack/jailbreak.md",
+      "pattern_id": "PI032",
+      "digest": "sha256:75471383b9ef43b9a48636fefc35a1518a89c40178db45417691c830c4fc7116",
+      "count": 1,
+      "first_seen_line": 16
+    },
+    {
+      "file": "tests/corpus/attack/jailbreak.md",
+      "pattern_id": "PI033",
+      "digest": "sha256:d2378a7bc940121a1598f81552c73c368d2a7b64c970e3b8ac9d9ac47ee26958",
+      "count": 1,
+      "first_seen_line": 7
+    },
+    {
+      "file": "tests/corpus/attack/jailbreak.md",
+      "pattern_id": "PI034",
+      "digest": "sha256:1518432a0b097aceba642d26a171e2566a0dd769d90ab4925b560884b6b807b3",
+      "count": 1,
+      "first_seen_line": 16
+    },
+    {
+      "file": "tests/corpus/attack/jailbreak.md",
+      "pattern_id": "PI034",
+      "digest": "sha256:47c3247eec97a8da937fc37b8180743a43f231ddfc1119bcb2d4af3d5f3f3922",
+      "count": 1,
+      "first_seen_line": 8
+    },
+    {
+      "file": "tests/corpus/attack/jailbreak.md",
+      "pattern_id": "PI035",
+      "digest": "sha256:04fcc7370fa4d448b8b28056bf23750e8c928731673730434ea1007765ee7381",
+      "count": 1,
+      "first_seen_line": 9
+    },
+    {
+      "file": "tests/corpus/attack/jailbreak.md",
+      "pattern_id": "PI036",
+      "digest": "sha256:bbb4f32afe547a0d964d20ff1ff31756da7ce3a026102b190a80e46a4bec7020",
+      "count": 1,
+      "first_seen_line": 11
+    },
+    {
+      "file": "tests/corpus/attack/jailbreak.md",
+      "pattern_id": "PI039",
+      "digest": "sha256:0492552f4cea9841bb8fab2f3ad47bd2782ab039c7087b719db6fe3d36c42570",
+      "count": 1,
+      "first_seen_line": 17
+    },
+    {
+      "file": "tests/corpus/attack/jailbreak.md",
+      "pattern_id": "PI039",
+      "digest": "sha256:23ba4ca6617f515d0a55493ec376c1864d34df585b4b37a9d27e93da158aa5d5",
+      "count": 1,
+      "first_seen_line": 10
+    },
+    {
+      "file": "tests/corpus/attack/jailbreak.md",
+      "pattern_id": "PI039",
+      "digest": "sha256:37cae603b2981168826130a4d9cfe24e45c5dc7e51f7acfc16bc0750c9e660be",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "tests/corpus/attack/jailbreak.md",
+      "pattern_id": "PI039",
+      "digest": "sha256:547b267e8cbe82ebb65f593a4aaa7d489afae55ca4155a4deaf60844fb2a46d5",
+      "count": 1,
+      "first_seen_line": 15
+    },
+    {
+      "file": "tests/corpus/attack/jailbreak.md",
+      "pattern_id": "PI039",
+      "digest": "sha256:cac116eedfcffc3632d18d4a7981317dab3132aa5d6286b49193bfee76e01bfe",
+      "count": 1,
+      "first_seen_line": 14
+    },
+    {
       "file": "tests/corpus/attack/role-override.md",
       "pattern_id": "PI001",
       "digest": "sha256:68c653d3222f0c7b6367a8e13dd14cbf132f7eedd7eed7a999f9590bc0cb9a63",
@@ -1324,6 +1387,13 @@
       "digest": "sha256:a8657f3278b554fde362a535402caf9c2353fd2afa6174d222ce6f22ccb4f6ac",
       "count": 1,
       "first_seen_line": 14
+    },
+    {
+      "file": "tests/fixtures/injected-skill.md",
+      "pattern_id": "PI032",
+      "digest": "sha256:9d150f1a5debb9f69c4353046800ae86d3a20c5290034f73d80664f79fe6f0a9",
+      "count": 1,
+      "first_seen_line": 16
     },
     {
       "file": "tests/fixtures/injected-skill.md",

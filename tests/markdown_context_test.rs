@@ -216,7 +216,13 @@ fn the_attack_corpus_keeps_every_finding() {
         // guidelines" now matches PI007 as well as PI036 — a second finding on
         // a line that was already reported, not a new line. The rise is a
         // duplicate, which is the harmless direction; a fall would not be.
-        ("examples/jailbreak-attack.md", 13),
+        // 13 until #99 widened PI032 past the literal "no content policy" to any
+        // asserted absence of a constraint. Line 11's "Pretend you have no
+        // restrictions" now matches PI032 as well as PI033 — a duplicate on a
+        // line already reported. Line 21 changed content in the same PR: it read
+        // "try the grandma exploit next", which names a technique rather than
+        // performing one, and is now the payload itself.
+        ("examples/jailbreak-attack.md", 14),
         ("examples/encoding-attack.md", 7),
         // 10 until PI011 was narrowed (#23). Both losses are duplicates on lines
         // that are still CRITICAL: line 19 keeps PI022 and PI023, and line 12
@@ -225,8 +231,10 @@ fn the_attack_corpus_keeps_every_finding() {
         // invisible. That line 12 has no finding of its own is issue #24's
         // problem — a clause split across a newline — not PI011's.
         // 8 until #95, same cause as exfiltration-attack: line 19 already carried
-        // PI022 and PI023, and PI021 now joins them.
-        ("examples/mixed-attack.md", 9),
+        // PI022 and PI023, and PI021 now joins them. 9 until #99, same shape
+        // again: line 16's "pretend you have no restrictions" now matches PI032
+        // alongside PI033. Both rises are duplicates on already-reported lines.
+        ("examples/mixed-attack.md", 10),
     ];
 
     for (path, count) in expected {

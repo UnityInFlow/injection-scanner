@@ -15,7 +15,9 @@
 //!
 //! ## The ratchet
 //!
-//! 30 of the original patterns predate the helpers and have no cases at all.
+//! 30 of the original patterns predated the helpers and had no cases at all.
+//! The four category widenings (#80, #95, #97, #99) took that to 11 as a side
+//! effect -- rewriting a pattern is the natural moment to give it cases.
 //! Rather than block on backfilling them (#89) or leave the policy unenforced,
 //! they are listed in [`LEGACY_UNTESTED`]. That list is a debt register with
 //! three properties, each pinned by a test below: a pattern not on it must
@@ -36,8 +38,8 @@ const MIN_NEGATIVES: usize = 2;
 /// not an exemption. Backfilling is tracked in #89; remove ids from here as
 /// they are covered — a test below fails if you leave a compliant id behind.
 const LEGACY_UNTESTED: &[&str] = &[
-    "PI003", "PI011", "PI012", "PI013", "PI025", "PI030", "PI031", "PI032", "PI033", "PI034",
-    "PI035", "PI036", "PI037", "PI038", "PI040", "PI041", "PI042",
+    "PI003", "PI011", "PI012", "PI013", "PI025", "PI030", "PI033", "PI037", "PI040", "PI041",
+    "PI042",
 ];
 
 /// Counts of `(positive, negative)` cases per pattern id across `tests/`.
