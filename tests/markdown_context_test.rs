@@ -206,7 +206,12 @@ fn the_attack_corpus_keeps_every_finding() {
         // alongside PI024. The line is unchanged in severity and still fully
         // detected; one duplicate finding went away.
         ("examples/exfiltration-attack.md", 8),
-        ("examples/jailbreak-attack.md", 12),
+        // 12 until PI007 was widened from the literal `disregard your training`
+        // into a verb x object matrix (#80). Line 15's "override your safety
+        // guidelines" now matches PI007 as well as PI036 — a second finding on
+        // a line that was already reported, not a new line. The rise is a
+        // duplicate, which is the harmless direction; a fall would not be.
+        ("examples/jailbreak-attack.md", 13),
         ("examples/encoding-attack.md", 7),
         // 10 until PI011 was narrowed (#23). Both losses are duplicates on lines
         // that are still CRITICAL: line 19 keeps PI022 and PI023, and line 12

@@ -4,38 +4,45 @@
   "entries": [
     {
       "file": "docs/PATTERN-CATALOGUE.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:d4954f9cba7323d637885cae0cb7b6a9e659fd3ada0241e22eb78d9a92d77853",
+      "count": 1,
+      "first_seen_line": 73
+    },
+    {
+      "file": "docs/PATTERN-CATALOGUE.md",
       "pattern_id": "PI031",
       "digest": "sha256:d4db10b14e9b6754cc4a5cf34caf75e0b44b1e3aa645aff1bd6b11653ed5e8c6",
       "count": 1,
-      "first_seen_line": 872
+      "first_seen_line": 896
     },
     {
       "file": "docs/PATTERN-CATALOGUE.md",
       "pattern_id": "PI035",
       "digest": "sha256:259a95c9e2c280088ad4e2b29ce26d344f4a46eb6d3ec75c371eb8f847010039",
       "count": 2,
-      "first_seen_line": 970
+      "first_seen_line": 994
     },
     {
       "file": "docs/PATTERN-CATALOGUE.md",
       "pattern_id": "PI038",
       "digest": "sha256:6ed15a63630611e78be796e4324392892cc155b1db726a209edc0ba03f67b3b6",
       "count": 1,
-      "first_seen_line": 1068
+      "first_seen_line": 1092
     },
     {
       "file": "docs/PATTERN-CATALOGUE.md",
       "pattern_id": "PI039",
       "digest": "sha256:86ded34966c58e452ad5dc001b244d502555886839987b75732e0d3fa5be0f3b",
       "count": 1,
-      "first_seen_line": 1082
+      "first_seen_line": 1106
     },
     {
       "file": "docs/PATTERN-CATALOGUE.md",
       "pattern_id": "PI039",
       "digest": "sha256:9a857520302f0ca3f37ec70a96d181f4d7a191738eff6cdd7e05d645260e36a4",
       "count": 1,
-      "first_seen_line": 1082
+      "first_seen_line": 1106
     },
     {
       "file": "examples/encoding-attack.md",
@@ -225,6 +232,13 @@
       "digest": "sha256:65b4526eed7b94d7436cb1511a55c4c199c4107fc43028a06cd9189e092183ad",
       "count": 1,
       "first_seen_line": 9
+    },
+    {
+      "file": "examples/jailbreak-attack.md",
+      "pattern_id": "PI007",
+      "digest": "sha256:6b2393f648ec9565cf0da4b4b9af33b06e50f8155d21e40100733d8462d4eedf",
+      "count": 1,
+      "first_seen_line": 15
     },
     {
       "file": "examples/jailbreak-attack.md",
@@ -571,6 +585,13 @@
     },
     {
       "file": "patterns/core/instruction-injection.yaml",
+      "pattern_id": "PI001",
+      "digest": "sha256:76310a12cf8f9caa47192b435ef3d4e3af02b56ca0c0dfd28af19a315eb3943f",
+      "count": 1,
+      "first_seen_line": 90
+    },
+    {
+      "file": "patterns/core/instruction-injection.yaml",
       "pattern_id": "PI012",
       "digest": "sha256:e0b8060e59529d356dbfb8dfeaea1799014276c492fe2ed4e317c36f101d7764",
       "count": 1,
@@ -712,79 +733,114 @@
     {
       "file": "patterns/core/role-override.yaml",
       "pattern_id": "PI001",
-      "digest": "sha256:a202ee6e402bb4a0ae16157ab7e1cd7ff08fde9a966cb7ea5caa819a155810b2",
+      "digest": "sha256:a565654a4525b463527f746265be734f3e9bc9beb5edb3ca0a27e7f049958279",
       "count": 1,
-      "first_seen_line": 5
+      "first_seen_line": 41
+    },
+    {
+      "file": "patterns/core/role-override.yaml",
+      "pattern_id": "PI001",
+      "digest": "sha256:a744fe4dca435db6e20b90d56d2f37a61251a9724e1083b061dc81687ba127e4",
+      "count": 1,
+      "first_seen_line": 27
+    },
+    {
+      "file": "patterns/core/role-override.yaml",
+      "pattern_id": "PI001",
+      "digest": "sha256:a86c9dcb705a57a5b3d64bd578bd71a81dc80d24aa9666bf258781b6ea9c961e",
+      "count": 1,
+      "first_seen_line": 31
+    },
+    {
+      "file": "patterns/core/role-override.yaml",
+      "pattern_id": "PI001",
+      "digest": "sha256:d4954f9cba7323d637885cae0cb7b6a9e659fd3ada0241e22eb78d9a92d77853",
+      "count": 1,
+      "first_seen_line": 48
     },
     {
       "file": "patterns/core/role-override.yaml",
       "pattern_id": "PI002",
-      "digest": "sha256:99df261f53e9f99e2d643c065d7e316e70a4d6163d9d17b88c98a2782abfed8c",
+      "digest": "sha256:d17fb67bf5f10de9fc6899aa4545585ecc4841979ce787ae3d4f3e5d142f5961",
       "count": 1,
-      "first_seen_line": 13
+      "first_seen_line": 39
     },
     {
       "file": "patterns/core/role-override.yaml",
       "pattern_id": "PI003",
       "digest": "sha256:4d4cfafe4e2c98415a3efce14e87252cff6739286ddbe653176e1568a52b6e08",
       "count": 1,
-      "first_seen_line": 21
+      "first_seen_line": 52
     },
     {
       "file": "patterns/core/role-override.yaml",
       "pattern_id": "PI003",
       "digest": "sha256:52c7aa4f2b7781832ba19f19c306e29602f79984c49346e903af8e11ab9b57d1",
       "count": 1,
-      "first_seen_line": 24
+      "first_seen_line": 55
     },
     {
       "file": "patterns/core/role-override.yaml",
       "pattern_id": "PI003",
       "digest": "sha256:9a6d47775bf337a606d485de26fab0cfa4199bc0a14ae31f385339bf24fe73a3",
       "count": 1,
-      "first_seen_line": 24
+      "first_seen_line": 55
     },
     {
       "file": "patterns/core/role-override.yaml",
       "pattern_id": "PI004",
-      "digest": "sha256:942fe772826cde07ded0561adff67d47e84bac472f39a4f371af4ea844df5f63",
+      "digest": "sha256:14cdb99814cef71cfe1ca2594ec80ea8599b8bed6432d5f835ba67dd464c02aa",
       "count": 1,
-      "first_seen_line": 33
+      "first_seen_line": 64
     },
     {
       "file": "patterns/core/role-override.yaml",
       "pattern_id": "PI005",
-      "digest": "sha256:e57547b85eb174d0380e6e24d2addec0dd3fde86ba08ca7dba0eec5569fae0fa",
+      "digest": "sha256:deb9edbcb679263b7d5c0756aa62db2562d8a9845d979fa731861c58a672334a",
+      "count": 2,
+      "first_seen_line": 76
+    },
+    {
+      "file": "patterns/core/role-override.yaml",
+      "pattern_id": "PI006",
+      "digest": "sha256:37deede60277334422f4a5467d0aca28fbb07a93d2a426d0a553c875aea54b24",
       "count": 1,
-      "first_seen_line": 40
+      "first_seen_line": 86
     },
     {
       "file": "patterns/core/role-override.yaml",
       "pattern_id": "PI006",
       "digest": "sha256:bdaf105c23f6e3c7387788bf0da95bd52766cb75ba9c52b4f2ef4dc1606ed1b5",
-      "count": 2,
-      "first_seen_line": 47
+      "count": 1,
+      "first_seen_line": 89
     },
     {
       "file": "patterns/core/role-override.yaml",
       "pattern_id": "PI007",
       "digest": "sha256:eb11c513fcea5b2dec1383fa9ca383e7b1b912e87e15368df4ad2e2cbc2502f9",
       "count": 1,
-      "first_seen_line": 57
+      "first_seen_line": 100
+    },
+    {
+      "file": "patterns/core/role-override.yaml",
+      "pattern_id": "PI007",
+      "digest": "sha256:f03dc24d08b73d60e336dc510b3a7dbef2638d5183eba2e744649025f119cfaf",
+      "count": 1,
+      "first_seen_line": 97
     },
     {
       "file": "patterns/core/role-override.yaml",
       "pattern_id": "PI008",
       "digest": "sha256:9b3db3495278d22370bdd80e19fba1feb6dfb11be92a1d72b0d61ce268fa5800",
       "count": 1,
-      "first_seen_line": 64
+      "first_seen_line": 111
     },
     {
       "file": "patterns/core/role-override.yaml",
       "pattern_id": "PI009",
-      "digest": "sha256:dd79d4af3149c10019484bb0bf8c1ec395523a6b94f2c3cd09fbc820a7965788",
+      "digest": "sha256:daef9937d272df919fdd33442e47f118d4773db10028021378d81ea99fb436c9",
       "count": 1,
-      "first_seen_line": 76
+      "first_seen_line": 123
     },
     {
       "file": "tests/corpus/attack/encoding.md",
@@ -921,10 +977,80 @@
     },
     {
       "file": "tests/corpus/attack/role-override.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:68c653d3222f0c7b6367a8e13dd14cbf132f7eedd7eed7a999f9590bc0cb9a63",
+      "count": 1,
+      "first_seen_line": 7
+    },
+    {
+      "file": "tests/corpus/attack/role-override.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:a86c9dcb705a57a5b3d64bd578bd71a81dc80d24aa9666bf258781b6ea9c961e",
+      "count": 1,
+      "first_seen_line": 14
+    },
+    {
+      "file": "tests/corpus/attack/role-override.md",
+      "pattern_id": "PI002",
+      "digest": "sha256:d17fb67bf5f10de9fc6899aa4545585ecc4841979ce787ae3d4f3e5d142f5961",
+      "count": 1,
+      "first_seen_line": 6
+    },
+    {
+      "file": "tests/corpus/attack/role-override.md",
       "pattern_id": "PI003",
       "digest": "sha256:a6a4922367d633d57cc67c3d67a4ec4daacab8a58c67cc63fa8a44d43b94599a",
       "count": 1,
       "first_seen_line": 12
+    },
+    {
+      "file": "tests/corpus/attack/role-override.md",
+      "pattern_id": "PI004",
+      "digest": "sha256:14cdb99814cef71cfe1ca2594ec80ea8599b8bed6432d5f835ba67dd464c02aa",
+      "count": 1,
+      "first_seen_line": 15
+    },
+    {
+      "file": "tests/corpus/attack/role-override.md",
+      "pattern_id": "PI005",
+      "digest": "sha256:deb9edbcb679263b7d5c0756aa62db2562d8a9845d979fa731861c58a672334a",
+      "count": 1,
+      "first_seen_line": 11
+    },
+    {
+      "file": "tests/corpus/attack/role-override.md",
+      "pattern_id": "PI006",
+      "digest": "sha256:37deede60277334422f4a5467d0aca28fbb07a93d2a426d0a553c875aea54b24",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "tests/corpus/attack/role-override.md",
+      "pattern_id": "PI007",
+      "digest": "sha256:90a27071283015b03db77c0ffd6174137b1a4804eb3da5fbad074af3f0bdbe9c",
+      "count": 1,
+      "first_seen_line": 9
+    },
+    {
+      "file": "tests/corpus/attack/role-override.md",
+      "pattern_id": "PI007",
+      "digest": "sha256:f03dc24d08b73d60e336dc510b3a7dbef2638d5183eba2e744649025f119cfaf",
+      "count": 1,
+      "first_seen_line": 8
+    },
+    {
+      "file": "tests/corpus/attack/role-override.md",
+      "pattern_id": "PI009",
+      "digest": "sha256:daef9937d272df919fdd33442e47f118d4773db10028021378d81ea99fb436c9",
+      "count": 1,
+      "first_seen_line": 16
+    },
+    {
+      "file": "tests/corpus/attack/role-override.md",
+      "pattern_id": "PI009",
+      "digest": "sha256:fc55dd8838975f23f94ae1f51406a859ee854201c980d3f0124ed3d4a301d24c",
+      "count": 1,
+      "first_seen_line": 10
     },
     {
       "file": "tests/fixtures/allowlisted.md",
