@@ -1,0 +1,79 @@
+name: Pattern proposal
+description: Propose a new detection pattern, or report an attack shape the library does not cover.
+title: "feat: add PI0XX pattern-name"
+labels: ["pattern-proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read [`PATTERNS.md`](../../PATTERNS.md) for the pattern format and ID ranges, and
+        `CONTRIBUTING.md`'s "Adding a New Pattern" section before filling this in. A good report of
+        an attack shape is valuable even without a regex attached — the `proposed_pattern` field
+        below is optional.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: The five categories and their reserved ID ranges.
+      options:
+        - Role Override (PI001-PI009)
+        - Instruction Injection (PI010-PI019)
+        - Data Exfiltration (PI020-PI029)
+        - Jailbreaks (PI030-PI039)
+        - Encoding/Obfuscation (PI040-PI049)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: Grade against the test, not a mood. Pick the row whose test statement fits this attack.
+      options:
+        - "CRITICAL — No plausible benign reading. If this string is in a document, something is wrong."
+        - "HIGH — Strong signal; benign use is rare and usually deliberate."
+        - "MEDIUM — Suspicious in context, but ordinary documents genuinely say this."
+        - "LOW — A heuristic or a weak signal. Names a concept, or could be an artefact."
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: >
+        Where has this attack shape actually been seen — an advisory, a write-up, an observed
+        agent transcript, a CTF, a public corpus? "An LLM could plausibly be tricked by this" is
+        not evidence.
+    validations:
+      required: true
+
+  - type: textarea
+    id: false_positives
+    attributes:
+      label: False-positive analysis
+      description: >
+        What legitimate documentation would this fire on? Apply the three deciding rules: naming is
+        not carrying; one is an artefact, several are intent; if you had to imagine the benign case,
+        it is not CRITICAL. `tests/corpus/clean/` must stay at zero findings — if this proposal
+        fires there, the grade is not the problem, the pattern is too broad.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_pattern
+    attributes:
+      label: Proposed pattern (optional)
+      description: The pattern entry in the patterns/core/*.yaml shape, if you have one.
+      render: yaml
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: test_coverage_ack
+    attributes:
+      label: Test coverage
+      options:
+        - label: I will include at least 3 true-positive cases and at least 2 non-match cases, per PATTERNS.md.
+          required: true

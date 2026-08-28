@@ -1,0 +1,89 @@
+name: Bug report
+description: The scanner crashed, hung, or produced output that does not match what the code should do.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Redact the scanned content before pasting it.** The file that tripped the scanner is
+        often a real spec, a real skill file, or a real RAG document — secret scanning push
+        protection covers commits, not issue bodies, so nothing here is scanned for you. Paste a
+        minimal reconstruction that still reproduces the bug, never the original file.
+
+  - type: input
+    id: version
+    attributes:
+      label: injection-scanner version
+      description: Output of `injection-scanner --version`.
+      placeholder: injection-scanner 0.0.3
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install_source
+    attributes:
+      label: Install source
+      options:
+        - GitHub Release binary
+        - cargo install --path .
+        - Built from source
+        - Via the spec-ci-plugin GitHub Action
+        - Via the pre-commit hook (install-hook)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - x86_64-unknown-linux-musl
+        - aarch64-unknown-linux-musl
+        - x86_64-unknown-linux-gnu
+        - aarch64-unknown-linux-gnu
+        - x86_64-apple-darwin
+        - aarch64-apple-darwin
+        - other (say which, in the command/repro field)
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact command you ran, verbatim.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: The smallest redacted input that reproduces the problem.
+      render: markdown
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: redaction_ack
+    attributes:
+      label: Redaction
+      options:
+        - label: The content pasted above contains no real credential and no confidential document.
+          required: true
