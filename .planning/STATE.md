@@ -6,7 +6,7 @@ See: `.planning/PROJECT.md`
 **Milestone:** Production Readiness — v0.0.3 + v0.1.0 (opened 2026-08-21)
 
 ## Current Phase
-**Phase 4 — Integration (v0.1.0)** · status: **CLI-08 and CLI-04 landed; 5 items remain**
+**Phase 4 — Integration (v0.1.0)** · status: **CLI-08, CLI-04 and SCAN-07 merged; 4 items remain**
 
 `main` is green — fmt, clippy, 24 test binaries — and still strictly linear.
 
@@ -44,9 +44,11 @@ HTML comment. Both are caught, at 60ms on a 40-file repo against a 200ms budget.
 | 3 | Signal Quality | ✅ Complete — QUAL-01/02/03, SCAN-05/06, CLI-09/10 |
 | 4 | Integration — ship v0.1.0 | 🔄 In progress — HOOK-01, CLI-06, CLI-07, CLI-08, CLI-04 done |
 
-### Phase 4 remaining (5)
-PERF-02 Aho-Corasick · SCAN-07 patterns (PR #66, awaiting contributor since 2026-08-23) ·
-TEST-01 coverage gate · TEST-02 criterion benchmarks · DOCS-02 (#70)
+### Phase 4 remaining (4)
+PERF-02 Aho-Corasick (#4) · TEST-01 coverage gate · TEST-02 criterion benchmarks · DOCS-02 (#70)
+
+SCAN-07 is done — PR #66 merged 2026-08-28, closing #27. The library is at **48 patterns**
+(PI048 deliberately unfilled; base64 stays deferred to the decoder in #30).
 
 **Next — but read the blocker below first.** On the plumbing, TEST-01's coverage gate is the
 natural next item: the ">80% on core logic" constraint both CLAUDE.md files state is met at ~92%
@@ -77,8 +79,9 @@ gets filed as a requirement.
 ## Quick Tasks Completed
 | Task | Requirement | Branch | Result |
 |---|---|---|---|
-| `260825-tc7` `--baseline` | CLI-08 | `feat/cli-08-baseline` | **PR #79 open**, 6 commits, 205 tests |
-| `260825-uor` SARIF | CLI-04 | `feat/cli-04-sarif` | 3 commits, 227 tests, stacked on #79, not pushed |
+| `260825-tc7` `--baseline` | CLI-08 | `feat/cli-08-baseline` | **Merged** 2026-08-28 (PR #79, rebase) |
+| `260825-uor` SARIF | CLI-04 | `feat/cli-04-sarif` | **Merged** 2026-08-28 (PR #82, rebase), closed #5 |
+| `260828-cli` repo hygiene | — | `chore/repo-hygiene` | SECURITY.md, CODEOWNERS, issue forms, CHANGELOG, release checklist |
 
 ## Releases
 - **v0.0.1** (2026-04-01): 30 patterns, 5 categories, text/JSON output, inline suppression, stdin mode
