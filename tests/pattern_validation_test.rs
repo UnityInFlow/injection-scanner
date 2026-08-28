@@ -39,6 +39,7 @@ fn category(name: &str, id: &str, pattern: &str) -> PatternCategory {
             pattern: pattern.to_string(),
             severity: None,
             case_sensitive: None,
+            raw_only: None,
             description: "probe".to_string(),
             remediation: String::new(),
             tags: vec![],

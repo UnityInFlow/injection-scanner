@@ -65,7 +65,11 @@ patterns:
   - id: PI017
     name: hidden-html-styling
     # color:#0000 was invalid CSS and missed the real 3/6-digit black cases.
-    pattern: "(<(?:span|div)[^>]*(?:style\\s*=\\s*[\"'][^\"']*(?:display\\s*:\\s*none|font-size\\s*:\\s*0|color\\s*:\\s*#(?:fff|ffffff|000|000000))|\\bhidden\\b)[^>]*>|style\\s*=\\s*[\"'][^\"']*(?:display\\s*:\\s*none|font-size\\s*:\\s*0|color\\s*:\\s*#(?:fff|ffffff|000|000000)))"
+    # font-size:0 needs a terminator: without one it also matches the very
+    # common "font-size: 0.8rem", firing HIGH on ordinary CSS. The colour
+    # alternates need \b so "#fff000" does not match on its "fff" prefix.
+    # The regex crate has no lookaround, so this is a terminator, not (?!).
+    pattern: "(<(?:span|div)[^>]*(?:style\\s*=\\s*[\"'][^\"']*(?:display\\s*:\\s*none|font-size\\s*:\\s*0(?:px|pt|em|rem|%)?\\s*[;\"']|color\\s*:\\s*#(?:fff|ffffff|000|000000)\\b)|\\bhidden\\b)[^>]*>|style\\s*=\\s*[\"'][^\"']*(?:display\\s*:\\s*none|font-size\\s*:\\s*0(?:px|pt|em|rem|%)?\\s*[;\"']|color\\s*:\\s*#(?:fff|ffffff|000|000000)\\b))"
     description: "HTML styling used to hide injected instructions from human readers"
     remediation: "Remove hidden/invisible HTML styling around instructional text."
     tags: [injection, html]

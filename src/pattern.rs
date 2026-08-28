@@ -47,6 +47,23 @@ pub struct Pattern {
     /// Set `case_sensitive: true` only where casing itself carries the signal.
     #[serde(default)]
     pub case_sensitive: Option<bool>,
+    /// Whether this pattern may run **only** against the raw source text,
+    /// skipping the Unicode-normalized pass (#26).
+    ///
+    /// Defaults to `false` — a pattern runs on both passes, so an attacker
+    /// cannot defeat it by swapping in confusable or zero-width characters.
+    ///
+    /// Set `raw_only: true` **only** for a detector whose signal is the raw
+    /// bytes themselves, such as a mixed-script homoglyph detector. The
+    /// normalizer folds confusables back to Latin, which leaves a
+    /// Latin/non-Latin mash that is not a mixed-script token in the source —
+    /// so running such a detector on the normalized text flags every bilingual
+    /// document. For every other pattern this field weakens detection: it
+    /// turns off the obfuscation-resistance that the normalized pass exists to
+    /// provide. It is deliberately a schema field rather than a tag so that
+    /// `deny_unknown_fields` catches typos and the choice is visible in review.
+    #[serde(default)]
+    pub raw_only: Option<bool>,
     #[serde(default)]
     pub description: String,
     #[serde(default)]
