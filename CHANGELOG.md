@@ -24,6 +24,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `--strict` (QUAL-03)
 - 18 new patterns filling the reserved ID gaps — PI008-PI009, PI015-PI019, PI026-PI029, PI039,
   PI043-PI047, PI049 — growing the library from 30 to 48 patterns across all five categories (#27)
+- SARIF 2.1.0 output (`--format sarif`) with rule metadata, `ruleIndex`, line-independent
+  `partialFingerprints` and GitHub `security-severity`, plus a code-scanning upload workflow that
+  runs only on triggers a fork cannot fire (#5)
+- `--baseline <file>` and `--write-baseline <file>` for incremental adoption on an existing
+  repository: accepted findings move into a withheld `baselined` array rather than being dropped,
+  and are stored as `(file, pattern_id, sha256(matched_text))` digests rather than verbatim
+  payloads, so the adoption artifact does not itself become a finding. `install-hook --baseline`
+  wires the two together (#25)
 
 ### Changed
 
@@ -32,8 +40,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   cut a false-positive source (#22, #23)
 - Severity rebalanced across the full CRITICAL/HIGH/MEDIUM/LOW range instead of concentrating
   almost everything in CRITICAL or HIGH (#21)
-- `raw_only` is now an explicit field in the pattern schema (previously implicit), documented in
-  `PATTERNS.md`
+- `raw_only` is now an explicit field in the pattern schema. It was briefly inferred from a
+  `homoglyph` tag, which meant a taxonomy label silently switched off a pattern's
+  Unicode-normalized pass — the pass that defeats confusable substitution. Tags never change
+  matching behaviour; documented in `PATTERNS.md` and pinned by a test
 
 ### Fixed
 
