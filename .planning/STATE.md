@@ -74,12 +74,12 @@ from the threat model rather than from the regexes. `tests/recall_test.rs` pins 
 
 | Category | Detected | Recall |
 |---|---|---|
+| Data Exfiltration | 12/12 | **100%** |
 | Role Override | 11/12 | **92%** |
 | Encoding/Obfuscation | 9/12 | **75%** |
-| Data Exfiltration | 0/12 | 0% |
 | Instruction Injection | 0/12 | 0% |
 | Jailbreaks | 0/12 | 0% |
-| **Total** | **20/60** | **33%** |
+| **Total** | **32/60** | **53%** |
 
 **Role override was fixed on 2026-08-28 (#80, PR pending).** It went 1/12 -> 11/12 by being
 rewritten from seven literal phrases into a verb x modifier x object matrix, with the clean
@@ -116,7 +116,8 @@ number would not be.
 | pattern catalogue | — | `feat/pattern-catalogue` | **Merged** (PR #84) — `docs/PATTERN-CATALOGUE.md`, `example`/`counter_example` schema, staleness gate, `pattern-library` skill |
 | test gates | TEST-01/02, DOCS-02 | `feat/test-gates` | **Merged** (PR #90) — coverage gate 85%, benches in CI, per-pattern policy ratchet |
 | recall corpus | — | `feat/recall-corpus` | **Merged** (PR #92) — 60 payloads, recall pinned and published |
-| `260828-jkn` role-override matrix | #80 | `feat/pi80-role-override-matrix` | PR open — recall 1/12 -> 11/12, clean corpus unmoved |
+| `260828-jkn` role-override matrix | #80 | `feat/pi80-role-override-matrix` | **Merged** (PR #94, rebase) — recall 1/12 -> 11/12 |
+| `260828-pw5` exfiltration matrix | #95 | `feat/exfiltration-matrix` | PR open — recall 0/12 -> 12/12, clean corpus strengthened |
 
 ## Releases
 - **v0.0.1** (2026-04-01): 30 patterns, 5 categories, text/JSON output, inline suppression, stdin mode
