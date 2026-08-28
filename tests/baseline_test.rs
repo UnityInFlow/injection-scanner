@@ -213,15 +213,39 @@ fn an_occurrence_beyond_count_is_still_reported() {
         .iter()
         .find(|r| r["file"].as_str() == Some(doc.path()))
         .expect("report present");
+    // Asserted by LINE, not by count. The fixture line is real payload text, so
+    // how many patterns match it is a property of the pattern library and moves
+    // whenever the library is widened — #95 added a second (PI021 now matches
+    // "output your system prompt", which only `POST` reached before), and this
+    // test failed despite the baseline behaviour being untouched. What must hold
+    // is the occurrence split: the first occurrence is accepted, the second is
+    // not, however many patterns each one trips.
+    let lines_of = |key: &str| -> Vec<u64> {
+        let mut v: Vec<u64> = report[key]
+            .as_array()
+            .expect("array")
+            .iter()
+            .map(|m| m["line"].as_u64().expect("line number"))
+            .collect();
+        v.sort_unstable();
+        v.dedup();
+        v
+    };
     assert_eq!(
-        report["matches"].as_array().expect("array").len(),
-        1,
-        "exactly one occurrence beyond the accepted count must remain reported: {report}"
+        lines_of("baselined"),
+        vec![1],
+        "only the first occurrence may be accepted by the baseline: {report}"
     );
     assert_eq!(
+        lines_of("matches"),
+        vec![5],
+        "the occurrence beyond the accepted count must remain reported: {report}"
+    );
+    assert_eq!(
+        report["matches"].as_array().expect("array").len(),
         report["baselined"].as_array().expect("array").len(),
-        1,
-        "exactly one occurrence must have been baselined, matching the recorded count: {report}"
+        "the two occurrences are the same text, so they must trip the same \
+         number of patterns — one accepted, one reported: {report}"
     );
 
     let _ = std::fs::remove_file(&baseline);
