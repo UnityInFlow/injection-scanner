@@ -787,6 +787,146 @@
       "first_seen_line": 76
     },
     {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:43c62be73ba88aa4b5dcb09c5b6471f8ef318ab06db001cf979ef6c1d8943eee",
+      "count": 1,
+      "first_seen_line": 7
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:4a55e9041663df7dbdc477003e86daa14467dbbd1fcfd5e0c647999bad3d1c9b",
+      "count": 1,
+      "first_seen_line": 15
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:52de37326f8c972f39003f702574f2c92667c0e7ee7c071ee605ac19478faf31",
+      "count": 1,
+      "first_seen_line": 16
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:6cac425b247fb9a305437debbd7454269c7436e6ce00c10052d854f4e18d9231",
+      "count": 1,
+      "first_seen_line": 8
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:a202ee6e402bb4a0ae16157ab7e1cd7ff08fde9a966cb7ea5caa819a155810b2",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:e73ce1fb007030d23b4a0b810cbe1186f17080aede80f0303db2f3d6600c77d8",
+      "count": 1,
+      "first_seen_line": 18
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:ee53b6d43c19b9e59f1f5489976c77cd5a68b09a4f80fc080150ce2a068aff8d",
+      "count": 1,
+      "first_seen_line": 17
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI040",
+      "digest": "sha256:3b9e50315ad56b16868dd444f3f10f7ab68996b0c2c1d7a3e321ff7aff8b12f6",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI040",
+      "digest": "sha256:aa8197a4710854eee08667d9f6dbfeec1cbe2a865f758eac77938f0a68207e1a",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI041",
+      "digest": "sha256:f4e48e664a603543865edc77bbc76dd1dd53dc9d0c30f651bbad7c8231091348",
+      "count": 4,
+      "first_seen_line": 7
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI043",
+      "digest": "sha256:696c64c6a7dbb82ec017f02bc459ceea178767bd072c308d2eb1ded918380fc8",
+      "count": 1,
+      "first_seen_line": 14
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI043",
+      "digest": "sha256:a724cb7d2f9ad0b91db3efcb32af50a492591959762d872cdb0fa0cb2c3891d4",
+      "count": 1,
+      "first_seen_line": 14
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI043",
+      "digest": "sha256:b8923121d6ff5307695db91dd07be3b00f9d57349e1b041d5e489f2f3c9ae643",
+      "count": 1,
+      "first_seen_line": 14
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI043",
+      "digest": "sha256:e6acef1473cc5653876fd5fe97708185d7e4a7aafcc14603ba75a5c669fa06b0",
+      "count": 1,
+      "first_seen_line": 14
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI045",
+      "digest": "sha256:d8f62a6861ce55d0f08a68eb8cb3e1119726b04ca4ca8e692184f17b0d957b27",
+      "count": 1,
+      "first_seen_line": 8
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI046",
+      "digest": "sha256:2c884e47444903366381c9feb6dd352bc0a2403d9dd030e0f9ee7fb08623465c",
+      "count": 1,
+      "first_seen_line": 17
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI046",
+      "digest": "sha256:4ecda1cb962666903d2ac23ce7a40691de419af92a91bd244ad6316a0dacb0b0",
+      "count": 2,
+      "first_seen_line": 18
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI046",
+      "digest": "sha256:a147737dcc6e31de8a7a29b5b02d1142e9b50ea5f484e72b7b08dd9569b5beee",
+      "count": 4,
+      "first_seen_line": 15
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI047",
+      "digest": "sha256:34b91e9994c9927e9406e11e5014e2154209e15504cc3e254bd153c01b97ea54",
+      "count": 1,
+      "first_seen_line": 12
+    },
+    {
+      "file": "tests/corpus/attack/role-override.md",
+      "pattern_id": "PI003",
+      "digest": "sha256:a6a4922367d633d57cc67c3d67a4ec4daacab8a58c67cc63fa8a44d43b94599a",
+      "count": 1,
+      "first_seen_line": 12
+    },
+    {
       "file": "tests/fixtures/allowlisted.md",
       "pattern_id": "PI006",
       "digest": "sha256:32ce6360f4166ccf8e2d1e725299da30d961740766c914e822c57c8c51152318",
