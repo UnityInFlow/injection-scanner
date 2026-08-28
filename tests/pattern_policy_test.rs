@@ -36,8 +36,8 @@ const MIN_NEGATIVES: usize = 2;
 /// not an exemption. Backfilling is tracked in #89; remove ids from here as
 /// they are covered — a test below fails if you leave a compliant id behind.
 const LEGACY_UNTESTED: &[&str] = &[
-    "PI003", "PI010", "PI011", "PI012", "PI013", "PI014", "PI025", "PI030", "PI031", "PI032",
-    "PI033", "PI034", "PI035", "PI036", "PI037", "PI038", "PI040", "PI041", "PI042",
+    "PI003", "PI011", "PI012", "PI013", "PI025", "PI030", "PI031", "PI032", "PI033", "PI034",
+    "PI035", "PI036", "PI037", "PI038", "PI040", "PI041", "PI042",
 ];
 
 /// Counts of `(positive, negative)` cases per pattern id across `tests/`.

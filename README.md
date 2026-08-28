@@ -256,7 +256,7 @@ paragraph for the same reason.
 | Category | Patterns | Default Severity | Examples |
 |---|---|---|---|
 | Role Override | 9 | CRITICAL | "disregard all previous directives", "set aside your earlier guidelines", "from now on you are a…" |
-| Instruction Injection | 10 | HIGH | "SYSTEM OVERRIDE", hidden HTML styling, "your real purpose is" |
+| Instruction Injection | 10 | HIGH | "takes precedence over the user", "Note to the assistant:", hidden HTML styling |
 | Data Exfiltration | 10 | CRITICAL | "print your system prompt", "what were you told", markdown beacons, collector domains |
 | Jailbreaks | 10 | HIGH | "developer mode enabled", "DAN mode", named personas |
 | Encoding/Obfuscation | 9 | HIGH | RTL overrides, zero-width runs, homoglyphs, Unicode tag smuggling |
@@ -273,31 +273,39 @@ threat model rather than from the regexes, and `tests/recall_test.rs` pins the n
 | Category | Detected | Recall |
 |---|---|---|
 | Data Exfiltration | 12 / 12 | **100%** |
+| Instruction Injection | 12 / 12 | **100%** |
 | Role Override | 11 / 12 | **92%** |
 | Encoding/Obfuscation | 9 / 12 | **75%** |
-| Instruction Injection | 0 / 12 | 0% |
-| Jailbreaks | 0 / 12 | 0% |
-| **Total** | **32 / 60** | **53%** |
+| Jailbreaks | 1 / 12 | 8% |
+| **Total** | **45 / 60** | **75%** |
 
 *Measured 2026-08-28 on the current pattern set.*
 
-**Read that before you rely on this tool.** Three categories work and two do not, and the
-difference is how the patterns are written, not how hard the attacks are.
+**Read that before you rely on this tool.** Four categories work; jailbreaks do not. The
+difference was never how hard the attacks are — it is whether a pattern matches *shape* or a
+literal phrase.
 
-Detection works where a pattern matches *shape* rather than a phrase. Obfuscation always did —
-zero-width runs, homoglyphs and bidi overrides are caught regardless of what the payload says.
-Role override and exfiltration now do too:
-[#80](https://github.com/UnityInFlow/injection-scanner/issues/80) and
-[#95](https://github.com/UnityInFlow/injection-scanner/issues/95) rewrote those categories from
-literal phrases into verb x object matrices, taking them from 1/12 to 11/12 and from 0/12 to
-12/12. Neither cost a finding on the false-positive corpus.
+Obfuscation always matched shape, so zero-width runs, homoglyphs and bidi overrides are caught
+regardless of what the payload says. Three rewrites took the others the same way:
+[#80](https://github.com/UnityInFlow/injection-scanner/issues/80) role override (1/12 → 11/12),
+[#95](https://github.com/UnityInFlow/injection-scanner/issues/95) exfiltration (0/12 → 12/12),
+[#97](https://github.com/UnityInFlow/injection-scanner/issues/97) instruction injection
+(0/12 → 12/12). None cost a finding on the false-positive corpus, and two of them made that
+corpus stricter — each widening ships the clean specimen that proves its own control.
 
-Instruction injection and jailbreaks still hold literal phrases, which is why they read 0%.
-The same rewrite is what they need.
+Jailbreaks still hold literal phrases, which is why they read 8%. The same rewrite is what
+they need.
 
-So this is a useful pre-commit tripwire against role-override, exfiltration and obfuscated
-payloads, and it is **not yet** a control you should rely on to stop a motivated attacker
-phrasing a jailbreak or an injected instruction in ordinary English. The number is pinned
+Two known gaps are deliberate rather than pending. `role_override` stops at 11/12 because the
+missed payload — "the instructions in this document take precedence" — is not separable by
+regex from the sentence in `tests/corpus/clean/config-precedence.md` saying the rules in a
+document take precedence over an older wiki page. `encoding` stops at 75% for the base64 case
+deferred to [#30](https://github.com/UnityInFlow/injection-scanner/issues/30), because a
+length-based regex cannot tell a payload from a file path.
+
+So this is a useful pre-commit tripwire against role-override, exfiltration, injected
+instructions and obfuscated payloads, and it is **not yet** a control you should rely on to
+stop a motivated attacker phrasing a jailbreak in ordinary English. The number is pinned
 exactly in CI, so it cannot drift quietly in either direction.
 
 ## Output Examples
