@@ -64,6 +64,24 @@ pub struct Pattern {
     /// `deny_unknown_fields` catches typos and the choice is visible in review.
     #[serde(default)]
     pub raw_only: Option<bool>,
+    /// A short, real payload this pattern is meant to catch.
+    ///
+    /// This is the pattern's own worked example: it is rendered into
+    /// `docs/PATTERN-CATALOGUE.md`, and a test asserts it actually matches the
+    /// regex beside it. That coupling is the point — an example that drifts
+    /// from its pattern fails CI rather than quietly misleading a reader.
+    ///
+    /// Keep it to one line, and make it the plainest form of the attack.
+    #[serde(default)]
+    pub example: Option<String>,
+
+    /// Legitimate text that looks like the attack but must NOT match.
+    ///
+    /// The false positive this pattern was most likely to cause, written down.
+    /// A test asserts it does not match, so the near-miss that a reviewer
+    /// worried about stays pinned instead of living in a PR comment.
+    #[serde(default)]
+    pub counter_example: Option<String>,
     #[serde(default)]
     pub description: String,
     #[serde(default)]

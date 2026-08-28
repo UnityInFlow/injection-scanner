@@ -26,6 +26,8 @@ fn probe(id: &str, raw_only: Option<bool>, tags: Vec<String>) -> PatternCategory
             severity: None,
             case_sensitive: None,
             raw_only,
+            example: None,
+            counter_example: None,
             description: "probe".to_string(),
             remediation: String::new(),
             tags,
