@@ -68,7 +68,66 @@ the normalized pass, set `raw_only`.
 | `corpus_test` | Your pattern fires on a legitimate document in `tests/corpus/clean/`. **Fix the pattern, not the corpus.** |
 | `markdown_context_test` | The attack-corpus counts are pinned exactly. A rise is as suspicious as a fall — explain it. |
 
-### The corpus rule, stated plainly
+### Prove the false-positive control, do not assert it
+
+**Widening a pattern? Name the thing keeping it narrow, then break it and confirm
+the corpus goes red.** Two PRs in a row found a real over-widening this way, and
+in one of them the corpus was *not* holding the property the pattern relied on:
+
+- **#95.** PI021's disclosure arms depend on requiring the possessive (`your
+  system prompt`, not `the system prompt`). Relaxing it to `(?:your|the)` left
+  the entire clean corpus green — `mcp-manifest.json`'s "Returns the system
+  prompt currently configured" survives only because the plural in "Returns"
+  fails to match the verb `return`. An accident, not a control.
+- **#97.** PI018's precedence arm produced **six HIGH findings** on ordinary
+  configuration prose in its first draft. HIGH is what `install-hook` blocks
+  commits at.
+
+The fix in both cases was to add the clean specimen that catches the mutation
+(`clean/prompt-tooling-docs.md`, `clean/config-precedence.md`), then narrow.
+Adding a specimen so an over-wide pattern *fails* is the opposite of the move
+the corpus rule below forbids — it strengthens the gate rather than dodging it.
+
+Green tests immediately after a widening are the weakest evidence in this repo.
+
+## Scan the whole repo, not just the corpus
+
+`tests/corpus/clean/` is fourteen files. It does not cover this repo's own prose,
+and **the scanner flagged its own documentation in two consecutive PRs** — both
+times `docs/DETECTION-BACKLOG.md`, which quotes payload text in double quotes
+rather than backticks. The 2026-08 audit listed "the scanner flags its own
+documentation" as a finding; every widening reopens it.
+
+```bash
+cargo run --release -- check . --exclude '.planning/**' --format json \
+  | python3 -c "import json,sys; print([(r['file'],m['line'],m['pattern_id']) \
+      for r in json.load(sys.stdin) for m in r['matches'] \
+      if not any(k in r['file'] for k in ('examples/','patterns/','tests/','tools/'))])"
+```
+
+Expect `[]`. Anything in `README.md`, `docs/`, `PATTERNS.md` or `src/` is either a
+false positive to fix, or documentation that needs a code span — which is the
+remediation this tool itself prints.
+
+## Ask what the nearest legitimate document looks like
+
+Before widening, write down the closest *benign* text and check the pattern
+against it. The answer changes the approach, and for one category it changed it
+completely:
+
+| Category | Nearest legitimate document | What that forced |
+|---|---|---|
+| `role_override` (#80) | maintenance prose — "ignore the legacy `v1/` package" | `old`/`legacy` excluded from priorness; object noun required |
+| `exfiltration` (#95) | an MCP manifest, a CLI manual | the possessive required; tool enumeration needs second person |
+| `instruction_injection` (#97) | **a CLAUDE.md** | vocabulary widening abandoned entirely |
+
+That last row is the important one. A CLAUDE.md is imperative and model-addressed
+from top to bottom — the same grammar as an injection payload. The two differ by
+**provenance**, which a regex cannot see. So that category keys on framings only
+an untrusted document uses (an aside *about* the model, a claim of authority over
+the user, a claim a control is off) and never on imperative mood.
+
+## The corpus rule, stated plainly
 
 `tests/corpus/clean/` is the only false-positive gate this repo has. Editing a
 clean document so a new pattern passes inverts what the gate is for. That has
@@ -100,4 +159,8 @@ Grading criteria live in `PATTERNS.md`. Two things worth repeating:
 - [ ] No verbatim payload written into a new file outside `examples/`, `patterns/` or `tests/` — this repo scans itself
 - [ ] If you touched `examples/` or `patterns/`, regenerate the code-scanning baseline:
       `cargo run --release -- check . --exclude '.planning/**' --write-baseline .github/code-scanning-baseline.json`
+- [ ] False-positive control mutation-tested — break it, confirm the corpus goes red
+- [ ] Whole-repo self-scan clean outside `examples/`, `patterns/`, `tests/`, `tools/`
+- [ ] Recall re-measured: `cargo test --test recall_test`, `EXPECTED` and the README
+      table updated together if it moved
 - [ ] Full gate green
