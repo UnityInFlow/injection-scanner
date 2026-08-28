@@ -125,5 +125,16 @@ if your pattern fires there, the grade is not the problem.
 3. Include in your PR:
    - At least 3 true positive test cases
    - At least 2 non-match cases (false positive prevention)
-4. Run `cargo test`
-5. Submit PR with title: `feat: add PI0XX pattern-name`
+
+   Both are enforced in CI by `tests/pattern_policy_test.rs` — add them with the
+   `assert_positives` / `assert_negatives` helpers in `tests/pattern_test.rs`.
+
+   **Make the non-match cases near-misses.** A negative that fails for a trivial
+   reason proves nothing. The cautionary example is PI048, which shipped with
+   negatives `shortToken123`, `not-base64-at-all!!!` and `abcd` — every one of
+   them failing on *length* — and still matched any file path over 48
+   characters, for 3,494 false positives on our own documentation. Write the
+   legitimate text you would most fear the pattern firing on.
+4. Regenerate the catalogue: `cargo run --release -- rules --format markdown > docs/PATTERN-CATALOGUE.md`
+5. Run `cargo test`
+6. Submit PR with title: `feat: add PI0XX pattern-name`
