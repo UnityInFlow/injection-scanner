@@ -103,7 +103,7 @@
     {
       "file": "examples/exfiltration-attack.md",
       "pattern_id": "PI026",
-      "digest": "sha256:1df5250bbbfc8ec92701db0dafcaae06fe27d8955f041d3151f58ef4a791d40a",
+      "digest": "sha256:70ead6eb91ab69b3c39d9894c425cd181ae7692532bf9f8cb7b351370b42bdd2",
       "count": 1,
       "first_seen_line": 17
     },
@@ -516,6 +516,13 @@
     {
       "file": "patterns/core/exfiltration.yaml",
       "pattern_id": "PI021",
+      "digest": "sha256:583bfb5687201f45d606b9f17b1a6af46ecedf8eb490c84931c1255dd037f043",
+      "count": 1,
+      "first_seen_line": 46
+    },
+    {
+      "file": "patterns/core/exfiltration.yaml",
+      "pattern_id": "PI021",
       "digest": "sha256:a08dbb13155782bef2477d154dd9744ac67115c68f34709e5d8ed17303556d3d",
       "count": 1,
       "first_seen_line": 39
@@ -525,70 +532,70 @@
       "pattern_id": "PI022",
       "digest": "sha256:79a768fe54daee0e5cce99aeea4937b70a12bbde6112e436f4cf1b151eea8751",
       "count": 1,
-      "first_seen_line": 49
+      "first_seen_line": 59
     },
     {
       "file": "patterns/core/exfiltration.yaml",
       "pattern_id": "PI023",
       "digest": "sha256:2edde06aeb0a5ec530b25d30242bd6600ecb58721523410ff3ffd61f4727a805",
       "count": 1,
-      "first_seen_line": 66
+      "first_seen_line": 76
     },
     {
       "file": "patterns/core/exfiltration.yaml",
       "pattern_id": "PI024",
       "digest": "sha256:b83e02b2e4319f02466bf48392b8c6f1456c30a27e63c324f8a299578e6660c4",
       "count": 1,
-      "first_seen_line": 77
+      "first_seen_line": 92
     },
     {
       "file": "patterns/core/exfiltration.yaml",
       "pattern_id": "PI025",
       "digest": "sha256:d2249765a239a67ad19b8a40659eebef8a8a7c8f63f56c0651348c1487935c64",
       "count": 1,
-      "first_seen_line": 90
+      "first_seen_line": 105
     },
     {
       "file": "patterns/core/exfiltration.yaml",
       "pattern_id": "PI025",
       "digest": "sha256:ec2a57049c44a48cdfa2746a32d053cf09094bdc82996a5ad1cd1894eccafb49",
       "count": 1,
-      "first_seen_line": 87
+      "first_seen_line": 102
     },
     {
       "file": "patterns/core/exfiltration.yaml",
       "pattern_id": "PI026",
-      "digest": "sha256:1df5250bbbfc8ec92701db0dafcaae06fe27d8955f041d3151f58ef4a791d40a",
+      "digest": "sha256:70ead6eb91ab69b3c39d9894c425cd181ae7692532bf9f8cb7b351370b42bdd2",
       "count": 1,
-      "first_seen_line": 98
+      "first_seen_line": 113
     },
     {
       "file": "patterns/core/exfiltration.yaml",
       "pattern_id": "PI027",
       "digest": "sha256:9b1fe652fe524ef62230128396f5e6502e374e89c76eccbf5a58336f7759bbcc",
       "count": 1,
-      "first_seen_line": 109
+      "first_seen_line": 131
     },
     {
       "file": "patterns/core/exfiltration.yaml",
       "pattern_id": "PI028",
       "digest": "sha256:2f64368a8225188600ba4a84f630de556712a733c6b657243121ec374e79859b",
       "count": 1,
-      "first_seen_line": 119
+      "first_seen_line": 141
     },
     {
       "file": "patterns/core/exfiltration.yaml",
       "pattern_id": "PI029",
       "digest": "sha256:ee9c96aacc742e84410161882745d3a087bf030c890d2abb5cffb0794a96d128",
       "count": 1,
-      "first_seen_line": 127
+      "first_seen_line": 149
     },
     {
       "file": "patterns/core/instruction-injection.yaml",
       "pattern_id": "PI001",
       "digest": "sha256:2e4221a7f996a7299dd5be2905be6c7c27f5f5bfd60cb107a1662bfaf872e862",
       "count": 2,
-      "first_seen_line": 87
+      "first_seen_line": 93
     },
     {
       "file": "patterns/core/instruction-injection.yaml",
@@ -644,28 +651,28 @@
       "pattern_id": "PI016",
       "digest": "sha256:796d291884f913740e8a272dfb58d8a9525da669f7ac5bbc12b159a2cc7d1e0f",
       "count": 1,
-      "first_seen_line": 87
+      "first_seen_line": 93
     },
     {
       "file": "patterns/core/instruction-injection.yaml",
       "pattern_id": "PI018",
       "digest": "sha256:87e17d95821f8c8c1004a130daef4389fe9b4dac6a1f99ae6375a11d837991f0",
       "count": 1,
-      "first_seen_line": 108
+      "first_seen_line": 129
     },
     {
       "file": "patterns/core/instruction-injection.yaml",
       "pattern_id": "PI019",
       "digest": "sha256:86be9cea1d1d7b761ea1b7306361bf6cfbb1a54857572bee509f45a40292f7d4",
       "count": 1,
-      "first_seen_line": 127
+      "first_seen_line": 150
     },
     {
       "file": "patterns/core/instruction-injection.yaml",
       "pattern_id": "PI021",
       "digest": "sha256:2fb2b1a07e62a8a9fab2e923f0dc5e49f6595905da4b7d4c27b66b030fa5bdde",
       "count": 1,
-      "first_seen_line": 127
+      "first_seen_line": 150
     },
     {
       "file": "patterns/core/jailbreak.yaml",
@@ -1125,6 +1132,13 @@
     {
       "file": "tests/corpus/attack/instruction-injection.md",
       "pattern_id": "PI015",
+      "digest": "sha256:14794973e2fe43f8bef4a3a1bf31fe5df590a9071ba9df9f71993a5c22ec48ed",
+      "count": 1,
+      "first_seen_line": 10
+    },
+    {
+      "file": "tests/corpus/attack/instruction-injection.md",
+      "pattern_id": "PI015",
       "digest": "sha256:184ca69cc121134cd4e356a3d518d7e691a465980a71a4e43ac6eb45a8bb49a6",
       "count": 1,
       "first_seen_line": 16
@@ -1135,13 +1149,6 @@
       "digest": "sha256:d8286418a685fc32e1f1a9b10d0686e4b8eefea127b9434507b5b5eacd5b6cbb",
       "count": 1,
       "first_seen_line": 17
-    },
-    {
-      "file": "tests/corpus/attack/instruction-injection.md",
-      "pattern_id": "PI015",
-      "digest": "sha256:fbbf731e8588338f54a4c18845a1fb48876a732aea50d1635847fd22c8529601",
-      "count": 1,
-      "first_seen_line": 10
     },
     {
       "file": "tests/corpus/attack/instruction-injection.md",
