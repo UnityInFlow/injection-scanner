@@ -6,7 +6,12 @@ See: `.planning/PROJECT.md`
 **Milestone:** Production Readiness — v0.0.3 + v0.1.0 (opened 2026-08-21)
 
 ## Current Phase
-**Phase 4 — Integration (v0.1.0)** · status: **one item remains — PERF-02 (#4)**
+**Phase 4 — Integration (v0.1.0)** · status: **detection complete; only the v0.1.0 tag remains**
+
+> **2026-08-29 handoff:** see `.planning/.continue-here.md`. Everything from the detection
+> rewrite is merged. Next actions are (1) cut v0.1.0 — `Cargo.toml` still reads `0.0.3` with
+> 55 commits past the tag (#86), (2) bump `spec-ci-plugin`'s default so the release reaches
+> consumers, (3) triage dependabot #101.
 
 `main` is green on both CI and Code scanning, 262 tests, and still strictly linear
 (0 merge commits since `v0.0.3`). One PR open: `feat/pi80-role-override-matrix` (#80, 268 tests).
@@ -124,7 +129,8 @@ number would not be.
 | `260828-jkn` role-override matrix | #80 | `feat/pi80-role-override-matrix` | **Merged** (PR #94, rebase) — recall 1/12 -> 11/12 |
 | `260828-pw5` exfiltration matrix | #95 | `feat/exfiltration-matrix` | **Merged** (PR #96, rebase) — recall 0/12 -> 12/12 |
 | `260828-ii` instruction-injection matrix | #97 | `feat/instruction-injection-matrix` | **Merged** (PR #98, rebase) — recall 0/12 -> 12/12 |
-| `260828-jb` jailbreak matrix | #99 | `feat/jailbreak-matrix` | PR open — recall 1/12 -> 12/12 |
+| `260828-jb` jailbreak matrix | #99 | `feat/jailbreak-matrix` | **Merged** (PR #100, rebase) — recall 1/12 -> 12/12 |
+| external FP sweep | #102 | `fix/external-false-positives` | **Merged** (PR #103, rebase) — ~1,300 third-party files swept; 2 CRITICAL + 25 HIGH FPs fixed, recall held at 56/60 |
 
 ## Releases
 - **v0.0.1** (2026-04-01): 30 patterns, 5 categories, text/JSON output, inline suppression, stdin mode
