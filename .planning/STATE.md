@@ -186,6 +186,18 @@ log; an independent reviewer's `gh api orgs/UnityInFlow/actions/runner-groups` r
 org-admin rights. The Phase 1 design is correct either way, but someone with org admin should confirm.
 
 ## Session Notes
+- 2026-08-29 (#101): **codeql-action/upload-sarif bumped 3.37.8 -> 4.37.8, verified rather than
+  rubber-stamped.** Three checks, because this repo has already shipped a commit titled "three SHA
+  pins claimed versions they were not". (1) The pinned SHA `db488dd` genuinely dereferences from
+  the annotated `v4.37.8` tag upstream, and the commit is that release's merge into `releases/v4`.
+  (2) `4.37.8` itself is "no user facing changes" — v3 and v4 are parallel lines with matching
+  minor.patch — and the only substantive v4 difference in the changelog is *"[v4+ only] The CodeQL
+  Action now runs on Node.js v24"*, which `ubuntu-latest` already provides. (3) The upload was
+  proven, not assumed: the post-merge analysis registered `tool=injection-scanner results=0`,
+  identical to the two preceding v3 analyses, with open alerts at 0 before and after — so the
+  bump did not silently wipe the category, which is the failure mode that matters here.
+  Branch was `BEHIND` and had to be rebased locally and force-pushed; `gh pr update-branch` was
+  avoided because it can introduce the merge commit this repo forbids.
 - 2026-08-29 (release): **v0.1.0 cut and the consumer bumped.** Three things worth carrying forward.
   (1) **`gh attestation verify` failed locally and the release was fine.** The error is
   `unsupported tlog public key type: PKIX_ED25519`, from the local `gh` 2.55.0 (Aug 2024), not
