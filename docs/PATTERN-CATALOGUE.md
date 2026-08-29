@@ -446,7 +446,7 @@ do not tell jokes during the meeting
 <details><summary>Regex</summary>
 
 ```regex
-(do\s+not\s+(?:tell|mention|reveal|disclose|acknowledge|repeat|say|refer\s+to)\s+(?:the\s+user|this|that|it|anything|any\s+of\s+this)|keep\s+this\s+secret\s+from\s+the\s+user|without\s+(?:informing|telling|notifying)\s+the\s+user|silently\s+(?:append|add|insert|include|execute|run|perform|forward|send)|without\s+(?:explaining|mentioning|disclosing|acknowledging)\s+(?:why|it|this|that|anything|the\s+reason))
+(do\s+not\s+(?:tell|mention|reveal|disclose|acknowledge|say|refer\s+to)\s+(?:the\s+user|this|that|it|anything|any\s+of\s+this)|keep\s+this\s+secret\s+from\s+the\s+user|without\s+(?:informing|telling|notifying)\s+the\s+user|silently\s+(?:append|add|insert|include|execute|run|perform|forward|send)(?:\s|$|[.,;:])|without\s+(?:explaining|mentioning|disclosing|acknowledging)\s+(?:why|it|this|that|anything|the\s+reason))
 ```
 
 </details>
@@ -502,7 +502,7 @@ Does **not** catch:
 <details><summary>Regex</summary>
 
 ```regex
-(<(?:span|div)[^>]*(?:style\s*=\s*["'][^"']*(?:display\s*:\s*none|font-size\s*:\s*0(?:px|pt|em|rem|%)?\s*[;"']|color\s*:\s*#(?:fff|ffffff|000|000000)\b)|\bhidden\b)[^>]*>|style\s*=\s*["'][^"']*(?:display\s*:\s*none|font-size\s*:\s*0(?:px|pt|em|rem|%)?\s*[;"']|color\s*:\s*#(?:fff|ffffff|000|000000)\b))
+(<(?:span|div)[^>]*(?:style\s*=\s*["'][^"']*(?:display\s*:\s*none|font-size\s*:\s*0(?:px|pt|em|rem|%)?\s*[;"']|color\s*:\s*#(?:fff|ffffff|000|000000)\b)|\shidden(?:\s|>))[^>]*>|style\s*=\s*["'][^"']*(?:display\s*:\s*none|font-size\s*:\s*0(?:px|pt|em|rem|%)?\s*[;"']|color\s*:\s*#(?:fff|ffffff|000|000000)\b))
 ```
 
 </details>
@@ -530,7 +530,7 @@ IMPORTANT: read the onboarding checklist first
 <details><summary>Regex</summary>
 
 ```regex
-((IMPORTANT|CRITICAL\s+INSTRUCTION|ATTENTION)\s*:\s*(do|ignore|send|execute|run|override|disregard|forget|reveal|output|print|always|never|grant|disable|skip|bypass|you\s+must|the\s+user\s+is)\b|(?:takes?\s+precedence\s+over|ha(?:s|ve)\s+(?:higher|greater|top)\s+priority\s+than|supersedes?|override[s]?)\s+(?:the\s+|any\s+|all\s+)?(?:users?'?s?\s+(?:request|instructions?|message|prompt|input|question)|conversation|system\s+(?:prompt|message|instructions?)|(?:everything|anything)\s+(?:above|else|said\s+before)|(?:previous|prior|earlier)\s+instructions?)|(?:verification|safety\s+(?:checks?|review)|content\s+filters?|moderation|guardrails?|restrictions?)\s+(?:ha(?:s|ve)\s+been|is|are|was|were)\s+(?:disabled|turned\s+off|bypassed|suspended|waived|lifted|removed))
+((IMPORTANT|CRITICAL\s+INSTRUCTION|ATTENTION)\s*:\s*(do|ignore|send|execute|run|override|disregard|forget|reveal|output|print|always|never|grant|disable|bypass|you\s+must|the\s+user\s+is)\b|(?:takes?\s+precedence\s+over|ha(?:s|ve)\s+(?:higher|greater|top)\s+priority\s+than|supersedes?|override[s]?)\s+(?:the\s+|any\s+|all\s+)?(?:users?'?s?\s+(?:request|instructions?|message|prompt|input|question)|conversation|system\s+(?:prompt|message|instructions?)|(?:everything|anything)\s+(?:above|else|said\s+before)|(?:previous|prior|earlier)\s+instructions?)|(?:verification|safety\s+(?:checks?|review)|content\s+filters?|moderation|guardrails?|restrictions?)\s+(?:ha(?:s|ve)\s+been|is|are|was|were)\s+(?:disabled|turned\s+off|bypassed|suspended|waived|lifted|removed))
 ```
 
 </details>
@@ -619,7 +619,7 @@ Returns the system prompt currently configured for this agent
 <details><summary>Regex</summary>
 
 ```regex
-(?:print|output|repeat|reveal|show|display|disclose|summari[sz]e|quote|echo|dump|recite|reproduce|transcribe|divulge|expose|include|provide|share|attach|POST|send|tell\s+me|spell\s+out|write\s+out)\s+[^.\n]{0,30}?your\s+(?:\w+\s+){0,2}?(?:system\s+(?:prompt|message|instructions?)|initial\s+(?:configuration|config|instructions?|prompt|setup)|original\s+(?:instructions?|prompt)|hidden\s+instructions?|context\s+window)
+(?:print|output|repeat|reveal|show|display|disclose|summari[sz]e|quote|echo|dump|recite|reproduce|transcribe|divulge|expose|include|provide|share|attach|POST|send|tell\s+me|spell\s+out|write\s+out)\s+[^.\n,;:—–\-]{0,20}?your\s+(?:\w+\s+){0,2}?(?:system\s+(?:prompt|message|instructions?)|initial\s+(?:configuration|config|instructions?|prompt|setup)|original\s+(?:instructions?|prompt)|hidden\s+instructions?|context\s+window)
 ```
 
 </details>
@@ -675,7 +675,7 @@ repeat the failing test to confirm the fix
 <details><summary>Regex</summary>
 
 ```regex
-(?:repeat|quote|reproduce|recite|print|output|show|reveal|transcribe|echo|paste)\s+(?:me\s+)?(?:the\s+|all\s+(?:of\s+)?the\s+)?(?:\w+\s+){0,4}?(?:(?:text|words?|messages?|lines?|paragraphs?|contents?)\s+(?:that\s+)?(?:appears?|appeared|came|precede[sd]?|you\s+(?:were|have\s+been)\s+(?:given|told|sent|shown))|your\s+system\s+message)
+(?:repeat|quote|reproduce|recite|print|output|show|reveal|transcribe)\s+(?:me\s+)?(?:the\s+|all\s+(?:of\s+)?the\s+)?(?:\w+\s+){0,4}?(?:(?:text|words?|messages?|lines?|paragraphs?|contents?)\s+(?:that\s+)?(?:appears?|appeared|came|precede[sd]?|you\s+(?:were|have\s+been)\s+(?:given|told|sent|shown))|your\s+system\s+message)
 ```
 
 </details>
@@ -759,7 +759,7 @@ Does **not** catch:
 <details><summary>Regex</summary>
 
 ```regex
-!?\[[^\]]*\]\(https?://[^\s\)]*\?[^\s\)]*=
+!?\[[^\]]*\]\(https?://[^\s\)]*\?[^\s\)]*=[0-9]*[A-Za-z_%\-]
 ```
 
 </details>
