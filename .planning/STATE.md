@@ -11,12 +11,12 @@ See: `.planning/PROJECT.md`
 > **v0.1.0 is published** (run 33256814534, all four jobs green, 7 assets, SLSA provenance bound
 > to `refs/tags/v0.1.0`). `spec-ci-plugin` defaults to it as of PR #13. #86 closed.
 >
-> **One thread left open, and it matters:** `spec-ci-plugin`'s Marketplace consumers pin `@v1`,
-> a moving tag whose mover runs only on `release: published`. `v1` still points at `5adc903`;
-> main is now `08cb520`. **The default bump is merged but has not reached `@v1` users** — the
-> same "reaches nobody" failure one layer up. Needs a `spec-ci-plugin` v1.1.1 publish.
+> **The delivery chain is closed as of 2026-08-29.** `spec-ci-plugin` v1.1.1 is published and its
+> moving `v1` tag advanced `5adc903` → `d3069c4`. Verified at the tag itself, including
+> `dist/index.js` — the bundle consumers actually execute — which carries `v0.1.0`. An `@v1`
+> consumer now downloads the 56/60 scanner instead of the 10/60 one.
 >
-> Also open: dependabot #101 (codeql-action major bump), and PERF-02 (#4, optional).
+> Still open, neither blocking: dependabot #101 (codeql-action major bump), PERF-02 (#4, optional).
 
 `main` is green on both CI and Code scanning, **285 tests**, and still strictly linear
 (0 merge commits since `v0.0.3`, and none since `v0.1.0`). No open PRs of ours.
@@ -135,6 +135,7 @@ than by the trade-off being accepted.
 | `260828-jb` jailbreak matrix | #99 | `feat/jailbreak-matrix` | **Merged** (PR #100, rebase) — recall 1/12 -> 12/12 |
 | external FP sweep | #102 | `fix/external-false-positives` | **Merged** (PR #103, rebase) — ~1,300 third-party files swept; 2 CRITICAL + 25 HIGH FPs fixed, recall held at 56/60 |
 | `260829-m80` cut v0.1.0 | #86 | `main` + spec-ci-plugin PR #13 | **Shipped** 2026-08-29 — tag `v0.1.0` published, consumer default bumped |
+| `260829-ojv` spec-ci-plugin v1.1.1 | — | spec-ci-plugin PR #14 | **Shipped** 2026-08-29 — `v1` moved to `d3069c4`; the fix now reaches `@v1` consumers |
 
 ## Releases
 - **v0.0.1** (2026-04-01): 30 patterns, 5 categories, text/JSON output, inline suppression, stdin mode
@@ -197,10 +198,14 @@ org-admin rights. The Phase 1 design is correct either way, but someone with org
   exists precisely to refuse that. The checklist says "run a build … so the lockfile records the
   new version", which reads as if the locked build does it. Sequence is `cargo check --offline`
   to rewrite the lock, *then* the locked build to verify. Worth fixing in the checklist wording.
-  (3) **The release reaching the tag is not the release reaching users.** `spec-ci-plugin`'s
-  default is bumped and merged, but its consumers pin `@v1`, a moving tag advanced only by a
-  `release: published` event. `v1` is still at `5adc903`. The whole reason for bumping the default
-  was reach, and reach is still one publish away — see the Current Phase block.
+  (3) **The release reaching the tag is not the release reaching users** — closed the same day by
+  `spec-ci-plugin` v1.1.1, but the shape is the lesson. **A moving alias tag makes "merged",
+  "released" and "reaching users" three different states, and only the third counts.**
+  injection-scanner v0.1.0 was published and correct; the consumer's default was merged and
+  correct; every gate in both repos was green; and no user had the fix, because `v1` sat one
+  commit behind. **Nothing in either repo's CI could catch this — the gap is *between* repos,
+  in a tag whose whole job is to be stale until someone moves it.** Every future scanner release
+  ends with the same three-step chain, and step three is the one that gets forgotten.
 - 2026-08-28 (#80): **Role override rewritten as a verb x modifier x object matrix — 1/12 -> 11/12
   recall, clean corpus unmoved at zero.** Three things worth carrying forward.
   (1) **A pattern's `name` is a consumer contract.** Six names were renamed for accuracy, then
