@@ -301,10 +301,17 @@ far a pattern may go, so it grows with them.
 
 ### The four remaining misses are deliberate
 
-- **Encoding, 3 of them.** The base64 family, deferred to
-  [#30](https://github.com/UnityInFlow/injection-scanner/issues/30). A length-based regex cannot
-  tell a payload from a file path — a rule of `[A-Za-z0-9+/]{48,}` once produced 3,494 false
-  positives on this project's own documentation. That gap needs a decoder, not a pattern.
+- **Encoding, 3 of them**, and they have three different causes. This was previously described
+  here as "the base64 family"; measured on 2026-08-30, only one of the three is base64.
+  - **A base64 payload.** A genuine decoder gap, deferred to
+    [#30](https://github.com/UnityInFlow/injection-scanner/issues/30). A length-based regex cannot
+    tell a payload from a file path — a rule of `[A-Za-z0-9+/]{48,}` once produced 3,494 false
+    positives on this project's own documentation. That gap needs a decoder, not a pattern.
+  - **Reversed text.** A different transform entirely, not a decoding one. Folded into #30.
+  - **Fully despaced text.** Not a gap but a documented non-goal: `i g n o r e a l l` normalizes
+    to `ignoreall`, and every pattern in the library joins its words with `\s+`. Closing it would
+    mean rewriting the pattern set rather than the input — see the module docs in
+    `src/normalize.rs`.
 - **Role override, 1.** `the instructions in this document take precedence` is not separable by
   regex from `the rules in this document take precedence over the older wiki page`, which is in
   `tests/corpus/clean/config-precedence.md` and is ordinary documentation.

@@ -36,7 +36,8 @@ Ordered by dependency. Each is one PR, with its own false-positive sweep.
 - [ ] **ENG-02** (#30): A recursive decoder walks base64, hex, URL-encoding, HTML entities and
       `\u` escapes, re-running detection on each decoded layer, bounded against decode bombs.
       Nested encodings (base64 inside an HTML entity inside a URL escape) are the real shape and
-      are what three separate single-layer decoders would each miss.
+      are what three separate single-layer decoders would each miss. **Includes a reversal
+      transform** — see the corrected recall attribution below.
 
 ### Categories
 
@@ -104,9 +105,21 @@ Tracked, not in this roadmap.
 
 ## Success criteria for the milestone
 
-1. Recall reaches **59/60** on the existing corpus — ENG-02 closes the three base64 misses. The
-   fourth miss stays, deliberately: a role-override precedence claim not separable from ordinary
-   configuration documentation.
+1. Recall reaches **58/60** on the existing corpus.
+
+   **Corrected 2026-08-30.** This previously read 59/60 "because ENG-02 closes the three base64
+   misses". Measured, that was wrong — only one of the three is base64:
+
+   | Miss | Cause | Closed by ENG-02 |
+   |---|---|---|
+   | base64 payload | genuine decoder gap | **yes** |
+   | reversed text | a reversal transform, not a decoding one | **yes** — added to scope |
+   | fully despaced | the documented non-goal in `normalize.rs`: `i g n o r e a l l` collapses to `ignoreall`, and every pattern joins words with `\s+` | **no** — needs a pattern-set rewrite |
+   | role-override precedence | not separable from ordinary config documentation | **no** — deliberate |
+
+   The claim came from a comment in `tests/recall_test.rs` and was propagated into this file, into
+   STATE.md and into the v0.1.0 release notes without being checked. Two misses stay, both for
+   stated reasons.
 2. Three new categories are measured on their **own** 36 new payloads, and that number is published
    in the README alongside the existing table.
 3. The clean corpus and the third-party sweep both stay at **zero** regressions.

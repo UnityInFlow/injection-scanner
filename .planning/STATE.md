@@ -63,8 +63,13 @@ Also standing: `main` stays strictly linear. A pattern's `name` is a **consumer 
 | Encoding/Obfuscation | 9/12 | 75% |
 | **Total** | **56/60** | **93%** |
 
-Phase 2 (#30) takes this to **59/60** by closing the three base64 misses. The fourth miss stays
-deliberately: a role-override precedence claim not separable from ordinary config documentation.
+Phase 2 (#30) takes this to **58/60**.
+
+**Corrected 2026-08-30.** This said 59/60, "closing the three base64 misses". Only ONE of the three
+is base64. The second is reversed text (a different transform, now in ENG-02's scope); the third is
+fully despaced text, which is the *documented non-goal* in `normalize.rs` — `i g n o r e a l l`
+collapses to `ignoreall` and every pattern joins words with `\s+`, so closing it means rewriting
+the pattern set rather than the input. Two misses therefore remain, both for stated reasons.
 
 ## Tracking
 
