@@ -41,22 +41,25 @@ use injection_scanner::scanner::Scanner;
 ///
 /// The four remaining misses are documented below and are all deliberate.
 const EXPECTED: &[(&str, usize, usize)] = &[
-    // 75% since before this milestone. The three misses were long described as
-    // "the base64 family deferred to #30". Measured 2026-08-30, that is wrong:
-    // only ONE of them is base64.
+    // 9/12 before ENG-02 (#30). The three misses were long described as "the
+    // base64 family deferred to #30". Measured 2026-08-30, that was wrong:
+    // only ONE of them was base64, and the decoder closed two of the three.
     //
-    //   line  9  base64          -- genuine decoder gap, #30 closes it
-    //   line 10  reversed text   -- a reversal transform; NOT in #30's scope
-    //                              as written, and not a decoding problem
+    //   line  9  base64          -- CLOSED by #30's decoder
+    //   line 10  reversed text   -- CLOSED by #30, after #107 folded reversal
+    //                              into its scope; it is not a decoding
+    //                              problem, but a fourth engine for one
+    //                              transform was the worse option
     //   line 11  fully despaced  -- the documented non-goal in normalize.rs:
     //                              `i g n o r e a l l` collapses to
     //                              `ignoreall`, and every pattern joins words
     //                              with `\s+`. Closing it means rewriting the
     //                              pattern set, not the input.
     //
-    // So #30 alone takes this to 10/12, not 12/12. The mis-attribution had
-    // propagated into REQUIREMENTS.md, STATE.md and the v0.1.0 release notes.
-    ("encoding", 9, 12),
+    // Measured after #30: 11/12. The one miss left is the despaced payload,
+    // and it stays. The mis-attribution had propagated into REQUIREMENTS.md,
+    // STATE.md and the v0.1.0 release notes before being corrected in #107.
+    ("encoding", 11, 12),
     // 0/12 before #95.
     ("exfiltration", 12, 12),
     // 0/12 before #97.

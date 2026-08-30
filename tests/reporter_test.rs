@@ -17,6 +17,7 @@ fn sample_report() -> ScanReport {
                 matched_text: "ignore all previous instructions".to_string(),
                 context: MatchContext::Prose,
                 confidence: MatchContext::Prose.confidence(),
+                decode_chain: None,
             },
             ScanMatch {
                 pattern_id: "PI030".to_string(),
@@ -29,6 +30,7 @@ fn sample_report() -> ScanReport {
                 matched_text: "developer mode enabled".to_string(),
                 context: MatchContext::Prose,
                 confidence: MatchContext::Prose.confidence(),
+                decode_chain: None,
             },
         ],
     )
