@@ -365,3 +365,38 @@ fn unparseable_frontmatter_does_not_suppress_the_text_passes() {
         "a broken config block must not silence the text passes"
     );
 }
+
+#[test]
+fn a_yaml_alias_bomb_is_refused_rather_than_expanded() {
+    // Billion-laughs: 9 levels of 9-way alias expansion is 9^9 = 387,420,489
+    // leaves if fully realised. The projection bounds in this module cannot
+    // help — they apply *after* parsing, and the blow-up happens during it.
+    //
+    // Measured: `serde_yaml` rejects this in ~27ms with "repetition limit
+    // exceeded", and `analyze` surfaces that as a parse error, so the pass is
+    // skipped and the scan continues. This test pins that, because the property
+    // is currently held by an upstream implementation detail rather than by
+    // anything in this crate — see issue #105. If the parser is ever swapped,
+    // this is the test that catches the regression.
+    let mut doc =
+        String::from("---\na0: &a0 [\"x\",\"x\",\"x\",\"x\",\"x\",\"x\",\"x\",\"x\",\"x\"]\n");
+    for level in 1..9 {
+        let prev = format!("*a{}", level - 1);
+        let row: Vec<&str> = std::iter::repeat_n(prev.as_str(), 9).collect();
+        doc.push_str(&format!("a{}: &a{} [{}]\n", level, level, row.join(",")));
+    }
+    doc.push_str("---\n\n# Body\n");
+
+    let started = std::time::Instant::now();
+    let outcome = analyze(&doc);
+    let elapsed = started.elapsed();
+
+    assert!(
+        outcome.is_err(),
+        "an alias bomb must be refused by the parser, not expanded"
+    );
+    assert!(
+        elapsed < std::time::Duration::from_secs(5),
+        "refusal must be fast; took {elapsed:?}"
+    );
+}
