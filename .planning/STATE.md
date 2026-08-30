@@ -9,10 +9,11 @@ See: `.planning/PROJECT.md`
 > `.planning/archive/milestone-v0.1.0/STATE.md`, alongside its REQUIREMENTS, ROADMAP and phases.
 
 ## Current Phase
-**Phase 2 — Recursive decoder (ENG-02, #30)** · status: **not started, ready to plan**
+**Phase 3 — Tool & permission abuse (CAT-01, #33)** · status: **not started, ready to plan**
 
-Phase 1 shipped 2026-08-30 (PR #104, #32 closed; PR #106 added the alias-bomb test).
-`main` clean, in sync, **313 tests**, CI green, zero open PRs, still 0 merge commits.
+Phases 1 and 2 shipped 2026-08-30. **Both engines are done**; the remaining three phases are
+pattern categories, one PR each (GATE-04). `main` clean, in sync, **331 tests**, CI green, zero
+open PRs, still 0 merge commits.
 
 ## The milestone in one paragraph
 
@@ -28,7 +29,7 @@ lifecycle hook that reinstalls the attacker's instructions after the file is cle
 | Phase | Requirement | Issue | Status |
 |---|---|---|---|
 | 1 | ENG-01 structural frontmatter engine | #32 | **Done** — PR #104 |
-| 2 | ENG-02 recursive decoder | #30 | Not started |
+| 2 | ENG-02 recursive decoder | #30 | **Done** — PR #108, also closed #6 and #7 |
 | 3 | CAT-01 tool & permission abuse `PI050-059` | #33 | Not started |
 | 4 | CAT-02 MCP & tool-description poisoning `PI060-069` | #34 | Not started |
 | 5 | CAT-03 persistence & lifecycle hijack `PI070-079` | #35 | Not started |
@@ -60,10 +61,10 @@ Also standing: `main` stays strictly linear. A pattern's `name` is a **consumer 
 | Instruction Injection | 12/12 | 100% |
 | Jailbreaks | 12/12 | 100% |
 | Role Override | 11/12 | 92% |
-| Encoding/Obfuscation | 9/12 | 75% |
-| **Total** | **56/60** | **93%** |
+| Encoding/Obfuscation | 11/12 | 91.7% |
+| **Total** | **58/60** | **96.7%** |
 
-Phase 2 (#30) takes this to **58/60**.
+Reached **58/60** on 2026-08-30 when ENG-02 landed.
 
 **Corrected 2026-08-30.** This said 59/60, "closing the three base64 misses". Only ONE of the three
 is base64. The second is reversed text (a different transform, now in ENG-02's scope); the third is
@@ -103,6 +104,21 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
 
 ## Session Notes
 
+- 2026-08-30 (Phase 2): **ENG-02 shipped — recall 56/60 -> 58/60.** Three things found by
+  measuring rather than assuming, and all three would have shipped silently.
+  (1) **A panic in production code that 16 green unit tests missed.** `tail[..12]` sliced at a
+  fixed byte offset, which crashes on any file with a multi-byte char near an `&` — a `·` in this
+  repo's own source was enough. Found only by running the binary over the repo. **Unit tests do
+  not substitute for the sweep**; the sweep is what exercises real bytes.
+  (2) **Reversal is an involution**, so recursing on it produced `reversed -> reversed -> base64`
+  for what is simply base64. Restricted to top level.
+  (3) **Reversal was 137ms of a 143ms regression** — 84% of the cost for one payload in sixty,
+  because every line's reversal was handed to all 48 patterns. A generic function-word gate on the
+  reversed text cut the overhead from 28% to 3.3%. The gate uses **generic** words, never payload
+  vocabulary: keying it on `ignore` would mean a new pattern silently needs a decoder change to be
+  reachable.
+  Also: `tests/decode_test.rs` needed `ignore-file` — the decoder makes its own fixtures visible
+  for the first time, which is the tool correctly detecting its own test data.
 - 2026-08-30 (Phase 1): **ENG-01 shipped.** The design worth carrying: rather than a rule DSL in
   the pattern schema, parsed config is **projected to canonical `path = value` text** and the
   existing regex engine runs against it, gated by a new `scope: frontmatter` field. One schema
