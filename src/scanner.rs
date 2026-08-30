@@ -4,9 +4,12 @@ use regex::{Regex, RegexBuilder};
 
 use crate::allowlist::Suppressions;
 use crate::context::{ContextMap, MatchContext, DEFAULT_MIN_CONFIDENCE};
+use crate::frontmatter::analyze;
 use crate::multiline::joined_blocks;
 use crate::normalize::{normalize, Normalized};
-use crate::pattern::{PatternCategory, PatternError, ScanMatch, ScanReport, Severity};
+use crate::pattern::{
+    PatternCategory, PatternError, PatternScope, ScanMatch, ScanReport, Severity,
+};
 
 /// Upper bound on reported matches per pattern per line.
 ///
@@ -29,6 +32,13 @@ struct CompiledPattern {
     /// that explicit schema field — never on a tag — so that a taxonomy label
     /// can never silently disable a pattern's obfuscation resistance.
     raw_only: bool,
+    /// Which projection this pattern matches against (ENG-01, #32).
+    ///
+    /// `Frontmatter`-scoped patterns are skipped by all three text passes and
+    /// run only against the parsed configuration projection. The exclusion is
+    /// mutual and deliberate: a structural rule that also ran over prose would
+    /// give back exactly the false positives the parser exists to remove.
+    scope: PatternScope,
 }
 
 impl CompiledPattern {
@@ -139,6 +149,7 @@ impl Scanner {
                         remediation: pattern.remediation.clone(),
                         regex,
                         raw_only: pattern.raw_only.unwrap_or(false),
+                        scope: pattern.scope,
                     }),
                     Err(source) => errors.push(PatternError::InvalidRegex {
                         id: pattern.id.clone(),
@@ -199,6 +210,11 @@ impl Scanner {
             let line_number = line_index + 1;
 
             for cp in &self.compiled {
+                // A structural rule never runs over raw text — see
+                // `CompiledPattern::scope`.
+                if cp.scope != PatternScope::Prose {
+                    continue;
+                }
                 // Suppression selects the destination; it does not change the
                 // finding, and it does not change how findings are counted.
                 //
@@ -248,6 +264,9 @@ impl Scanner {
         let source_lines: Vec<&str> = content.lines().collect();
         for block in joined_blocks(content) {
             for cp in &self.compiled {
+                if cp.scope != PatternScope::Prose {
+                    continue;
+                }
                 for matched in cp
                     .regex
                     .find_iter(&block.text)
@@ -325,7 +344,7 @@ impl Scanner {
                 normalized_line_start += normalized_line.len() + 1;
 
                 for cp in &self.compiled {
-                    if cp.raw_only {
+                    if cp.raw_only || cp.scope != PatternScope::Prose {
                         continue;
                     }
                     for matched in cp
@@ -359,6 +378,55 @@ impl Scanner {
                         // "ignore-all-previous-instructions" cannot act on that.
                         let quoted = original_slice(content, &normalized, line_start, &matched);
                         destination.push(cp.record(file_path, line_number, &quoted, context));
+                    }
+                }
+            }
+        }
+
+        // Fourth pass: structural configuration (ENG-01, #32). Runs against the
+        // canonical `path = value` projection of parsed frontmatter, never
+        // against raw text.
+        //
+        // A parse failure is NOT an error for the scan. `analyze` returning Err
+        // means a config block was found and could not be parsed, which is the
+        // FIX-03 rule applied to a new input class: skip this pass, keep every
+        // finding the text passes already produced. An unparseable file is
+        // exactly the file an attacker would craft if a parse error could
+        // suppress a whole scan.
+        if !self
+            .compiled
+            .iter()
+            .any(|cp| cp.scope == PatternScope::Frontmatter)
+        {
+            // No structural patterns loaded — do not pay to parse.
+        } else if let Ok(Some((_, projected))) = analyze(content) {
+            for projected_line in &projected {
+                let rendered = projected_line.render();
+                for cp in &self.compiled {
+                    if cp.scope != PatternScope::Frontmatter {
+                        continue;
+                    }
+                    for matched in cp
+                        .regex
+                        .find_iter(&rendered)
+                        .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
+                    {
+                        // Confidence is 1.0 by construction here, so a
+                        // structural finding is never filed as low-confidence.
+                        // Suppression still applies: a document disarming the
+                        // scanner is recorded whatever the pass.
+                        let destination = if suppressions.is_suppressed(projected_line.line, &cp.id)
+                        {
+                            &mut suppressed
+                        } else {
+                            &mut matches
+                        };
+                        destination.push(cp.record(
+                            file_path,
+                            projected_line.line,
+                            matched.as_str(),
+                            MatchContext::FrontmatterStructural,
+                        ));
                     }
                 }
             }

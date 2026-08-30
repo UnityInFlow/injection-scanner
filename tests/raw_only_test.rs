@@ -24,6 +24,7 @@ fn probe(id: &str, raw_only: Option<bool>, tags: Vec<String>) -> PatternCategory
             name: "probe".to_string(),
             pattern: r"ignore\s+all\s+previous\s+instructions".to_string(),
             severity: None,
+            scope: Default::default(),
             case_sensitive: None,
             raw_only,
             example: None,

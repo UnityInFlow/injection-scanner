@@ -34,8 +34,17 @@ pub enum MatchContext {
     /// Inside an HTML comment. Deliberately NOT downgraded — hidden text is a
     /// delivery mechanism, not a disclaimer.
     HtmlComment,
-    /// YAML/TOML frontmatter. Structured config an agent loads directly.
+    /// YAML/TOML frontmatter, detected lexically. Structured config an agent
+    /// loads directly, but matched as raw text.
     Frontmatter,
+    /// A finding from the **parsed** configuration tree (ENG-01, #32), not from
+    /// raw text.
+    ///
+    /// Confidence 1.0, above lexical `Frontmatter`'s 0.9, and deliberately so:
+    /// this finding exists because a real parser resolved a real key to a real
+    /// value. There is no question of it being documentation *about* the key,
+    /// which is the ambiguity the 0.9 discount on lexical frontmatter pays for.
+    FrontmatterStructural,
 }
 
 impl MatchContext {
@@ -50,6 +59,7 @@ impl MatchContext {
             MatchContext::Prose => 1.0,
             MatchContext::HtmlComment => 1.0,
             MatchContext::Frontmatter => 0.9,
+            MatchContext::FrontmatterStructural => 1.0,
             MatchContext::BlockQuote => 0.9,
             MatchContext::Table => 0.3,
             MatchContext::InlineCode => 0.3,
@@ -67,6 +77,7 @@ impl MatchContext {
             MatchContext::BlockQuote => "block quote",
             MatchContext::HtmlComment => "html comment",
             MatchContext::Frontmatter => "frontmatter",
+            MatchContext::FrontmatterStructural => "frontmatter (structural)",
         }
     }
 }
