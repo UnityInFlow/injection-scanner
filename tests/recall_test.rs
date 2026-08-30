@@ -41,10 +41,21 @@ use injection_scanner::scanner::Scanner;
 ///
 /// The four remaining misses are documented below and are all deliberate.
 const EXPECTED: &[(&str, usize, usize)] = &[
-    // 75% since before this milestone, and the three misses are the base64
-    // family deferred to #30 -- a length-based regex cannot tell a payload from
-    // a file path. The one category whose gap is an engine problem, not a
-    // pattern problem.
+    // 75% since before this milestone. The three misses were long described as
+    // "the base64 family deferred to #30". Measured 2026-08-30, that is wrong:
+    // only ONE of them is base64.
+    //
+    //   line  9  base64          -- genuine decoder gap, #30 closes it
+    //   line 10  reversed text   -- a reversal transform; NOT in #30's scope
+    //                              as written, and not a decoding problem
+    //   line 11  fully despaced  -- the documented non-goal in normalize.rs:
+    //                              `i g n o r e a l l` collapses to
+    //                              `ignoreall`, and every pattern joins words
+    //                              with `\s+`. Closing it means rewriting the
+    //                              pattern set, not the input.
+    //
+    // So #30 alone takes this to 10/12, not 12/12. The mis-attribution had
+    // propagated into REQUIREMENTS.md, STATE.md and the v0.1.0 release notes.
     ("encoding", 9, 12),
     // 0/12 before #95.
     ("exfiltration", 12, 12),
