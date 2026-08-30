@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-08-30T00:00:00.000Z",
+  "phase": "2",
+  "phase_name": "Recursive decoder (ENG-02)",
+  "phase_dir": ".planning/phases/",
+  "milestone": "v0.2.0 — Agent-shaped attacks",
+  "position": "Phase 1 (ENG-01) merged. Phase 2 scope corrected and re-verified. Implementation of the decoder not yet started.",
+  "branch": "main",
+  "open_prs": [],
+  "next_actions": [
+    "1. Implement #30: src/decode.rs — base64/base64url, hex, percent-encoding, HTML entities (named + numeric), \\u and \\x escapes, and REVERSAL. Bounded recursion (depth 2-3), re-scan each decoded layer.",
+    "2. Follow ENG-01's integration shape: a gated pass in Scanner::scan_with_confidence that costs nothing when no pattern needs it (see the `if !self.compiled.iter().any(...)` guard added for the structural pass).",
+    "3. Update tests/recall_test.rs EXPECTED: encoding 9 -> 10 (base64) then 11 (reversal). Total 56 -> 58. Counts are pinned EXACTLY, so this must be updated in the same PR.",
+    "4. Publish the new number in README.md's recall table."
+  ],
+  "blockers": [],
+  "human_actions_pending": [],
+  "background_processes": []
+}
