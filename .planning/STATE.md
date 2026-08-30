@@ -9,10 +9,10 @@ See: `.planning/PROJECT.md`
 > `.planning/archive/milestone-v0.1.0/STATE.md`, alongside its REQUIREMENTS, ROADMAP and phases.
 
 ## Current Phase
-**Phase 1 — Structural frontmatter engine (ENG-01, #32)** · status: **not started, ready to plan**
+**Phase 2 — Recursive decoder (ENG-02, #30)** · status: **not started, ready to plan**
 
-`main` is clean, in sync, `v0.1.0` tagged, 285 tests, CI and Code scanning green, zero open PRs.
-History strictly linear — 0 merge commits since `v0.0.3`.
+Phase 1 shipped 2026-08-30 (PR #104, #32 closed; PR #106 added the alias-bomb test).
+`main` clean, in sync, **313 tests**, CI green, zero open PRs, still 0 merge commits.
 
 ## The milestone in one paragraph
 
@@ -27,7 +27,7 @@ lifecycle hook that reinstalls the attacker's instructions after the file is cle
 
 | Phase | Requirement | Issue | Status |
 |---|---|---|---|
-| 1 | ENG-01 structural frontmatter engine | #32 | Not started |
+| 1 | ENG-01 structural frontmatter engine | #32 | **Done** — PR #104 |
 | 2 | ENG-02 recursive decoder | #30 | Not started |
 | 3 | CAT-01 tool & permission abuse `PI050-059` | #33 | Not started |
 | 4 | CAT-02 MCP & tool-description poisoning `PI060-069` | #34 | Not started |
@@ -98,6 +98,25 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
 
 ## Session Notes
 
+- 2026-08-30 (Phase 1): **ENG-01 shipped.** The design worth carrying: rather than a rule DSL in
+  the pattern schema, parsed config is **projected to canonical `path = value` text** and the
+  existing regex engine runs against it, gated by a new `scope: frontmatter` field. One schema
+  field instead of a second matching language, and structural rules earn confidence 1.0 because a
+  parser resolved a real key — not because a sentence looked suspicious.
+  **Three things worth not rediscovering.**
+  (1) **The "silent on prose" test is vacuous without a control.** A scope test passes equally if
+  the regex simply fails to match. `a_prose_scoped_rule_would_have_fired_on_that_same_prose` fires
+  the *same sentence* through a prose-scoped rule to prove the silence is scope. This is GATE-05
+  applied to a mechanism rather than a pattern.
+  (2) **The structural pass is inert without a frontmatter-scoped pattern**, by design — the
+  scanner skips parsing entirely. My first YAML-bomb test "passed" in 0.02s because of this and
+  measured nothing. Any test of this pass must load a probe via `--patterns`.
+  (3) **Behaviour-unchanged was proven, not asserted**: the published v0.1.0 binary and this build
+  both report 728 findings on this repo, identical. That is the strongest form of GATE-03 — no
+  pattern changed, so nothing could move.
+  Also: a self-scan finding landed in `src/` for the first time (a doc-comment illustration of a
+  pipe-to-shell payload). Suppressed inline with rationale rather than weakened, and `tests/`
+  needed `ignore-next-line`, not `ignore` — the directive applies to the line it sits on.
 - 2026-08-30: **v0.2.0 opened.** Scope decided on evidence, not instinct: the library is 48
   patterns, so three agentic categories is +30 (1.6x) against +80 (2.7x) for all eight, and the
   corpus cost is 36 new threat-model payloads against 96. GATE-04 (one category per PR) is what
