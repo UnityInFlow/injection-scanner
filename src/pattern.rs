@@ -150,6 +150,18 @@ pub struct ScanMatch {
     /// consumer filtering reports does not need to know the scoring table.
     #[serde(default = "default_confidence")]
     pub confidence: f32,
+    /// How this payload was encoded, if it was (#30).
+    ///
+    /// `None` for a finding in raw text — the overwhelming majority. `Some`
+    /// carries the chain outermost-first, e.g. `"base64"` or
+    /// `"url-encoding -> base64"`, so a report reads "PI001 inside base64"
+    /// rather than "suspicious blob".
+    ///
+    /// Additive with a default, so a consumer reading reports from a release
+    /// that predates it is unaffected — the same contract `context` and
+    /// `confidence` shipped under.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub decode_chain: Option<String>,
 }
 
 /// Reports written before `context` existed came from a scanner with no notion

@@ -276,10 +276,10 @@ threat model rather than from the regexes, and `tests/recall_test.rs` pins the n
 | Instruction Injection | 12 / 12 | **100%** |
 | Jailbreaks | 12 / 12 | **100%** |
 | Role Override | 11 / 12 | **92%** |
-| Encoding/Obfuscation | 9 / 12 | **75%** |
-| **Total** | **56 / 60** | **93%** |
+| Encoding/Obfuscation | 11 / 12 | **91.7%** |
+| **Total** | **58 / 60** | **96.7%** |
 
-*Measured 2026-08-28 on the current pattern set.*
+*Measured 2026-08-30 on the current pattern set, after the recursive decoder (#30).*
 
 **How to read that.** The number was **10 / 60** when this corpus was first written, and the
 difference is not that the attacks got easier. It is that the patterns stopped being literal
@@ -301,17 +301,15 @@ far a pattern may go, so it grows with them.
 
 ### The four remaining misses are deliberate
 
-- **Encoding, 3 of them**, and they have three different causes. This was previously described
-  here as "the base64 family"; measured on 2026-08-30, only one of the three is base64.
-  - **A base64 payload.** A genuine decoder gap, deferred to
-    [#30](https://github.com/UnityInFlow/injection-scanner/issues/30). A length-based regex cannot
-    tell a payload from a file path — a rule of `[A-Za-z0-9+/]{48,}` once produced 3,494 false
-    positives on this project's own documentation. That gap needs a decoder, not a pattern.
-  - **Reversed text.** A different transform entirely, not a decoding one. Folded into #30.
-  - **Fully despaced text.** Not a gap but a documented non-goal: `i g n o r e a l l` normalizes
-    to `ignoreall`, and every pattern in the library joins its words with `\s+`. Closing it would
-    mean rewriting the pattern set rather than the input — see the module docs in
-    `src/normalize.rs`.
+- **Encoding, 1.** Fully despaced text — `i g n o r e a l l` — and it is a documented non-goal
+  rather than a gap. It normalizes to `ignoreall`, and every pattern in the library joins its words
+  with `\s+`, so closing it means rewriting the pattern set rather than the input. See the module
+  docs in `src/normalize.rs`.
+
+  The other two encoding misses were closed by the recursive decoder
+  ([#30](https://github.com/UnityInFlow/injection-scanner/issues/30)): a base64 payload and a
+  reversed one. They were long described here as "the base64 family"; only one of the three ever
+  was.
 - **Role override, 1.** `the instructions in this document take precedence` is not separable by
   regex from `the rules in this document take precedence over the older wiki page`, which is in
   `tests/corpus/clean/config-precedence.md` and is ordinary documentation.

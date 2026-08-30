@@ -25,6 +25,7 @@ fn sample_match(pattern_id: &str) -> ScanMatch {
         matched_text: "ignore all previous instructions".to_string(),
         context: MatchContext::Prose,
         confidence: MatchContext::Prose.confidence(),
+        decode_chain: None,
     }
 }
 

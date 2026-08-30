@@ -4,6 +4,7 @@ use regex::{Regex, RegexBuilder};
 
 use crate::allowlist::Suppressions;
 use crate::context::{ContextMap, MatchContext, DEFAULT_MIN_CONFIDENCE};
+use crate::decode::decode_layers;
 use crate::frontmatter::analyze;
 use crate::multiline::joined_blocks;
 use crate::normalize::{normalize, Normalized};
@@ -56,7 +57,20 @@ impl CompiledPattern {
         matched_text: &str,
         context: MatchContext,
     ) -> ScanMatch {
+        self.record_decoded(file_path, line_number, matched_text, context, None)
+    }
+
+    /// As [`Self::record`], but naming the decode chain that revealed it (#30).
+    fn record_decoded(
+        &self,
+        file_path: &str,
+        line_number: usize,
+        matched_text: &str,
+        context: MatchContext,
+        decode_chain: Option<String>,
+    ) -> ScanMatch {
         ScanMatch {
+            decode_chain,
             context,
             confidence: context.confidence(),
             pattern_id: self.id.clone(),
@@ -378,6 +392,65 @@ impl Scanner {
                         // "ignore-all-previous-instructions" cannot act on that.
                         let quoted = original_slice(content, &normalized, line_start, &matched);
                         destination.push(cp.record(file_path, line_number, &quoted, context));
+                    }
+                }
+            }
+        }
+
+        // Fifth pass: encoded payloads (ENG-02, #30). Runs per line against
+        // each decoded layer, so an offset still names a real line.
+        //
+        // Deduplicated by (pattern, line) against everything already filed: if
+        // the raw, multi-line or normalized pass saw it, the encoded pass has
+        // nothing to add. A payload is one finding however many ways it can be
+        // read.
+        {
+            let already: std::collections::HashSet<(String, usize)> = matches
+                .iter()
+                .chain(suppressed.iter())
+                .chain(low_confidence.iter())
+                .map(|m| (m.pattern_id.clone(), m.line))
+                .collect();
+
+            for (line_index, line) in content.lines().enumerate() {
+                let line_number = line_index + 1;
+                for layer in decode_layers(line) {
+                    // The ORIGINAL bytes are quoted, never the decoded form.
+                    // `--baseline` digests `matched_text`; a baseline over
+                    // decoded text would accept the decoded form and hand every
+                    // OTHER encoding of the same payload a free pass. This is
+                    // the same property `original_slice` preserves for the
+                    // normalized pass.
+                    let quoted = line
+                        .get(layer.origin..layer.origin_end)
+                        .unwrap_or(line)
+                        .to_string();
+
+                    for cp in &self.compiled {
+                        if cp.scope != PatternScope::Prose || cp.raw_only {
+                            continue;
+                        }
+                        if already.contains(&(cp.id.clone(), line_number)) {
+                            continue;
+                        }
+                        // One finding per (pattern, layer), so `is_match` rather than
+                        // `find_iter`: the same payload repeated inside one decoded
+                        // blob is one attack, not several, and the quoted text is the
+                        // whole candidate either way.
+                        if cp.regex.is_match(&layer.text) {
+                            let destination = if suppressions.is_suppressed(line_number, &cp.id) {
+                                &mut suppressed
+                            } else {
+                                &mut matches
+                            };
+                            destination.push(cp.record_decoded(
+                                file_path,
+                                line_number,
+                                &quoted,
+                                MatchContext::Prose,
+                                Some(layer.chain_label()),
+                            ));
+                        }
                     }
                 }
             }
