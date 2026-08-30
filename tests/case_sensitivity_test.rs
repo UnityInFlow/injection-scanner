@@ -70,6 +70,7 @@ fn case_sensitive_opt_out_is_respected() {
             severity: None,
             case_sensitive: Some(true),
             raw_only: None,
+            scope: Default::default(),
             example: None,
             counter_example: None,
             description: "opt-out probe".to_string(),

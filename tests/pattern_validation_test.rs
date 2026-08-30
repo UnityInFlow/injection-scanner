@@ -40,6 +40,7 @@ fn category(name: &str, id: &str, pattern: &str) -> PatternCategory {
             severity: None,
             case_sensitive: None,
             raw_only: None,
+            scope: Default::default(),
             example: None,
             counter_example: None,
             description: "probe".to_string(),

@@ -27,6 +27,25 @@ impl std::fmt::Display for Severity {
     }
 }
 
+/// Which projection of a document a pattern is matched against (ENG-01, #32).
+///
+/// Additive with a default, so every existing pattern keeps its behaviour and a
+/// consumer reading a pattern file from an older release is unaffected.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum PatternScope {
+    /// Raw document text — the line, multi-line and normalized passes. Default.
+    #[default]
+    Prose,
+    /// The canonical `path = value` projection of parsed configuration.
+    ///
+    /// A pattern scoped here never sees prose, which is exactly what lets it
+    /// sit at CRITICAL: `allowed-tools = \*` cannot fire on a sentence that
+    /// merely mentions `allowed-tools`, because that sentence is not
+    /// configuration and produces no projection at all.
+    Frontmatter,
+}
+
 /// A single pattern definition loaded from YAML or embedded at compile time.
 ///
 /// The `severity` field is optional — when absent, the parent category's
@@ -64,6 +83,13 @@ pub struct Pattern {
     /// `deny_unknown_fields` catches typos and the choice is visible in review.
     #[serde(default)]
     pub raw_only: Option<bool>,
+    /// Which projection of the document this pattern matches against (#32).
+    ///
+    /// Defaults to [`PatternScope::Prose`] — existing behaviour. Set
+    /// `scope: frontmatter` for a rule about *structure* rather than language;
+    /// such a pattern runs only against the parsed `path = value` projection.
+    #[serde(default)]
+    pub scope: PatternScope,
     /// A short, real payload this pattern is meant to catch.
     ///
     /// This is the pattern's own worked example: it is rendered into
