@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-08-30T18:07:18.790Z",
+  "phase": "3",
+  "phase_name": "Tool & permission abuse (CAT-01)",
+  "phase_dir": ".planning/phases/",
+  "milestone": "v0.2.0 — Agent-shaped attacks",
+  "plan": 0,
+  "task": 0,
+  "total_tasks": 0,
+  "status": "paused",
+  "position": "Phases 1 and 2 complete and merged. Both engines shipped. Phase 3 not started — no PLAN.md yet.",
+  "branch": "main",
+  "open_prs": [],
+  "completed_tasks": [
+    {"id": 1, "name": "Phase 1 — ENG-01 structural frontmatter engine (#32)", "status": "done", "commit": "48cd811"},
+    {"id": 2, "name": "Phase 1 follow-up — YAML alias-bomb regression test (#105 evidence)", "status": "done", "commit": "2c4adf2"},
+    {"id": 3, "name": "Correct the recall miss attribution (#107)", "status": "done", "commit": "cef83c0"},
+    {"id": 4, "name": "Phase 2 — ENG-02 recursive decoder (#30, closed #6 and #7)", "status": "done", "commit": "db1f67c"}
+  ],
+  "remaining_tasks": [
+    {"id": 5, "name": "Phase 3 — CAT-01 PI050-059 tool & permission abuse (#33)", "status": "not_started"},
+    {"id": 6, "name": "Phase 4 — CAT-02 PI060-069 MCP & tool-description poisoning (#34)", "status": "not_started"},
+    {"id": 7, "name": "Phase 5 — CAT-03 PI070-079 persistence & lifecycle hijack (#35)", "status": "not_started"}
+  ],
+  "blockers": [],
+  "async_jobs": [],
+  "human_actions_pending": [],
+  "background_processes": [],
+  "decisions": [
+    {"decision": "Projection, not a rule DSL, for structural patterns", "rationale": "A path:/rule: query language is a second matching language to specify, test and support, and makes every future structural pattern a schema change. Projecting to `path = value` reuses the regex engine for one schema field.", "phase": "1"},
+    {"decision": "Reversal folded into ENG-02 rather than made a fourth engine", "rationale": "One transform does not justify its own pass, and the recall corpus's reversed payload has the same wrapper-plus-mangled-run shape as the encoded ones.", "phase": "2"},
+    {"decision": "Reversal gated on a generic function-word check", "rationale": "It cost 137ms of a 143ms regression. The gate uses generic words, never payload vocabulary, so a new pattern cannot silently need a decoder change to be reachable.", "phase": "2"},
+    {"decision": "Milestone target corrected 59/60 -> 58/60", "rationale": "Only one of the three encoding misses was base64. The despaced one is normalize.rs's documented non-goal, not a gap.", "phase": "2"}
+  ],
+  "uncommitted_files": [],
+  "next_action": "Plan Phase 3 (CAT-01, #33): PI050-PI059 tool & permission abuse. First phase that ships patterns, so GATE-01 applies — 12 new corpus payloads written from the threat model, never derived from the patterns.",
+  "context_notes": "Both engines are done, so the remaining three phases are pattern categories, one PR each (GATE-04). Phase 3 is the first to carry real false-positive risk — Phases 1 and 2 were provably behaviour-neutral or additive-only. ENG-01 exists for its frontmatter half (allowed-tools: *, Bash(*)); the prose half needs no engine."
+}
