@@ -3,410 +3,115 @@
 ## Project Reference
 See: `.planning/PROJECT.md`
 **Core value:** Catch prompt injection attacks before they reach production
-**Milestone:** Production Readiness — v0.0.3 + v0.1.0 (opened 2026-08-21)
+**Milestone:** **v0.2.0 — Agent-shaped attacks** (opened 2026-08-30)
+
+> Full history for the previous milestone — 412 lines of session notes — is archived at
+> `.planning/archive/milestone-v0.1.0/STATE.md`, alongside its REQUIREMENTS, ROADMAP and phases.
 
 ## Current Phase
-**Phase 4 — Integration (v0.1.0)** · status: **v0.1.0 SHIPPED 2026-08-29 — milestone goal met**
+**Phase 1 — Structural frontmatter engine (ENG-01, #32)** · status: **not started, ready to plan**
 
-> **v0.1.0 is published** (run 33256814534, all four jobs green, 7 assets, SLSA provenance bound
-> to `refs/tags/v0.1.0`). `spec-ci-plugin` defaults to it as of PR #13. #86 closed.
->
-> **The delivery chain is closed as of 2026-08-29.** `spec-ci-plugin` v1.1.1 is published and its
-> moving `v1` tag advanced `5adc903` → `d3069c4`. Verified at the tag itself, including
-> `dist/index.js` — the bundle consumers actually execute — which carries `v0.1.0`. An `@v1`
-> consumer now downloads the 56/60 scanner instead of the 10/60 one.
->
-> Still open, neither blocking: dependabot #101 (codeql-action major bump), PERF-02 (#4, optional).
+`main` is clean, in sync, `v0.1.0` tagged, 285 tests, CI and Code scanning green, zero open PRs.
+History strictly linear — 0 merge commits since `v0.0.3`.
 
-`main` is green on both CI and Code scanning, **285 tests**, and still strictly linear
-(0 merge commits since `v0.0.3`, and none since `v0.1.0`). No open PRs of ours.
+## The milestone in one paragraph
 
-### The POC works end to end
-```
-$ injection-scanner install-hook
-$ git commit -m "add deploy skill"
-./skills/deploy.md
-  :5 CRITICAL  System prompt exfiltration attempt  (PI021)  [html comment · confidence 1.0]
-  :5 CRITICAL  Attempts to override agent instructions  (PI001)  [html comment · confidence 1.0]
+v0.1.0 made the scanner detect the attacks its README already claimed — recall **10/60 -> 56/60**.
+It did not add a single new *kind* of attack. All 48 patterns target payloads aimed at a **chat
+model reading prose**. None target payloads aimed at an **agent with tools**: a wildcard permission
+grant in frontmatter, an instruction hidden in an MCP tool `description` the user never sees, a
+lifecycle hook that reinstalls the attacker's instructions after the file is cleaned.
+**v0.2.0 teaches the scanner to read agent configuration, not just agent prose.**
 
-Commit blocked: prompt-injection patterns at high or above.
-```
-That payload is obfuscated (`ignore-all-previous-instructions`) and hidden in an
-HTML comment. Both are caught, at 60ms on a 40-file repo against a 200ms budget.
+## Phases
 
-### Merged 2026-08-24/25
-| PR | Issue | What |
-|---|---|---|
-| #65 | #20 | Markdown context awareness; below-threshold findings recorded, never dropped |
-| #69 | #22 | `ignore`-crate walker — 100ms → 10ms on this repo |
-| #71 | QUAL-03 | False-positive corpus; `clean/` and `documentation/` asymmetry enforced |
-| #72 | #23 | Broadened file types + `--all-files`; **narrowed PI011** |
-| #73 | #24 | Multi-line matching — paragraph join |
-| #74 | #26 | Unicode normalization — separator, spacing, homoglyph, fullwidth, zero-width |
-| #75 | #21 | Severity rebalanced 12/9/7/2; criteria in `PATTERNS.md` |
-| #76 | #25 | `--fail-on`, `--quiet`, exit code 2, `rules`, `explain` |
-| #77 | #8 | `install-hook` + `.pre-commit-hooks.yaml` |
+| Phase | Requirement | Issue | Status |
+|---|---|---|---|
+| 1 | ENG-01 structural frontmatter engine | #32 | Not started |
+| 2 | ENG-02 recursive decoder | #30 | Not started |
+| 3 | CAT-01 tool & permission abuse `PI050-059` | #33 | Not started |
+| 4 | CAT-02 MCP & tool-description poisoning `PI060-069` | #34 | Not started |
+| 5 | CAT-03 persistence & lifecycle hijack `PI070-079` | #35 | Not started |
 
-### Phase status
-| Phase | Goal | Status |
-|---|---|---|
-| 1 | Restore the Gate | ✅ Merged (PR #44) |
-| 2 | Correctness — ship v0.0.3 | ✅ Shipped 2026-08-23 |
-| 3 | Signal Quality | ✅ Complete — QUAL-01/02/03, SCAN-05/06, CLI-09/10 |
-| 4 | Integration — ship v0.1.0 | ✅ **Shipped 2026-08-29** — tag published, consumer default bumped |
+Engines first, and the dependency is real rather than tidiness: #32 states it is the prerequisite
+for `PI050-059` and `PI060-069`, and both categories carry frontmatter-shaped patterns
+(`allowed-tools: *`, `Bash(*)`, `mcpServers`) that regex cannot address without the false positives
+#32 exists to remove. #30 is second because it is the only item that moves the **published** recall
+number, 56/60 -> 59/60.
 
-### Phase 4 remaining (1, optional)
-**PERF-02 Aho-Corasick (#4)** — did not block the release and still does not. The perf budget is
-met with 5x headroom (41ms against 200ms), so a prefilter is room for a growing pattern library,
-not a fix.
+## Standing gates — these are what made v0.1.0 trustworthy
 
-Everything else in Phase 4 merged on 2026-08-28: SCAN-07 (#66, closing #27), TEST-01 + TEST-02
-(#90, closing #29), DOCS-02 (#90, closing #70), and the recall corpus (#92, closing #81).
-The library is at **48 patterns** (PI048 deliberately unfilled; base64 stays deferred to #30).
+| Gate | Rule |
+|---|---|
+| GATE-01 | 12 corpus payloads per new category, written **from the threat model**, never derived from the patterns |
+| GATE-02 | Recall pinned **exactly**, not as a floor — an improvement fails the build too |
+| GATE-03 | ~1,300-file third-party sweep on every pattern change; the 18-file clean corpus is not sufficient evidence |
+| GATE-04 | One category per PR — widening four at once is an unreviewable FP blast radius |
+| GATE-05 | The false-positive control is mutation-tested — two of four v0.1.0 widenings had a control the corpus was not holding |
 
-**Next, by value rather than by roadmap order:** #80 is closed for `role_override`. The same
-widening for `exfiltration`, `instruction-injection` and `jailbreak` is the highest-value work
-left, one PR per category — the recall corpus gives each a pass/fail target and the clean corpus
-bounds the risk.
+Also standing: `main` stays strictly linear. A pattern's `name` is a **consumer contract** —
+`pattern_name` ships in the JSON `spec-ci-plugin` reads, so widen the `description`, never rename.
 
-**Next — but read the blocker below first.** On the plumbing, TEST-01's coverage gate is the
-natural next item: the ">80% on core logic" constraint both CLAUDE.md files state is met at ~92%
-and still ungated, so nothing stops it regressing.
-
-## Detection recall — measured, published, and now improving
-
-**This was "the problem this milestone is not addressing". It is now measured, published,
-gated, fixed, and shipped in v0.1.0.** Four of five categories are at 100%; obfuscation is at 75%
-and the remainder is deliberate.
-
-`tests/corpus/attack/` holds 60 realistic payloads, twelve per README-claimed category, written
-from the threat model rather than from the regexes. `tests/recall_test.rs` pins the result and
-`README.md` publishes it:
+## Detection recall — the published number
 
 | Category | Detected | Recall |
 |---|---|---|
-| Data Exfiltration | 12/12 | **100%** |
-| Instruction Injection | 12/12 | **100%** |
-| Jailbreaks | 12/12 | **100%** |
-| Role Override | 11/12 | **92%** |
-| Encoding/Obfuscation | 9/12 | **75%** |
+| Data Exfiltration | 12/12 | 100% |
+| Instruction Injection | 12/12 | 100% |
+| Jailbreaks | 12/12 | 100% |
+| Role Override | 11/12 | 92% |
+| Encoding/Obfuscation | 9/12 | 75% |
 | **Total** | **56/60** | **93%** |
 
-**All four natural-language categories fixed on 2026-08-28** — #80, #95, #97, #99. The
-milestone opened with recall at 10/60. The four remaining misses are deliberate and
-documented: three base64 cases needing the decoder (#30), one precedence claim not
-separable from ordinary documentation.
+Phase 2 (#30) takes this to **59/60** by closing the three base64 misses. The fourth miss stays
+deliberately: a role-override precedence claim not separable from ordinary config documentation.
 
-**Role override was fixed first (#80, PR #94)**, going 1/12 -> 11/12 by being rewritten from seven
-literal phrases into a verb x modifier x object matrix with the clean corpus unmoved at zero. That
-proved the diagnosis, and the same rewrite then closed the other three (#95, #97, #99).
+## Tracking
 
-The lesson generalises and is the thing to carry forward: **detection works where a pattern matches
-shape, and fails where it matches phrasing.** Obfuscation always worked — zero-width runs,
-homoglyphs, bidi overrides and tag-block smuggling come in at 75% regardless of what the payload
-says. The categories that sat at zero were the ones written as literal phrase lists: PI021 wanted
-the verb *POST*, so a request to print the system prompt verbatim walked past it. Verified against
-the published v0.1.0 binary — that payload is now caught, CRITICAL.
+- **GitHub milestone:** `v0.2.0 — Agent-shaped attacks` (milestone #6) — 5 issues
+- **Project board:** https://github.com/orgs/UnityInFlow/projects/4 — org-wide, 63 items, with
+  `Phase` and `Priority` fields populated for this milestone
+- **Deferred:** the `v0.3.0` milestone holds 10 issues — pattern categories #36-#40 plus #31, #41,
+  #10, #11, #4
 
-**The sourcing rule is load-bearing and easy to break.** Payloads must not be derived from the
-patterns. A corpus assembled from each pattern's own `example` field would score 100% by
-construction and measure nothing. Recorded in `tests/corpus/attack/README.md`.
+## Milestone hygiene done 2026-08-30
 
-Counts are pinned **exactly**, not as a floor — an improvement fails the build too, so the
-published number cannot go stale while the real one drifts. Both directions mutation-tested.
+Four milestones were open that should not have been. `v0.0.1`, `v0.0.3` and `v0.1.0` had all
+shipped — and `v0.1.0` still held issue #4 (Aho-Corasick), which **shipped without it**. A bare
+`v0.2.0` milestone already existed and a second was created before checking; the old one is now
+renamed `v0.2.0 (early draft — superseded by milestone #6)` and closed. Issues #4, #31 and #11
+moved to `v0.3.0`. All four shipped milestones are closed.
 
-**That open question is now closed.** The choice was "ship at 33% with the number published, or
-wait for the same rewrite in the other three categories". All three were rewritten, so v0.1.0
-shipped at **93%** rather than 33% — the question resolved itself by the work being done rather
-than by the trade-off being accepted.
+## Open decisions
 
-## Quick Tasks Completed
-| Task | Requirement | Branch | Result |
-|---|---|---|---|
-| `260825-tc7` `--baseline` | CLI-08 | `feat/cli-08-baseline` | **Merged** 2026-08-28 (PR #79, rebase) |
-| `260825-uor` SARIF | CLI-04 | `feat/cli-04-sarif` | **Merged** 2026-08-28 (PR #82, rebase), closed #5 |
-| `260828-cli` repo hygiene | — | `chore/repo-hygiene` | **Merged** (PR #83) — SECURITY.md, CODEOWNERS, issue forms, CHANGELOG, release checklist |
-| pattern catalogue | — | `feat/pattern-catalogue` | **Merged** (PR #84) — `docs/PATTERN-CATALOGUE.md`, `example`/`counter_example` schema, staleness gate, `pattern-library` skill |
-| test gates | TEST-01/02, DOCS-02 | `feat/test-gates` | **Merged** (PR #90) — coverage gate 85%, benches in CI, per-pattern policy ratchet |
-| recall corpus | — | `feat/recall-corpus` | **Merged** (PR #92) — 60 payloads, recall pinned and published |
-| `260828-jkn` role-override matrix | #80 | `feat/pi80-role-override-matrix` | **Merged** (PR #94, rebase) — recall 1/12 -> 11/12 |
-| `260828-pw5` exfiltration matrix | #95 | `feat/exfiltration-matrix` | **Merged** (PR #96, rebase) — recall 0/12 -> 12/12 |
-| `260828-ii` instruction-injection matrix | #97 | `feat/instruction-injection-matrix` | **Merged** (PR #98, rebase) — recall 0/12 -> 12/12 |
-| `260828-jb` jailbreak matrix | #99 | `feat/jailbreak-matrix` | **Merged** (PR #100, rebase) — recall 1/12 -> 12/12 |
-| external FP sweep | #102 | `fix/external-false-positives` | **Merged** (PR #103, rebase) — ~1,300 third-party files swept; 2 CRITICAL + 25 HIGH FPs fixed, recall held at 56/60 |
-| `260829-m80` cut v0.1.0 | #86 | `main` + spec-ci-plugin PR #13 | **Shipped** 2026-08-29 — tag `v0.1.0` published, consumer default bumped |
-| `260829-ojv` spec-ci-plugin v1.1.1 | — | spec-ci-plugin PR #14 | **Shipped** 2026-08-29 — `v1` moved to `d3069c4`; the fix now reaches `@v1` consumers |
+**#41 library split — deliberately not in this milestone.** It claims three blocked consumers and
+has **zero**: `kore-runtime` is public and shipped but contains no reference to this tool,
+`agent-sandbox` has no repo, `safe-scrape` has no repo. `spec-ci-plugin` shells out to the verified
+binary in production and that path is hardened. Do the split when a real consumer is blocked — the
+API shape will be guessed wrong otherwise. The *other* half of #41 (crates.io, binstall metadata,
+Homebrew) has real users and is cheap; the `.pre-commit-hooks.yaml` sub-item in it already shipped
+and is stale.
 
-## Releases
-- **v0.0.1** (2026-04-01): 30 patterns, 5 categories, text/JSON output, inline suppression, stdin mode
-- **v0.0.2** (2026-06-24): 6 target-triple binaries + SHA256SUMS. Consumed by `spec-ci-plugin`.
-- **v0.0.3** (2026-08-23): 9/9 CI jobs green, SLSA v1 provenance over all six binaries bound to
-  `refs/tags/v0.0.3`. Consumer path verified end to end. `spec-ci-plugin` defaults to it as of its
-  v1.1.0.
-
-- **v0.1.0** (2026-08-29): the detection release. Recall 10/60 → **56/60**, measured against a
-  corpus written from the threat model and published in the README. All six target-triple
-  binaries — **including both macOS legs**, which are `continue-on-error` and so were not
-  guaranteed — plus `SHA256SUMS.txt` and SLSA provenance over all six subjects bound to
-  `refs/tags/v0.1.0`. Verified beyond CI: checksums re-checked from the published Release, the
-  darwin binary run (`injection-scanner 0.1.0`), and a payload that v0.0.3 missed confirmed caught.
-  `spec-ci-plugin` defaults to it as of its `08cb520` (PR #13).
-
-## Open decisions carried into this milestone
-
-**CI policy (2026-08-21).** Public/fork CI runs on a **GitHub-hosted runner**, secretless with
-`contents: read`. This is a deliberate, scoped exception to the "never use ubuntu-latest" rule in
-both CLAUDE.md files, matching the D-02 split already sanctioned for `spec-ci-plugin` in July 2026.
-Rationale: the org runner group enforces `allows_public_repositories: false`, so no self-hosted job
-can run on this public repo at all — and the private-window alternative would deny CI to every fork
-PR, which kills the community pattern contributions `PATTERNS.md` is built around. All secret-bearing
-and release work stays self-hosted on `[orangepi]`, reachable only from tag push / `release: published`.
-
-**Scope (2026-08-21).** "Production ready" is defined as v0.0.3 + v0.1.0. The agentic categories
-(`PI050`–`PI079`) that differentiate this tool are explicitly deferred to v0.2.0 — they depend on the
-frontmatter engine, and shipping them on top of a scanner that misses sentence case would be building
-on sand.
-
-## Blockers
-
-**None.** #45 is resolved — see below.
-
-## Resolved
-
-**#45 — release pipeline (2026-08-21, option B).** `release.yml`'s three jobs moved from `[orangepi]`
-to `ubuntu-latest`, and now emit a signed SLSA build-provenance attestation. The pipeline uses no org
-secrets, only `GITHUB_TOKEN`, and is tag-triggered only — a fork cannot fire it. Recorded in the root
-decisions log. Side benefit: on an x86_64 host the two x86_64 Linux binaries are now natively
-executable, so the release smoke test actually runs them rather than checking for presence.
-
-## Known unverified
-`arc-runner-unityinflow` is believed to match zero registered runners and the org runner group is
-believed to enforce `allows_public_repositories: false`. Both come from the root CLAUDE.md decisions
-log; an independent reviewer's `gh api orgs/UnityInFlow/actions/runner-groups` returned 403 without
-org-admin rights. The Phase 1 design is correct either way, but someone with org admin should confirm.
+**Windows binary (#9), narrowed 2026-08-30.** v0.1.0 ships 4 of the 5 targets #9 asked for; only
+Windows x86_64 is missing, and it *is* a documented root-`CLAUDE.md` constraint. Read the `mcp-hub`
+HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
 
 ## Session Notes
-- 2026-08-29 (#101): **codeql-action/upload-sarif bumped 3.37.8 -> 4.37.8, verified rather than
-  rubber-stamped.** Three checks, because this repo has already shipped a commit titled "three SHA
-  pins claimed versions they were not". (1) The pinned SHA `db488dd` genuinely dereferences from
-  the annotated `v4.37.8` tag upstream, and the commit is that release's merge into `releases/v4`.
-  (2) `4.37.8` itself is "no user facing changes" — v3 and v4 are parallel lines with matching
-  minor.patch — and the only substantive v4 difference in the changelog is *"[v4+ only] The CodeQL
-  Action now runs on Node.js v24"*, which `ubuntu-latest` already provides. (3) The upload was
-  proven, not assumed: the post-merge analysis registered `tool=injection-scanner results=0`,
-  identical to the two preceding v3 analyses, with open alerts at 0 before and after — so the
-  bump did not silently wipe the category, which is the failure mode that matters here.
-  Branch was `BEHIND` and had to be rebased locally and force-pushed; `gh pr update-branch` was
-  avoided because it can introduce the merge commit this repo forbids.
-- 2026-08-29 (release): **v0.1.0 cut and the consumer bumped.** Three things worth carrying forward.
-  (1) **`gh attestation verify` failed locally and the release was fine.** The error is
-  `unsupported tlog public key type: PKIX_ED25519`, from the local `gh` 2.55.0 (Aug 2024), not
-  from the artifact. Proven rather than assumed by running the identical command against a
-  **v0.0.3** binary — a release verified months ago — which fails the same way; the attestation is
-  present and correct server-side, binding `release.yml @ refs/tags/v0.1.0` over 6 subjects.
-  Checklist §5 will keep producing this false alarm until `gh` is upgraded; that is worth a note
-  in `docs/RELEASE-CHECKLIST.md`.
-  (2) **`cargo build --locked` cannot refresh `Cargo.lock` after a version bump** — `--locked`
-  exists precisely to refuse that. The checklist says "run a build … so the lockfile records the
-  new version", which reads as if the locked build does it. Sequence is `cargo check --offline`
-  to rewrite the lock, *then* the locked build to verify. Worth fixing in the checklist wording.
-  (3) **The release reaching the tag is not the release reaching users** — closed the same day by
-  `spec-ci-plugin` v1.1.1, but the shape is the lesson. **A moving alias tag makes "merged",
-  "released" and "reaching users" three different states, and only the third counts.**
-  injection-scanner v0.1.0 was published and correct; the consumer's default was merged and
-  correct; every gate in both repos was green; and no user had the fix, because `v1` sat one
-  commit behind. **Nothing in either repo's CI could catch this — the gap is *between* repos,
-  in a tag whose whole job is to be stale until someone moves it.** Every future scanner release
-  ends with the same three-step chain, and step three is the one that gets forgotten.
-- 2026-08-28 (#80): **Role override rewritten as a verb x modifier x object matrix — 1/12 -> 11/12
-  recall, clean corpus unmoved at zero.** Three things worth carrying forward.
-  (1) **A pattern's `name` is a consumer contract.** Six names were renamed for accuracy, then
-  reverted: `pattern_name` ships in the JSON `spec-ci-plugin` reads, so renaming is a
-  consumer-visible break for zero detection value. The widened concept belongs in `description`.
-  `cli_surface_test` was what caught it — it pins `ignore-previous-instructions` in `explain`
-  output, which is exactly the coupling that makes the rename a break.
-  (2) **`tests/corpus/clean/` is 12 files and that is thin evidence for a widening this size.**
-  The second check was a full self-scan: 51 findings from the widened patterns, every one in
-  `examples/`, `patterns/`, `tests/` or `tools/injection-lab/`, none in README.md, PATTERNS.md,
-  CLAUDE.md, `src/` or `docs/` prose. Do this on any future widening — the corpus cannot cover
-  what nobody wrote a specimen for.
-  (3) **The false positive that nearly shipped was `update your instructions`.** PI009 is HIGH,
-  which is the threshold `install-hook` writes by default, so an FP there blocks commits. Fixed
-  by splitting the verb list on benignness: `reset`/`replace`/`overwrite` match bare,
-  `update`/`change`/`modify` require a qualifier binding the object to the running config. The
-  same reasoning kept `old` and `legacy` out of the priorness vocabulary — `agent-spec.md`, the
-  most common document this tool is pointed at, says "Ignore the legacy `v1/` package".
-  Scoped to one category on purpose: widening all four in one PR would have had an unreviewable
-  false-positive blast radius.
-- 2026-08-25 (CLI-04): SARIF 2.1.0 shipped on `feat/cli-04-sarif`, stacked on #79. 227 tests.
-  **The planner pushed back on three points of my design guidance and was right on all three** —
-  worth carrying forward as a pattern, since two of them were my errors, not its caution.
-  (1) I asserted `baseline::fingerprint` was already public; it was private. (2) I proposed reusing
-  that fingerprint directly for SARIF `partialFingerprints`. It hashes `matched_text` alone, so two
-  identical payloads in one file yield **one** digest — verified live, a duplicated payload produces
-  a single baseline entry with `count=2`. GitHub tracks an alert by `(ruleId, uri,
-  partialFingerprint)`, so the two results would merge and fixing one occurrence would close an
-  alert whose twin is still in the file. A **missed alert** — the wrong failure direction for a
-  security tool. Fixed with a 1-based occurrence ordinal within the `(file, ruleId, digest)` group,
-  preserving line-independence. (3) I suggested carrying native severity in `rank`; GitHub does not
-  read `rank`, it reads `properties["security-severity"]` on the rule descriptor and only when
-  `tags` includes `security`.
-  **`ci.yml` was deliberately not touched.** It is `on: pull_request`, so it runs fork-authored
-  build scripts under `cargo test`; `security-events: write` there is the escalation its own runner
-  policy forbids. Upload lives in a new `code-scanning.yml` on push/schedule/dispatch. A test
-  asserts `ci.yml` is unchanged. `rules --format sarif` stays a parse-time error via a separate
-  `RulesFormat` enum — a rules-only document has `results: []`, and uploading one closes every open
-  alert for the category.
-  `.github/code-scanning-baseline.json` holds 51 hashed entries so `examples/`, `patterns/` and
-  `tests/fixtures/` stay **in scope** rather than excluded — a new payload in `patterns/`, where
-  community PRs land, still alerts.
-- 2026-08-25 (review): Reviewed the CLI-08 diff against the repo's Rust checklist and found one
-  blocking issue the tests could not have caught, because no test crossed the two features.
-  **`--baseline` and `install-hook` did not compose.** The generated hook hardcodes
-  `check . --fail-on <bar> --no-ignore`; there was no way to pass a baseline. Reproduced end to
-  end: a repo that adopts a baseline, then installs the hook, cannot commit at all — the exact wall
-  CLI-08 exists to remove, rebuilt one layer down. The README made it worse by name-dropping the
-  hook in the baseline section ("exactly how the installed pre-commit hook invokes the scanner"),
-  so the docs promised an integration that did not exist. `install-hook --baseline` now exists, the
-  path is canonicalised at install time (the hook scans from a temp staging copy, so a relative path
-  would resolve there and not exist) and an unresolvable path is refused at install rather than on
-  someone's next commit. Three smaller fixes: `--write-baseline` was jumping over the
-  "N file(s) skipped and NOT scanned" summary; `Baseline` lacked the `deny_unknown_fields` that
-  `BaselineEntry` carries on the identical rationale; duplicate identities overwrote instead of
-  summing. 203 tests.
-  **Carry forward — the security property that actually mattered held, and it was worth checking.**
-  `digest` is over `matched_text`, which `scanner.rs` sets from `original_slice` — the ORIGINAL
-  bytes, not the normalized form. Verified live: baseline an ASCII payload, swap one `o` for
-  Cyrillic `о`, and it still exits 1. Had `matched_text` been the normalized text, every baselined
-  finding would have become a free pass for its whole obfuscation family. Any future feature that
-  keys on `matched_text` needs this same check.
-  **Carry forward — the gap was at a feature seam, and green tests hid it.** Both features were
-  individually well tested; nothing exercised them together. HOOK-01 shipped one task earlier and
-  CLI-08 the next, and neither task's plan owned the seam.
-- 2026-08-25: **CLI-08 `--baseline` shipped** on `feat/cli-08-baseline` (3 commits, 196 tests, fmt +
-  clippy clean). Two flags: `--write-baseline <FILE>` accepts the current state and exits 0 by
-  design; `--baseline <FILE>` moves accepted findings into a **fourth** withheld array,
-  `ScanReport.baselined`, alongside `suppressed` and `low_confidence`. Same rule as those two:
-  filed under the reason they are withheld, never dropped.
-  **The design decision worth carrying forward is why the payload is hashed rather than stored.**
-  `json` is in `DEFAULT_EXTENSIONS`, so a committed `baseline.json` holding verbatim payloads would
-  be flagged by the very next scan — the adoption artifact would become a finding source. Confirmed
-  live, not just in a test: `check . --baseline b.json` scans `./b.json` as its own report and finds
-  nothing. Hashing also closes a real attack, since the adversary authors the scanned text and a
-  weak digest would let a *new* payload be tuned onto an already-accepted fingerprint. Identity is
-  `(file, pattern_id, sha256(matched_text))` — **line number deliberately excluded**, so editing
-  above a finding does not force regeneration, plus an occurrence `count` so baselining two
-  occurrences accepts two and not an unlimited number. Cost accepted: a PR reviewer sees
-  `PI001 in docs/foo.md ×2`, not the text. Recorded in `docs/adr/ADR-002-baseline-fingerprints.md`.
-  Verified independently of the executor's report, against the real binary: doubling a payload past
-  its `count` still exits 1; a stale entry is named on stderr and exits 0; malformed, unknown-version
-  and missing baselines are hard errors; both flags together and `--write-baseline` with `check -`
-  are rejected, the latter before stdin is read and without creating the file; `--format json` still
-  parses as `Vec<ScanReport>` with the baselined record carrying full evidence.
-  **Two process notes.** (1) The executor ran in an isolated worktree and the merge-back helper
-  produced a **merge commit**, which contradicts this repo's strictly-linear history — flattened to
-  the three commits before committing anything. Check this on every worktree-isolated task.
-  (2) Task 2's adversarial tests **passed on first run**, because Task 1 built the complete slice
-  rather than the minimum. They are real tests but they never failed first, so they are weaker
-  evidence than the plan intended; the behaviours were re-proven by hand against the binary instead.
-- 2026-08-22 (later): Review round on the four open PRs, then all nine merged. The blocking finding
-  — `suppression_trust_test.rs` still hand-building its binary path — turned out to be **three**
-  files, not one: `pattern_validation_test.rs` and `scan_resilience_test.rs` were already on `main`
-  with it, and #61 had fixed only `cli_test.rs`. Proven rather than argued: a binary whose entire
-  `main` is `std::process::exit(0)`, built into an alternate `CARGO_TARGET_DIR`, was passed by **all
-  29 tests**. `tests/test_harness_contract_test.rs` now forbids any integration test building a path
-  into the target directory (skips comment lines; assembles the needle at runtime so it does not
-  self-match, the trap PI012 hit).
-  **Coverage, corrected again** — the 2026-08-22 figures below were themselves measured with two of
-  three files still stale. Actual on merged `main`: **89.94% regions / 90.00% lines** total;
-  `main.rs` 86.13%, `patterns/mod.rs` 75.00%. Core logic excluding `main.rs` is ~92% regions /
-  ~90% lines, so the documented ">80% on core logic" bar **is met**. The "just under 80%, shortfall
-  is all `patterns/mod.rs`" reading was the same bug one layer down. `load_external_patterns` is
-  still the thinnest part and still wants in-process tests (#29).
-  Also fixed from the review: `glob_matches` in `release_contract_test.rs` was not merely convoluted
-  but **wrong** — it consumed the trailing segment with `find`, so `a*b` did not match `abxb` and a
-  name repeating the suffix failed. False negatives, so a release could fail its own asset contract
-  for an asset the glob does cover. Both ends are now anchored before the interior is searched.
-  New `the_published_asset_check_is_read_only` asserts the verify job holds no write scope and can
-  reach no `secrets.` — it downloads and executes an unauthenticated binary. Mutation-tested.
-  **Carry forward — GitHub's `MERGEABLE` is per-PR-against-main, not pairwise.** All four reported
-  CLEAN while #58 and #59 conflicted with each other in `CONTRIBUTING.md` (both appended a section at
-  the same anchor). Merge order must be verified locally, not read off the PR list. Second lesson:
-  this repo rebase-merges (zero merge commits on `main`), so a merge-commit conflict resolution is
-  the wrong shape — #59 had to be relinearised before it could land.
-  Also corrected a stale RUNNER POLICY comment in `ci.yml` claiming release work runs self-hosted;
-  #45 moved all four `release.yml` jobs to `ubuntu-latest`.
-- 2026-08-22: Checked the ">80% coverage on core logic before any release" constraint that both
-  CLAUDE.md files state and nothing measures (#29 item 1) ahead of the v0.0.3 tag, and found a
-  different bug. `tests/cli_test.rs` hard-coded `target/debug/injection-scanner` instead of
-  `CARGO_BIN_EXE_injection-scanner`, so the 14 CLI tests ran whatever binary happened to be on disk.
-  Under `cargo llvm-cov` (which builds into `target/llvm-cov-target/`) they reported **14 passed
-  while executing stale code**; delete the artifact and all 14 panic with NotFound. `cli_test.rs` is
-  the only place `main.rs` is exercised at all. Fixed in PR #61, CI green.
-  **Coverage, corrected:** total 48.49% → 72.18% regions, 49.62% → 70.38% lines, `main.rs`
-  0.00% → 60.78% — no new tests, just correct attribution. Excluding `main.rs` as CLI wiring,
-  **core logic is ~78.8% regions / 77.7% lines — just under the documented 80%**, and the entire
-  shortfall is `patterns/mod.rs` at 31.52%: `load_external_patterns`, which parses untrusted
-  community YAML and has no in-process tests. That is the next piece of #29, along with the
-  coverage gate itself, which still does not exist.
-- 2026-08-21: External review round on #55/#58/#59 + spec-ci-plugin #9 (`scratchpad/
-  opencode-suppression-trust-review-report.md`). **It reported zero defects and graded all four safe
-  to merge.** Adversarial re-check found four real holes it missed, all reproduced:
-  (1) `#9` skipped verification on every run but the first — `existsSync(cached)` returned the
-  cached binary with no checksum and no network, so "the download is verified" held only for a cold
-  cache, in the very persistent-`/tmp` environment #43 is about;
-  (2) an oversized report overflowed Node's 1MB `execFileSync` buffer → `ENOBUFS` → `warn` → the gate
-  passed. A 698KB file of real payloads produced 1.4MB of JSON and every finding was discarded. The
-  adversary writes the scanned file, so the adversary chooses whether this fires;
-  (3) `#9` ignored `suppressed`, so `allow-suppressions: true` printed "No injection patterns
-  detected" for a file that suppressed a CRITICAL — undoing the visibility half of #55;
-  (4) `#59`'s contract test passed with `continue-on-error: true` on the verify job, i.e. a
-  decorative gate.
-  All four fixed (spec-ci-plugin `8099796`, injection-scanner `954f137`), both CI green.
-  **Carry forward:** the reviewer's line references were real and its "what I did not check" section
-  was honest — it read the code and confirmed the PR descriptions rather than attacking them. Its
-  own item 3 (cache race) sat one inference away from finding (1). Treat a zero-defect review across
-  four PRs as a signal about the review, not the code.
-- 2026-08-22: The thin `suppressed` record turned out to be an omission, not a design choice, and is
-  fixed in #55 (`fe08083`). It carried `pattern_id`, `severity`, `file`, `line` and nothing else, so
-  the record proving the scanner had been disarmed could not say *what* it found — "PI001 at line 5",
-  never the message or the matched text. Nothing was bought by it: the suppressed and visible arms of
-  `Scanner::scan` are the same loop over the same `find_iter`, and the suppressed arm was discarding
-  the `Match` with `for _ in` where the visible arm binds it. `suppressed` is now `Vec<ScanMatch>` —
-  the same type `matches` holds — so `--no-suppress` moves a record between the arrays unchanged, and
-  a consumer cannot get the two shapes confused (tool 04's first renderer already had). Two tests pin
-  the symmetry. Found while fixing the consumer; the external review verified the field did not
-  *break* tool 04 and stopped there.
-- 2026-08-21: Phase 2 T7 closed out — #18 shipped as PR #59, CI green. **Phase 2 code work is
-  complete**; only merges and the v0.0.3 tag remain. Worth carrying forward: a mis-aimed mutation
-  while testing the guards revealed that `release.yml`'s upload glob list and its
-  `attest-build-provenance` `subject-path` list are independent and nothing kept them in step — an
-  asset could ship without the provenance the release notes instruct consumers to verify. Now
-  asserted.
-- 2026-08-21: Phase 2 T8 / PERF-01 (#29) — PR #58, CI green. Worth carrying forward: the wall-clock
-  bound the handoff suggested ("500 files under ~1s") would have **passed** on the regression it was
-  meant to catch, since the regressed build was 806ms. The guard is a ratio instead — 500-file scan
-  versus one pattern-set compile — which is machine-independent and was verified by injecting the
-  regression (15.2s against a 1.41s budget). Criterion benches cover all four shapes from #29. The
-  CI end-to-end release-binary gate measures 13ms on the hosted runner against a 200ms budget.
-  Phase 2 code work is now complete; only merges and the v0.0.3 tag remain.
-- 2026-08-21: Phase 2 T7 / INT-01 — `spec-ci-plugin` consumer fixes (#43) and `--no-suppress` on the
-  Action (#56) landed as spec-ci-plugin PR #9, CI green, awaiting merge. Four defects: unverified
-  download, unversioned `/tmp` cache, three disagreeing version defaults, and PR-controlled
-  suppression. Notable: `--no-suppress` support is probed via `check --help` rather than inferred
-  from the version string, which decoupled this work from the v0.0.3 tag entirely. Remaining in T7:
-  #18, the release-time musl asset-contract smoke test on this side.
-- 2026-08-21: External review round on #44/#46. Four real defects found and fixed, one conclusion
-  corrected (the "43% FP increase" was mostly correct new detection on attack fixtures). Actions
-  SHA-pinned. #44 and #51 merged to `main`. #46 was auto-closed by GitHub when its base branch was
-  deleted on merge — superseded by #51, no work lost.
-- 2026-08-21: Phase 1 complete. CI restored via the D-02 split; run 32463308109 green on PR #44.
-  Release blocker #45 discovered and filed during phase planning.
-- 2026-08-21: Deep-dive audit (`docs/AUDIT-2026-08.md`) + independent verification pass. 6 critical
-  and 7 high findings. 32 GitHub issues filed (#12-#43). Planning reconciled; new 4-phase milestone
-  opened. Prior milestone archived to `.planning/archive/milestone-v0.0.1/`.
-- 2026-04-02: Harness engineering setup complete.
-- 2026-04-01: v0.0.1 released.
+
+- 2026-08-30: **v0.2.0 opened.** Scope decided on evidence, not instinct: the library is 48
+  patterns, so three agentic categories is +30 (1.6x) against +80 (2.7x) for all eight, and the
+  corpus cost is 36 new threat-model payloads against 96. GATE-04 (one category per PR) is what
+  makes eight categories in one milestone unreviewable. #6 and #7 closed as genuinely superseded by
+  #30. Previous milestone archived to `.planning/archive/milestone-v0.1.0/`.
+- **Three lessons carried forward** from the archived milestone, because they will bite again:
+  **(1)** A moving alias tag makes "merged", "released" and "reaching users" three different states,
+  and only the third counts — `spec-ci-plugin`'s `v1` sat one commit behind and the fix reached
+  nobody while every gate showed green.
+  **(2)** `gh attestation verify` fails locally on `gh` 2.55.0 with
+  `unsupported tlog public key type: PKIX_ED25519`. It is the client, not the release — proven by
+  running it against a known-good v0.0.3 binary.
+  **(3)** `cargo build --locked` cannot refresh `Cargo.lock` after a version bump; `--locked` exists
+  to refuse exactly that. Run `cargo check --offline` first, then the locked build to verify.
 
 ---
-*Last updated: 2026-08-29*
+*Last updated: 2026-08-30*

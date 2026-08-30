@@ -1,122 +1,116 @@
-# Requirements: injection-scanner
+# Requirements: injection-scanner v0.2.0
 
-**Milestone:** Production Readiness — v0.0.3 + v0.1.0
-**Defined:** 2026-08-21 · **Core value:** Catch prompt injection attacks before they reach production
-**Prior milestone:** `.planning/archive/milestone-v0.0.1/REQUIREMENTS.md`
+**Defined:** 2026-08-30
+**Milestone:** Agent-shaped attacks
+**Core Value:** Catch prompt injection attacks before they reach production
 
-> **Reconciliation note.** The archived requirements file grouped all 14 items under a "v0.0.1
-> Requirements" heading while its own traceability table assigned CLI-04, HOOK-01 and PERF-01 to
-> Phase 2 — and this repo's `CLAUDE.md` lists all three as v0.0.1 acceptance criteria. Three
-> documents disagreed about what v0.0.1 contained. Resolved here: those three were **never delivered**
-> and are carried into this milestone as Phase 4 (CLI-04, HOOK-01) and Phase 2 (PERF-01).
+## Why this milestone exists
 
----
+v0.1.0 made the scanner detect the attacks its README already claimed — recall went from
+**10/60 to 56/60** by rewriting four categories from literal phrase lists into
+verb × modifier × object matrices. That closed the credibility gap. It did not add a single new
+*kind* of attack.
 
-## Carried forward — delivered in v0.0.1/v0.0.2
+Every one of the 48 patterns targets a payload aimed at a **chat model reading prose**. None target
+the payloads aimed at an **agent with tools** — a wildcard permission grant in frontmatter, an
+instruction hidden in an MCP tool `description` that the user never sees, a lifecycle hook that
+re-installs the attacker's instructions after the file is cleaned.
 
-| ID | Requirement | Status |
+That class is what makes this tool different from a grep for known phrases, and it is
+the most active area of agent-security research. It is also the class that `spec-linter` S005
+gestures at from the lint side and nothing checks from the content side.
+
+**Thesis: the scanner learns to read agent configuration, not just agent prose.**
+
+## v0.2.0 Requirements
+
+Ordered by dependency. Each is one PR, with its own false-positive sweep.
+
+### Engines
+
+- [ ] **ENG-01** (#32): Frontmatter in YAML / TOML / JSON is parsed with a real parser and inspected
+      as structured data — `allowed-tools`, `tools`, `permissions`, `mcpServers`, `hooks`, `model`
+      and `system` overrides — rather than matched with regex over raw lines. Findings from
+      structured data carry near-zero false-positive risk because the shape is unambiguous, which
+      is what lets them sit at CRITICAL.
+- [ ] **ENG-02** (#30): A recursive decoder walks base64, hex, URL-encoding, HTML entities and
+      `\u` escapes, re-running detection on each decoded layer, bounded against decode bombs.
+      Nested encodings (base64 inside an HTML entity inside a URL escape) are the real shape and
+      are what three separate single-layer decoders would each miss.
+
+### Categories
+
+- [ ] **CAT-01** (#33): `PI050`–`PI059` — tool & permission abuse. Payloads that widen the agent's
+      own authority: wildcard tool grants, `--dangerously-skip-permissions` / `bypassPermissions`
+      directives, instructions to edit `settings.json` or disable a hook. The agentic equivalent of
+      privilege escalation. Depends on **ENG-01** for the frontmatter half.
+- [ ] **CAT-02** (#34): `PI060`–`PI069` — MCP & tool-description poisoning. Instructions hidden in
+      a tool `description`, read by the model on every call and never shown to the user; unpinned
+      `npx -y` servers and `http://` endpoints; cross-tool shadowing; rug-pull markers that are
+      version- or date-conditional. Depends on **ENG-01** for the `mcpServers` half.
+- [ ] **CAT-03** (#35): `PI070`–`PI079` — persistence & lifecycle hijack. Payloads that survive
+      the obvious cleanup: instructions that re-write themselves into a config, hook and lifecycle
+      abuse, memory-file poisoning.
+
+### Gates — non-negotiable, they are what made v0.1.0 trustworthy
+
+- [ ] **GATE-01**: Every new category adds **12 corpus payloads** to `tests/corpus/attack/`,
+      written from the threat model and **never derived from the patterns** — a corpus built from
+      each pattern's own `example` scores 100% by construction and measures nothing.
+- [ ] **GATE-02**: `tests/recall_test.rs` continues to pin counts **exactly**, not as a floor, so
+      an improvement fails the build too and the published number cannot go stale.
+- [ ] **GATE-03**: Every pattern change is swept against ~1,300 files of **real third-party
+      documentation**, not only the 18-file clean corpus. The 2026-08-29 sweep found 2 CRITICAL and
+      25 HIGH false positives the corpus was silent about.
+- [ ] **GATE-04**: Each category ships as **its own PR**. Widening four categories at once produces
+      an unreviewable false-positive blast radius — this is a recorded lesson, not a preference.
+- [ ] **GATE-05**: The false-positive control in each PR is **mutation-tested** — two of four
+      v0.1.0 widenings had a control the corpus was not actually holding.
+
+## Deferred to v0.3.0
+
+Tracked, not in this roadmap.
+
+| Req | Issue | Why deferred |
 |---|---|---|
-| SCAN-01 | 30+ patterns across 5 categories | ✅ 30 |
-| SCAN-02 | YAML pattern loader (embedded + external) | ✅ |
-| SCAN-03 | Severity classifier CRITICAL/HIGH/MEDIUM/LOW | ⚠️ range unused — see QUAL-02 |
-| SCAN-04 | Remediation hints per pattern | ✅ |
-| CLI-01 | File scanner | ⚠️ narrow — see CLI-09, CLI-10 |
-| CLI-02 | Stdin mode | ✅ |
-| CLI-03 | JSON output | ✅ |
-| CLI-05 | Inline allowlist suppression | ⚠️ broken — see FIX-04 |
-| DIST-01 | Pre-built binaries | ✅ 6 targets at v0.0.2 |
-| DOCS-01 | PATTERNS.md contribution guide | ✅ |
-| REL-01 | GitHub Release with checksums | ✅ |
+| `PI080`–`PI089` indirect / RAG-borne | #36 | Real, but the agentic three are the differentiator; this is the natural follow-on |
+| `PI090`–`PI099` credential harvesting | #37 | Overlaps `spec-linter` S003; needs a scope boundary decision first |
+| `PI100`–`PI109` output-format hijack | #38 | Lower severity ceiling than the agentic set |
+| `PI110`–`PI119` multilingual evasion | #39 | Every pattern is English-only — a whole separate problem, and labelled `help wanted` |
+| `PI120`–`PI129` delimiter spoofing | #40 | Narrow; sequence after the engines exist |
+| Invisible-character density heuristic | #31 | Heuristic rather than pattern; needs its own FP story |
 
----
+## Out of Scope
 
-## Phase 1 — Restore the Gate
-
-- [ ] **CI-01**: Public/fork CI runs fmt + clippy + test to completion on a pull request from a fork, secretless, with `contents: read`
-- [ ] **CI-02**: All secret-bearing and self-hosted work is reachable only from triggers a fork cannot fire (tag push / `release: published`)
-
-## Phase 2 — Correctness (v0.0.3)
-
-- [ ] **FIX-01**: Patterns match case-insensitively by default; `case_sensitive: true` available as a per-pattern opt-out
-- [ ] **FIX-02**: The pattern set is compiled once per run, not once per file
-- [ ] **FIX-03**: An unreadable or non-UTF-8 file is skipped and reported, never aborts the scan
-- [ ] **FIX-04**: Suppression supports `ignore` (same line), `ignore-next-line`, and `ignore-file`; the README matches the implementation; the ID pattern accepts non-`PI` prefixes
-- [ ] **FIX-05**: All matches per line are reported, bounded by a per-line cap
-- [ ] **FIX-06**: `--format` rejects unknown values at parse time rather than falling through to text
-- [ ] **SCAN-08**: Duplicate pattern IDs are detected; unknown YAML fields are rejected; `--strict-patterns` fails on an invalid pattern instead of warning
-- [ ] **INT-01**: The `spec-ci-plugin` consumer verifies SHA256 before executing, keys its cache by version, and has a single source of truth for the default version; a release-time smoke test asserts the musl asset contract
-- [ ] **PERF-01**: A 500-file scan completes in under 200ms, proven by a benchmark
-
-## Phase 3 — Signal Quality
-
-- [ ] **QUAL-01**: Every finding carries a lexical `context` and a `confidence`; findings inside fenced code and inline code are downgraded by default, restored by `--strict`
-- [ ] **QUAL-02**: Severity is rebalanced across the full range; at least one MEDIUM and one LOW pattern exist; grading criteria are documented
-- [ ] **QUAL-03**: A false-positive corpus of clean real-world documents returns zero findings in CI, and `examples/*-attack.md` return their full expected counts
-- [ ] **SCAN-05**: A normalization pass defeats homoglyph, spacing, separator, fullwidth and zero-width-interleave evasion
-- [ ] **SCAN-06**: A multi-line sliding window detects payloads split across a newline
-- [ ] **CLI-09**: Directory walking respects `.gitignore`, supports `--exclude`/`--include`, caps file size, terminates cleanly on symlink cycles with no duplicate findings, and runs in parallel
-- [ ] **CLI-10**: Default file coverage includes `.mdx`, `.json`, `.jsonl`, `.rst`, `.html`, `.csv`, `.mdc`, `.cursorrules` and extensionless agent files
-
-## Phase 4 — Integration (v0.1.0)
-
-- [ ] **CLI-04**: SARIF 2.1.0 output that validates against the schema and uploads to GitHub code scanning
-- [ ] **CLI-06**: `--fail-on <severity>`, `--quiet`, and exit code 2 for warnings-only
-- [ ] **CLI-07**: `rules` and `explain <PI0XX>` subcommands
-- [ ] **CLI-08**: `--baseline <file>` for incremental adoption on an existing repository
-- [ ] **HOOK-01**: `install-hook` installs a working pre-commit hook that completes a real commit in under 200ms; `.pre-commit-hooks.yaml` supports the pre-commit framework
-- [ ] **PERF-02**: Aho-Corasick prefilter keeps the perf budget with a growing library
-- [ ] **SCAN-07**: Reserved ID gaps filled — `PI008-009`, `PI015-019`, `PI026-029`, `PI039`, `PI043-049`
-- [ ] **TEST-01**: Test coverage measured in CI with a gate above 80% on core logic
-- [ ] **TEST-02**: Criterion benchmarks defend PERF-01 and fail CI on regression
-- [ ] **DOCS-02**: Severity-grading criteria and the per-pattern test-case policy are documented and enforced in CI
-
----
-
-## Out of Scope — this milestone
-
-| Feature | Reason |
+| Item | Reason |
 |---|---|
-| Agentic categories `PI050`–`PI079` | v0.2.0 — depend on the frontmatter engine (E4) |
-| Recursive decoder (E2) | v0.2.0 — supersedes issues #6 and #7 |
-| Invisible-character heuristic (E3) | v0.2.0 — needs a real MEDIUM/LOW range first (QUAL-02) |
-| Multilingual, delimiter, output-hijack categories | v0.3.0 |
-| Runtime filter mode | v0.2.0 — for agent-sandbox |
-| crates.io, Homebrew, binstall, GitHub Action | v0.3.0 |
-| LLM/semantic detection | v1.0.0 — regex plus normalization is sufficient for known patterns |
-| Auto-fix | Never — dangerous for a security tool. Flag only. |
-
----
+| Library / CLI split (part of #41) | **Zero blocked consumers.** `kore-runtime` has no reference to this tool, `agent-sandbox` and `safe-scrape` have no repo. `spec-ci-plugin` shells out successfully in production. Do it when a real consumer is blocked, not before — the API shape will be wrong if guessed. |
+| Aho-Corasick prefilter (#4) | Perf budget is met with 5× headroom — 41ms against 200ms. Headroom for a growing library, not a fix. Revisit if the library passes ~150 patterns. |
+| Runtime filter mode (#11) | Depends on `agent-sandbox`, which has no repo. |
+| Windows binary (#9) | Real unmet constraint, but distribution not detection. Check the `mcp-hub` HUB-V2-02 precedent first — `cfg(unix)` deps that do not link. |
 
 ## Traceability
 
-| Requirement | Phase | Issues | Status |
+| Requirement | Issue | Phase | Status |
 |---|---|---|---|
-| CI-01, CI-02 | 1 | #17 | Pending |
-| FIX-01 | 2 | #12 | Pending |
-| FIX-02 | 2 | #13 | Pending |
-| FIX-03 | 2 | #14 | Pending |
-| FIX-04 | 2 | #15 | Pending |
-| FIX-05 | 2 | #16 | Pending |
-| FIX-06 | 2 | #42 | Pending |
-| SCAN-08 | 2 | #28 | Pending |
-| INT-01 | 2 | #18, #43 | Pending |
-| PERF-01 | 2 | #13, #29 | Pending |
-| QUAL-01 | 3 | #20 | Pending |
-| QUAL-02 | 3 | #21 | Pending |
-| QUAL-03 | 3 | #29 | Pending |
-| SCAN-05 | 3 | #26 | Pending |
-| SCAN-06 | 3 | #24 | Pending |
-| CLI-09 | 3 | #22 | Pending |
-| CLI-10 | 3 | #23 | Pending |
-| CLI-04 | 4 | #5 | Pending |
-| CLI-06, CLI-07, CLI-08 | 4 | #25 | Pending |
-| HOOK-01 | 4 | #8 | Pending |
-| PERF-02 | 4 | #4 | Pending |
-| SCAN-07 | 4 | #27 | Pending |
-| TEST-01, TEST-02 | 4 | #29 | Pending |
-| DOCS-02 | 4 | #21, #27 | Pending |
+| ENG-01 | #32 | Phase 1 | Pending |
+| ENG-02 | #30 | Phase 2 | Pending |
+| CAT-01 | #33 | Phase 3 | Pending |
+| CAT-02 | #34 | Phase 4 | Pending |
+| CAT-03 | #35 | Phase 5 | Pending |
+| GATE-01..05 | — | All phases | Pending |
 
-**Coverage:** 24 requirements, all mapped to a phase and at least one issue.
+**Coverage:** 5 feature requirements, 5 mapped. 5 gates apply to every phase. Unmapped: 0 ✓
+
+## Success criteria for the milestone
+
+1. Recall reaches **59/60** on the existing corpus — ENG-02 closes the three base64 misses. The
+   fourth miss stays, deliberately: a role-override precedence claim not separable from ordinary
+   configuration documentation.
+2. Three new categories are measured on their **own** 36 new payloads, and that number is published
+   in the README alongside the existing table.
+3. The clean corpus and the third-party sweep both stay at **zero** regressions.
+4. Library grows 48 → ~78 patterns with the per-pattern test policy ratchet still green.
 
 ---
-*Last updated: 2026-08-21*
+*Requirements defined: 2026-08-30*

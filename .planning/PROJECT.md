@@ -8,9 +8,26 @@ Catch prompt injection attacks before they reach production — in skill files, 
 
 ## Requirements
 
-> Current requirements live in `.planning/REQUIREMENTS.md` (milestone: Production Readiness,
-> v0.0.3 + v0.1.0). The list below is the **original v0.0.1 set, retained for history** — see the
-> reconciliation note in REQUIREMENTS.md for why CLI-04, HOOK-01 and PERF-01 were never delivered.
+> Current requirements live in `.planning/REQUIREMENTS.md` (milestone: **v0.2.0 — Agent-shaped
+> attacks**, opened 2026-08-30). The list below is the **original v0.0.1 set, retained for
+> history**.
+
+### Validated — shipped and confirmed
+
+- ✓ **Production Readiness (v0.0.3 + v0.1.0)** — shipped 2026-08-29. Detection recall went
+  **10/60 → 56/60**, measured against a corpus written from the threat model and published in the
+  README. CI restored, SARIF output, `install-hook`, `--baseline`, `--fail-on`, Unicode
+  normalization, multi-line matching, markdown context awareness, 48 patterns, SLSA provenance
+  over six target-triple binaries. Consumed by `spec-ci-plugin` v1.1.1 via the moving `@v1` tag.
+  Archived at `.planning/archive/milestone-v0.1.0/`.
+
+### Active — v0.2.0
+
+The scanner learns to read agent **configuration**, not just agent **prose**. All 48 existing
+patterns target payloads aimed at a chat model reading text; none target a wildcard permission
+grant in frontmatter, an instruction hidden in an MCP tool `description`, or a lifecycle hook that
+reinstalls the attacker's instructions. See `.planning/REQUIREMENTS.md`.
+
 
 ### Original v0.0.1 set (historical)
 - [ ] **SCAN-01**: 30+ patterns across 5 categories (role override, instruction injection, exfiltration, jailbreaks, encoding)
@@ -28,7 +45,7 @@ Catch prompt injection attacks before they reach production — in skill files, 
 - [ ] **DOCS-01**: Community pattern contribution guide (PATTERNS.md)
 - [ ] **REL-01**: Published to GitHub Releases with SHA256 checksums
 
-### Out of Scope
+### Out of Scope (original set)
 - Runtime filtering (v0.1.0 — for agent-sandbox integration)
 - LLM-based semantic injection detection — v1.0.0
 - Homebrew formula — v0.1.0 (manual binary install first)
