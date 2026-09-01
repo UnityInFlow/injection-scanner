@@ -73,6 +73,7 @@ fn case_sensitive_opt_out_is_respected() {
             scope: Default::default(),
             example: None,
             counter_example: None,
+            relaxed_pattern: None,
             description: "opt-out probe".to_string(),
             remediation: String::new(),
             tags: vec![],
