@@ -39,8 +39,9 @@ fn test_total_pattern_count() {
     let total: usize = categories.iter().map(|c| c.patterns.len()).sum();
     // PI001-PI049 with PI048 deliberately unfilled — base64 detection is
     // deferred to the decoder in #30, because a length-based regex cannot tell
-    // a payload from a file path. So 48, not 49.
-    assert_eq!(total, 48, "Expected 48 patterns, got {total}");
+    // a payload from a file path. So 48, not 49 within that range. PI050
+    // (CAT-01's first structural pattern, #33) adds one more: 49.
+    assert_eq!(total, 49, "Expected 49 patterns, got {total}");
 }
 
 #[test]
@@ -1174,4 +1175,44 @@ fn test_pi049_ansi_escape_sequence() {
         "broad CSI still matches colored prompts; severity is MEDIUM for this reason"
     );
     assert!(matches_id(sgr_16, "PI049"));
+}
+
+#[test]
+fn test_tool_permission_abuse_category_is_loaded() {
+    // Trap 5 (03-05-PLAN.md): a category file absent from `load_embedded_patterns()`
+    // ships as dead YAML in the binary and no other test notices.
+    let categories = injection_scanner::patterns::load_embedded_patterns().unwrap();
+    assert!(
+        categories
+            .iter()
+            .any(|c| c.category == "tool_permission_abuse"),
+        "tool_permission_abuse category must be registered in load_embedded_patterns()"
+    );
+}
+
+#[test]
+fn test_pi050_wildcard_tool_grant() {
+    assert_positives(
+        "PI050",
+        &[
+            // Scalar wildcard grant.
+            "---\nallowed-tools: \"*\"\n---\n",
+            // YAML block-sequence form — the shape real Claude Code skills
+            // actually use — with an unrestricted `Bash(*)` entry (Pitfall 1).
+            "---\nallowed-tools:\n  - Read\n  - Bash(*)\n---\n",
+            // Whole-file JSON manifest form.
+            "{\"tools\": [\"*\"]}\n",
+        ],
+    );
+    assert_negatives(
+        "PI050",
+        &[
+            // A narrow, real grant — the value is not a wildcard, only the
+            // key is a tool-grant key.
+            "---\nallowed-tools:\n  - Read\n  - Grep\n---\n",
+            // A prose sentence merely naming the tool-grant key. It produces
+            // no frontmatter block at all, so no projection exists to match.
+            "Add allowed-tools to your skill's frontmatter to declare tool access.",
+        ],
+    );
 }
