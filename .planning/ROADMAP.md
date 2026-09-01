@@ -76,6 +76,17 @@ and it retires #6 and #7, already closed against it.
 - Complements `spec-linter` S005 rather than duplicating it — S005 lints the spec's own
   permissions; this detects a *document persuading someone* to widen them
 
+**Plans:** 7 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Corpus, recall harness and the measured pre-pattern baseline (D-01..D-05)
+- [ ] 03-02-PLAN.md — Five false-positive control specimens in `tests/corpus/clean/` (D-06, D-06a, D-06b)
+- [ ] 03-03-PLAN.md — GATE-03 sweep script, recorded pre-pattern sweep, ROADMAP correction (D-10, D-11, D-16)
+- [ ] 03-04-PLAN.md — Relaxed-control schema field, mutation-pairing gate, PI050+ ratchet (D-07, D-08, D-09)
+- [ ] 03-05-PLAN.md — Structural patterns PI050-PI052, CRITICAL, `scope: frontmatter` (D-12, D-13)
+- [ ] 03-06-PLAN.md — Prose patterns PI053-PI057, HIGH (D-14, D-15, D-17)
+- [ ] 03-07-PLAN.md — GATE-03 delta sweep, number reconciliation, deferral issues, pre-PR gate
+
 ### Phase 4: MCP & tool-description poisoning — CAT-02 (#34)
 
 **Goal:** `PI060`–`PI069`. The attack the user never sees.
