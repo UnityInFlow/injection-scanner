@@ -1,0 +1,66 @@
+category: tool_permission_abuse
+default_severity: HIGH
+# CAT-01 (#33): documents that widen the agent's OWN authority -- the agentic
+# equivalent of privilege escalation. This file mixes prose patterns at HIGH
+# (persuasion to widen an agent's authority -- lands in a later plan) with
+# structural patterns (PI050-PI052) that each override to CRITICAL, following
+# PI003's per-pattern severity-override precedent.
+#
+# A structural finding sits at CRITICAL because a structural rule never sees
+# prose: it matches the CANONICAL `path = value` PROJECTION src/frontmatter.rs
+# emits from real parsed configuration, never the raw document text. A
+# sentence that merely mentions `allowed-tools` produces no projection at all,
+# so the shape below is unambiguous rather than merely suggestive. Three
+# things about that projection every structural regex here must respect:
+#
+#   - A string value renders WITHOUT quotes. `tools: "*"` projects as
+#     `tools = *`, never `tools = "*"`.
+#   - A YAML block sequence or JSON array projects ONE LINE PER ELEMENT, with
+#     an `[index]` suffix appended to the key -- `allowed-tools: [Read,
+#     Bash(*)]` projects as two lines, `allowed-tools[0] = Read` and
+#     `allowed-tools[1] = Bash(*)`, never one line holding the whole array.
+#     This is the common case for a real skill file, not the edge case, so
+#     every key below tolerates an optional `[\d+]` suffix.
+#   - `permissions.defaultMode` is a scalar path, never an array element, so
+#     its regex carries no index suffix to tolerate.
+#
+# The `permissions` arm (PI051) REQUIRES the `.allow` path segment before it
+# will look at a value at all. ENG-01's projection is path-shape-agnostic --
+# it does not know `allow` and `deny` are semantic opposites -- and a real
+# `settings.json` carries a `permissions.deny` array whose entries
+# (`Read(.env)`, `Bash(rm -rf *)`) have the exact same textual shape as the
+# attack this pattern exists to catch (D-06a). A pattern keyed on the bare
+# `permissions` path plus a wildcard character fires on a security CONTROL
+# being described and reports it as a CRITICAL attack -- the worst possible
+# false positive this tool can produce. `tests/corpus/clean/settings-deny-list.md`
+# is the specimen that catches a relaxation of this requirement; see each
+# pattern's `relaxed_pattern` below, which drops exactly this narrowing.
+patterns:
+  - id: PI050
+    example: |
+      ---
+      allowed-tools: "*"
+      ---
+    counter_example: |
+      ---
+      allowed-tools:
+        - Read
+        - Grep
+      ---
+    # The narrowing under test: the shipped pattern requires the VALUE to be
+    # an unrestricted grant; this drops that and matches any tool-grant KEY at
+    # all, which is what makes the counter_example above (a real, narrow
+    # grant) the thing that catches a relaxation of this pattern.
+    relaxed_pattern: "^(?:allowed-tools|tools)(?:\\[\\d+\\])?\\s*="
+    name: wildcard-tool-grant
+    severity: CRITICAL
+    scope: frontmatter
+    # Key anchored at the START of the projected line -- `allowed-tools` or
+    # `tools` (D-13's claimed set), tolerating an optional `[N]` array index --
+    # so a key merely appearing inside a longer path (`mcpServers.tools`)
+    # cannot satisfy it. The value must be an UNRESTRICTED grant: a bare `*`,
+    # or a shell-tool call whose sole argument is `*` (`Bash(*)`).
+    pattern: "^(?:allowed-tools|tools)(?:\\[\\d+\\])?\\s*=\\s*(?:\\*|[A-Za-z][A-Za-z0-9_]*\\(\\s*\\*\\s*\\))\\s*$"
+    description: "A skill or manifest grants unrestricted tool access (a bare `*` or `Bash(*)`) in its own frontmatter"
+    remediation: "Scope the grant to the specific tools, and specific arguments, the skill actually needs."
+    tags: [tool-permission-abuse]
