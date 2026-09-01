@@ -321,3 +321,18 @@ None - no external service configuration required.
 ---
 *Phase: 03-tool-permission-abuse-cat-01-33*
 *Completed: 2026-09-01*
+
+## Self-Check: PASSED
+
+- All key-files (`src/pattern.rs`, `tests/pattern_relaxed_control_test.rs`,
+  `tests/pattern_policy_test.rs`, `tests/pattern_validation_test.rs`, `PATTERNS.md`,
+  `.claude/skills/pattern-library/SKILL.md`) confirmed present on disk with `ls -la`.
+- All four commits (`14168b1`, `10dfbf2`, `f70a0aa`, `7f61f88`) confirmed present in
+  `git log --oneline`.
+- All task-level `<acceptance_criteria>` re-verified: `cargo test --locked` green (35/35 test
+  binaries `ok`), `cargo clippy --all-targets --locked -- -D warnings` clean, `cargo fmt --all --
+  --check` clean, `git diff --stat src/catalogue.rs` empty, `cargo run --release -- rules
+  --format markdown | diff - docs/PATTERN-CATALOGUE.md` produces no output.
+- Plan-level `<verification>` block re-run: all four items pass (test suite green, catalogue
+  diff empty, catalogue.rs untouched, all three named mutation checks performed and restored —
+  plus a fourth, the D-09 ratchet check, performed for completeness).
