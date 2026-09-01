@@ -1,6 +1,22 @@
+---
+gsd_state_version: 1.0
+milestone: v0.2.0
+milestone_name: Agent-shaped attacks
+status: unknown
+stopped_at: Phase 3 context gathered
+last_updated: "2026-09-01T07:49:29.608Z"
+state_head: 2049242f2e37e401e53ea7500c67ba1a1c34dcf0
+progress:
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 2
+---
+
 # State: injection-scanner
 
 ## Project Reference
+
 See: `.planning/PROJECT.md`
 **Core value:** Catch prompt injection attacks before they reach production
 **Milestone:** **v0.2.0 — Agent-shaped attacks** (opened 2026-08-30)
@@ -9,6 +25,7 @@ See: `.planning/PROJECT.md`
 > `.planning/archive/milestone-v0.1.0/STATE.md`, alongside its REQUIREMENTS, ROADMAP and phases.
 
 ## Current Phase
+
 **Phase 3 — Tool & permission abuse (CAT-01, #33)** · status: **not started, ready to plan**
 
 Phases 1 and 2 shipped 2026-08-30. **Both engines are done**; the remaining three phases are
@@ -77,6 +94,7 @@ the pattern set rather than the input. Two misses therefore remain, both for sta
 - **GitHub milestone:** `v0.2.0 — Agent-shaped attacks` (milestone #6) — 5 issues
 - **Project board:** https://github.com/orgs/UnityInFlow/projects/4 — org-wide, 63 items, with
   `Phase` and `Priority` fields populated for this milestone
+
 - **Deferred:** the `v0.3.0` milestone holds 10 issues — pattern categories #36-#40 plus #31, #41,
   #10, #11, #4
 
@@ -119,6 +137,7 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
   reachable.
   Also: `tests/decode_test.rs` needed `ignore-file` — the decoder makes its own fixtures visible
   for the first time, which is the tool correctly detecting its own test data.
+
 - 2026-08-30 (Phase 1): **ENG-01 shipped.** The design worth carrying: rather than a rule DSL in
   the pattern schema, parsed config is **projected to canonical `path = value` text** and the
   existing regex engine runs against it, gated by a new `scope: frontmatter` field. One schema
@@ -138,11 +157,13 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
   Also: a self-scan finding landed in `src/` for the first time (a doc-comment illustration of a
   pipe-to-shell payload). Suppressed inline with rationale rather than weakened, and `tests/`
   needed `ignore-next-line`, not `ignore` — the directive applies to the line it sits on.
+
 - 2026-08-30: **v0.2.0 opened.** Scope decided on evidence, not instinct: the library is 48
   patterns, so three agentic categories is +30 (1.6x) against +80 (2.7x) for all eight, and the
   corpus cost is 36 new threat-model payloads against 96. GATE-04 (one category per PR) is what
   makes eight categories in one milestone unreviewable. #6 and #7 closed as genuinely superseded by
   #30. Previous milestone archived to `.planning/archive/milestone-v0.1.0/`.
+
 - **Three lessons carried forward** from the archived milestone, because they will bite again:
   **(1)** A moving alias tag makes "merged", "released" and "reaching users" three different states,
   and only the third counts — `spec-ci-plugin`'s `v1` sat one commit behind and the fix reached
@@ -152,6 +173,13 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
   running it against a known-good v0.0.3 binary.
   **(3)** `cargo build --locked` cannot refresh `Cargo.lock` after a version bump; `--locked` exists
   to refuse exactly that. Run `cargo check --offline` first, then the locked build to verify.
+
+## Session Continuity
+
+Last session: 2026-09-01T07:49:29.596Z
+Stopped at: Phase 3 context gathered
+`/gsd-discuss-phase 3` (CAT-01, #33) — context gathering before planning.
+Resume file: .planning/phases/03-tool-permission-abuse-cat-01-33/03-CONTEXT.md
 
 ---
 *Last updated: 2026-08-30*
