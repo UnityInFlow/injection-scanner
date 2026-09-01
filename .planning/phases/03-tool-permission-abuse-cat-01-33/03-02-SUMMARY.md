@@ -254,3 +254,14 @@ None - no external service configuration required.
 ---
 *Phase: 03-tool-permission-abuse-cat-01-33*
 *Completed: 2026-09-01*
+
+## Self-Check: PASSED
+
+- All 5 created corpus files verified present on disk with `ls -la`.
+- Task commits `22bbead` and `0d36000` verified in `git log --oneline`.
+- Re-ran all `<acceptance_criteria>` from both tasks: file counts (17 after Task 1, 20 after Task
+  2), grep counts, `head -1` fence checks, the frontmatter probe (4 matches) and its negative
+  control (0 matches), and `cargo run --release -- check tests/corpus/clean --strict` (0 matches
+  across the whole directory) — all pass.
+- Re-ran the plan-level `<verification>` block: `cargo test --locked` fully green, strict
+  whole-directory check empty, file count 20, narrow-grant reachability proven and recorded above.
