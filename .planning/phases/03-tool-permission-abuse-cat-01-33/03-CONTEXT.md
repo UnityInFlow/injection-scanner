@@ -97,6 +97,20 @@ dangerous-command detection (`sudo`, `rm -rf`, `chmod 777` — deferred, see bel
   documented community-contribution surface and `deny_unknown_fields` is enforced, so once the
   field ships, external pattern files may carry it and removing it breaks their load. Field naming
   and semantics get one chance.
+- **D-08a (resolved 2026-09-01, from research + pattern mapping):** The relaxed form is **not**
+  rendered into `docs/PATTERN-CATALOGUE.md`. Both agents raised this as a disclosure question —
+  "publishing a bypass mutation is a different disclosure profile than `example`/`counter_example`".
+  **That premise is false and was verified false:** `src/catalogue.rs:152` already emits every
+  shipped regex verbatim inside a `<details><summary>Regex</summary>` block, so the narrowing — and
+  therefore the bypass region — is already fully public. The actual reason to keep it out is
+  editorial: the catalogue documents *what the scanner detects*, and the relaxed form is test
+  scaffolding describing what it deliberately does **not**. Recorded with the correction so this is
+  not later "fixed" on the disclosure grounds that do not apply.
+- **D-06b (resolved 2026-09-01):** D-06a's deny-list document is a **distinct fifth specimen**, not
+  folded into control #1. A `settings.json` carrying `permissions.deny` is a different document
+  shape from a skill file with a narrow `allowed-tools`, and it is the one that catches the
+  flag-a-security-control failure. Clean corpus therefore goes **15 → 20** non-README specimens;
+  D-06's "15 → 19" counted only the original four.
 - **D-09:** The field is **required for new patterns (PI050+)** and enforced by extending the
   per-pattern test policy ratchet that `REQUIREMENTS.md` already tracks. The existing 48 stay
   exempt — a 48-file migration inside a category PR is against GATE-04. CAT-02 and CAT-03 inherit
