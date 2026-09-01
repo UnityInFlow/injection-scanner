@@ -93,13 +93,15 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // patterns loaded: 0/7 (D-04's pre-pattern baseline — no existing
     // pattern happened to fire on any of these 7 lines).
     //
-    // INTERIM PIN (Plan 06 Task 1): PI053 skip-permissions-flag and PI054
-    // unrestricted-permission-grant shipped and re-measured at 4/7 —
-    // PI053 reaches lines 1-3 (the flag/mode-value directives), PI054
-    // reaches line 4 (the blanket-authority claim). Task 3 does the final,
-    // authoritative measurement after PI055-PI057 ship and updates the
-    // README table in the same commit (GATE-02).
-    ("tool-permission-abuse", 4, 7),
+    // Plan 06 Task 1 shipped PI053 skip-permissions-flag and PI054
+    // unrestricted-permission-grant (interim 4/7 — PI053 reaches lines 1-3,
+    // PI054 reaches line 4). Task 2 shipped PI055 skip-confirmation-directive,
+    // PI056 widen-settings-directive and PI057 disable-guardrail-directive,
+    // closing the remaining three lines: **7/7, 100%**, a delta of +7 over
+    // the pinned 0/7 baseline. Task 3 records the baseline/current/delta in
+    // the plan SUMMARY and updates the README table in the same commit
+    // (GATE-02) — the number here does not change again.
+    ("tool-permission-abuse", 7, 7),
     // tool-permission-abuse-structural: the CAT-01 (#33) structural half, 5
     // payloads. Pre-pattern baseline (03-01-SUMMARY.md, measured 2026-09-01 on
     // the shipping 48-pattern set with ZERO PI05x patterns loaded) was 0/5 —
