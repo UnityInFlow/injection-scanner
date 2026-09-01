@@ -3,14 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: unknown
-stopped_at: Phase 3 context gathered
-last_updated: "2026-09-01T07:49:29.608Z"
-state_head: 2049242f2e37e401e53ea7500c67ba1a1c34dcf0
+stopped_at: Phase 3 planned — 7 plans, 4 waves, verification passed
+last_updated: "2026-09-01T10:48:34.020Z"
+state_head: 19031354fd386f555cab06d204c5291c34e2eebc
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 2
+  total_plans: 9
   completed_plans: 2
+  percent: 0
 ---
 
 # State: injection-scanner
@@ -26,7 +27,12 @@ See: `.planning/PROJECT.md`
 
 ## Current Phase
 
-**Phase 3 — Tool & permission abuse (CAT-01, #33)** · status: **not started, ready to plan**
+**Phase 3 — Tool & permission abuse (CAT-01, #33)** · status: **planned, ready to execute**
+
+7 plans across 4 waves, 22 tasks, plan-checker passed with no blockers. Discussion locked 20
+decisions (D-01…D-17 plus D-06a/D-06b/D-08a); research and pattern mapping each corrected a
+factual error in the artifacts above them (clean-corpus count 16→15; the catalogue "disclosure"
+premise, which was false because every regex is already published).
 
 Phases 1 and 2 shipped 2026-08-30. **Both engines are done**; the remaining three phases are
 pattern categories, one PR each (GATE-04). `main` clean, in sync, **331 tests**, CI green, zero
@@ -176,10 +182,10 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
 
 ## Session Continuity
 
-Last session: 2026-09-01T07:49:29.596Z
-Stopped at: Phase 3 context gathered
+Last session: 2026-09-01T10:48:34.004Z
+Stopped at: Phase 3 planned — 7 plans, 4 waves, verification passed
 `/gsd-discuss-phase 3` (CAT-01, #33) — context gathering before planning.
-Resume file: .planning/phases/03-tool-permission-abuse-cat-01-33/03-CONTEXT.md
+Resume file: .planning/phases/03-tool-permission-abuse-cat-01-33/03-01-PLAN.md
 
 ---
 *Last updated: 2026-08-30*
