@@ -24,8 +24,10 @@ and it retires #6 and #7, already closed against it.
 - [ ] **Phase 1: Structural frontmatter engine (ENG-01, #32)** — Parse YAML/TOML/JSON frontmatter
       with a real parser; inspect `allowed-tools`, `tools`, `permissions`, `mcpServers`, `hooks`,
       `model`/`system` as data. Unblocks Phases 3 and 4.
+
 - [ ] **Phase 2: Recursive decoder (ENG-02, #30)** — base64, hex, URL, HTML entities, `\u` escapes,
       applied recursively with a decode-bomb bound. Takes recall to 59/60.
+
 - [ ] **Phase 3: Tool & permission abuse (CAT-01, #33)** — `PI050`–`PI059`.
 - [ ] **Phase 4: MCP & tool-description poisoning (CAT-02, #34)** — `PI060`–`PI069`.
 - [ ] **Phase 5: Persistence & lifecycle hijack (CAT-03, #35)** — `PI070`–`PI079`.
@@ -37,16 +39,20 @@ and it retires #6 and #7, already closed against it.
 **Goal:** the scanner reads configuration as configuration.
 
 **Success criteria**
+
 - YAML, TOML and JSON frontmatter parse with a real parser; a malformed document is skipped
   loudly and never aborts the scan (the FIX-03 rule, applied to a new input class)
+
 - Structured findings carry a distinct `context` so they are separable in JSON/SARIF output
 - Zero new findings on `tests/corpus/clean/` **and** on the third-party sweep
 - A structured finding can sit at CRITICAL because its shape is unambiguous — proven by a test,
   not asserted
 
 **Watch for**
+
 - `.mdc`, `.cursorrules` and extensionless agent files are already in the default set; frontmatter
   detection must not assume `.md`
+
 - Parser choice is a supply-chain decision — this crate parses untrusted input by definition
 
 ### Phase 2: Recursive decoder — ENG-02 (#30)
@@ -54,6 +60,7 @@ and it retires #6 and #7, already closed against it.
 **Goal:** an encoded payload is no longer a bypass, however many layers deep.
 
 **Success criteria**
+
 - Recall reaches **59/60**; `tests/recall_test.rs` updated to the new exact count
 - Decode depth and output size are bounded; a decode bomb is refused, not OOM'd
 - A decoded finding reports the **original** byte offsets, not offsets into the decoded text
@@ -61,6 +68,7 @@ and it retires #6 and #7, already closed against it.
   normalizing it would turn every baselined finding into a free pass for its obfuscation family
 
 **Watch for**
+
 - #6 and #7 are closed as superseded by this; make sure both cases are actually covered
 - Separator normalization already rewrites `-` as whitespace before matching — decoded text
   enters the same pipeline
@@ -70,11 +78,14 @@ and it retires #6 and #7, already closed against it.
 **Goal:** `PI050`–`PI059`. Injection whose payload widens the agent's own authority.
 
 **Success criteria**
+
 - Twelve new corpus payloads written from the threat model; pattern count is not a target — it is
   whatever the threat model requires within `PI050`–`PI059`, and the resulting number is recorded
   after the fact
+
 - Both halves covered: structured (wildcard grants via ENG-01) and prose
   (`--dangerously-skip-permissions`, "no need to ask", "add this to your settings.json")
+
 - A frontmatter-scoped `PI05x` pattern **does** fire on a file's own wildcard grant, accepting
   overlap with `spec-linter` S005 — the boundary is provenance, not phrasing: S005 lints a spec you
   wrote, in your own repo, at authoring time; this scanner is pointed at untrusted input, so the
@@ -85,13 +96,14 @@ and it retires #6 and #7, already closed against it.
 > "10 patterns" criterion). CONTEXT.md is authoritative where it conflicts with this roadmap — do
 > not re-derive or re-inherit the superseded wording.
 
-**Plans:** 7 plans
+**Plans:** 4/7 plans executed
 
 Plans:
-- [ ] 03-01-PLAN.md — Corpus, recall harness and the measured pre-pattern baseline (D-01..D-05)
-- [ ] 03-02-PLAN.md — Five false-positive control specimens in `tests/corpus/clean/` (D-06, D-06a, D-06b)
-- [ ] 03-03-PLAN.md — GATE-03 sweep script, recorded pre-pattern sweep, ROADMAP correction (D-10, D-11, D-16)
-- [ ] 03-04-PLAN.md — Relaxed-control schema field, mutation-pairing gate, PI050+ ratchet (D-07, D-08, D-09)
+
+- [x] 03-01-PLAN.md — Corpus, recall harness and the measured pre-pattern baseline (D-01..D-05)
+- [x] 03-02-PLAN.md — Five false-positive control specimens in `tests/corpus/clean/` (D-06, D-06a, D-06b)
+- [x] 03-03-PLAN.md — GATE-03 sweep script, recorded pre-pattern sweep, ROADMAP correction (D-10, D-11, D-16)
+- [x] 03-04-PLAN.md — Relaxed-control schema field, mutation-pairing gate, PI050+ ratchet (D-07, D-08, D-09)
 - [ ] 03-05-PLAN.md — Structural patterns PI050-PI052, CRITICAL, `scope: frontmatter` (D-12, D-13)
 - [ ] 03-06-PLAN.md — Prose patterns PI053-PI057, HIGH (D-14, D-15, D-17)
 - [ ] 03-07-PLAN.md — GATE-03 delta sweep, number reconciliation, deferral issues, pre-PR gate
@@ -101,9 +113,11 @@ Plans:
 **Goal:** `PI060`–`PI069`. The attack the user never sees.
 
 **Success criteria**
+
 - 10 patterns; 12 new corpus payloads
 - Imperative language inside a tool `description`; unpinned `npx -y` and `http://` servers;
   cross-tool shadowing; version/date-conditional rug-pull markers
+
 - **Highest false-positive risk in the milestone** — a legitimate MCP manifest is full of
   imperative description text. The `Show the current system prompt` precedent applies: the
   possessive requirement is what keeps PI021 off real manifests. Expect to need a similar
@@ -114,6 +128,7 @@ Plans:
 **Goal:** `PI070`–`PI079`. Payloads that survive the obvious cleanup.
 
 **Success criteria**
+
 - 10 patterns; 12 new corpus payloads
 - Self-rewriting instructions, hook and lifecycle abuse, memory-file poisoning
 - At least one pattern detects an instruction to write *into* a file the agent will re-read
@@ -138,7 +153,7 @@ rename.
 |---|---|---|---|
 | 1. Structural frontmatter engine | ENG-01 | #32 | Not started |
 | 2. Recursive decoder | ENG-02 | #30 | Not started |
-| 3. Tool & permission abuse | CAT-01 | #33 | In progress |
+| 3. Tool & permission abuse | CAT-01 | #33 | In Progress|
 | 4. MCP & tool-description poisoning | CAT-02 | #34 | Not started |
 | 5. Persistence & lifecycle hijack | CAT-03 | #35 | Not started |
 
