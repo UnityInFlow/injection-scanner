@@ -39,9 +39,9 @@ fn test_total_pattern_count() {
     let total: usize = categories.iter().map(|c| c.patterns.len()).sum();
     // PI001-PI049 with PI048 deliberately unfilled — base64 detection is
     // deferred to the decoder in #30, because a length-based regex cannot tell
-    // a payload from a file path. So 48, not 49 within that range. PI050
-    // (CAT-01's first structural pattern, #33) adds one more: 49.
-    assert_eq!(total, 49, "Expected 49 patterns, got {total}");
+    // a payload from a file path. So 48, not 49 within that range. CAT-01
+    // (#33) adds three structural patterns — PI050, PI051, PI052: 51.
+    assert_eq!(total, 51, "Expected 51 patterns, got {total}");
 }
 
 #[test]
@@ -1213,6 +1213,47 @@ fn test_pi050_wildcard_tool_grant() {
             // A prose sentence merely naming the tool-grant key. It produces
             // no frontmatter block at all, so no projection exists to match.
             "Add allowed-tools to your skill's frontmatter to declare tool access.",
+        ],
+    );
+}
+
+#[test]
+fn test_pi051_wildcard_permission_allow() {
+    assert_positives(
+        "PI051",
+        &[
+            "{\"permissions\": {\"allow\": [\"*\"]}}\n",
+            "{\"permissions\": {\"allow\": [\"Bash(*)\"]}}\n",
+            "---\npermissions:\n  allow:\n    - Bash(*)\n---\n",
+        ],
+    );
+    assert_negatives(
+        "PI051",
+        &[
+            // D-06a's trap: the identical textual shape under `.deny` must
+            // never fire — a deny entry is a security control, not an attack.
+            "{\"permissions\": {\"deny\": [\"Bash(*)\"]}}\n",
+            // A narrow, real allow entry.
+            "{\"permissions\": {\"allow\": [\"Bash(npm test)\"]}}\n",
+        ],
+    );
+}
+
+#[test]
+fn test_pi052_bypass_permission_mode() {
+    assert_positives(
+        "PI052",
+        &[
+            "---\nname: fast-track-agent\npermissions:\n  defaultMode: bypassPermissions\n---\n",
+            "{\"permissions\": {\"defaultMode\": \"bypassPermissions\"}}\n",
+            "{\"permissions\": {\"allow\": [\"Bash(npm test)\"], \"defaultMode\": \"bypassPermissions\"}}\n",
+        ],
+    );
+    assert_negatives(
+        "PI052",
+        &[
+            "---\npermissions:\n  defaultMode: default\n---\n",
+            "{\"permissions\": {\"defaultMode\": \"auto\"}}\n",
         ],
     );
 }
