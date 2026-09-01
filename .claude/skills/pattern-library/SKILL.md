@@ -35,6 +35,7 @@ could plausibly fire on ordinary prose.
     name: descriptive-name
     example: "the plainest form of the attack, one line"
     counter_example: "legitimate text that looks like it but must not match"
+    relaxed_pattern: "a widened variant of `pattern` with the narrowing removed"  # required for PI050+
     severity: HIGH          # optional, overrides the category default
     case_sensitive: true    # optional, default false
     raw_only: true          # optional, default false — see the warning below
@@ -56,6 +57,18 @@ documented claim the scanner no longer honours.
 Unicode-normalized pass, which is what stops a confusable character from
 walking a payload past the pattern.
 
+**`relaxed_pattern` is required for `PI050` and above** (D-09; the existing 48
+patterns stay exempt), and optional below that. It is a deliberately widened
+variant of `pattern` with the narrowing removed, never loaded into the live
+scanner — its only job is to be swapped in for `pattern` by
+`tests/pattern_relaxed_control_test.rs`, which asserts the shipped scanner
+does not match your `counter_example` while the relaxed one does. That is
+GATE-05: "break it and confirm the corpus goes red" (below) as an enforced CI
+gate rather than a step a reviewer has to remember. It is **not** rendered
+into `docs/PATTERN-CATALOGUE.md` (D-08a) — the shipped regex is already
+public there, and this field describes what the scanner deliberately does
+not detect, not a detection to document.
+
 **Tags never change behaviour.** They are metadata. If you want to opt out of
 the normalized pass, set `raw_only`.
 
@@ -67,12 +80,17 @@ the normalized pass, set `raw_only`.
 | `pattern_example_test` | Your `example` no longer matches, or your `counter_example` now does — the regex moved. |
 | `corpus_test` | Your pattern fires on a legitimate document in `tests/corpus/clean/`. **Fix the pattern, not the corpus.** |
 | `markdown_context_test` | The attack-corpus counts are pinned exactly. A rise is as suspicious as a fall — explain it. |
+| `pattern_relaxed_control_test` | Your `relaxed_pattern` does not compile, is identical to `pattern`, or does not actually catch the `counter_example` your shipped pattern misses — the false-positive control is not load-bearing. Required for PI050+ (`pattern_policy_test::every_pi05x_pattern_carries_a_relaxed_pattern`). |
 
 ### Prove the false-positive control, do not assert it
 
 **Widening a pattern? Name the thing keeping it narrow, then break it and confirm
-the corpus goes red.** Two PRs in a row found a real over-widening this way, and
-in one of them the corpus was *not* holding the property the pattern relied on:
+the corpus goes red.** For `PI050` and above this is no longer a manual step —
+set `relaxed_pattern` to the widened form and `tests/pattern_relaxed_control_test.rs`
+(GATE-05) proves it in CI: the shipped pattern must miss `counter_example` while
+`relaxed_pattern` catches it. Below `PI050` it is still a manual discipline. Two
+PRs in a row found a real over-widening this way, and in one of them the corpus
+was *not* holding the property the pattern relied on:
 
 - **#95.** PI021's disclosure arms depend on requiring the possessive (`your
   system prompt`, not `the system prompt`). Relaxing it to `(?:your|the)` left
@@ -92,7 +110,7 @@ Green tests immediately after a widening are the weakest evidence in this repo.
 
 ## Scan the whole repo, not just the corpus
 
-`tests/corpus/clean/` is fourteen files. It does not cover this repo's own prose,
+`tests/corpus/clean/` is fifteen files. It does not cover this repo's own prose,
 and **the scanner flagged its own documentation in two consecutive PRs** — both
 times `docs/DETECTION-BACKLOG.md`, which quotes payload text in double quotes
 rather than backticks. The 2026-08 audit listed "the scanner flags its own
@@ -159,7 +177,7 @@ Grading criteria live in `PATTERNS.md`. Two things worth repeating:
 - [ ] No verbatim payload written into a new file outside `examples/`, `patterns/` or `tests/` — this repo scans itself
 - [ ] If you touched `examples/` or `patterns/`, regenerate the code-scanning baseline:
       `cargo run --release -- check . --exclude '.planning/**' --write-baseline .github/code-scanning-baseline.json`
-- [ ] False-positive control mutation-tested — break it, confirm the corpus goes red
+- [ ] False-positive control mutation-tested — `relaxed_pattern` set and `pattern_relaxed_control_test` green (required PI050+, still-recommended discipline below it)
 - [ ] Whole-repo self-scan clean outside `examples/`, `patterns/`, `tests/`, `tools/`
 - [ ] Recall re-measured: `cargo test --test recall_test`, `EXPECTED` and the README
       table updated together if it moved
