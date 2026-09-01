@@ -96,7 +96,7 @@ and it retires #6 and #7, already closed against it.
 > "10 patterns" criterion). CONTEXT.md is authoritative where it conflicts with this roadmap — do
 > not re-derive or re-inherit the superseded wording.
 
-**Plans:** 4/7 plans executed
+**Plans:** 5/7 plans executed
 
 Plans:
 
@@ -104,7 +104,7 @@ Plans:
 - [x] 03-02-PLAN.md — Five false-positive control specimens in `tests/corpus/clean/` (D-06, D-06a, D-06b)
 - [x] 03-03-PLAN.md — GATE-03 sweep script, recorded pre-pattern sweep, ROADMAP correction (D-10, D-11, D-16)
 - [x] 03-04-PLAN.md — Relaxed-control schema field, mutation-pairing gate, PI050+ ratchet (D-07, D-08, D-09)
-- [ ] 03-05-PLAN.md — Structural patterns PI050-PI052, CRITICAL, `scope: frontmatter` (D-12, D-13)
+- [x] 03-05-PLAN.md — Structural patterns PI050-PI052, CRITICAL, `scope: frontmatter` (D-12, D-13)
 - [ ] 03-06-PLAN.md — Prose patterns PI053-PI057, HIGH (D-14, D-15, D-17)
 - [ ] 03-07-PLAN.md — GATE-03 delta sweep, number reconciliation, deferral issues, pre-PR gate
 
