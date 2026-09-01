@@ -20,7 +20,7 @@ entry here cannot drift from the regex beside it without failing the build.
 
 ## Summary
 
-**48 patterns** across 5 categories.
+**49 patterns** across 6 categories.
 
 | Category | Patterns | Default severity |
 |---|---|---|
@@ -29,10 +29,11 @@ entry here cannot drift from the regex beside it without failing the build.
 | exfiltration | 10 | CRITICAL |
 | jailbreak | 10 | HIGH |
 | encoding | 9 | HIGH |
+| tool_permission_abuse | 1 | HIGH |
 
 | CRITICAL | HIGH | MEDIUM | LOW |
 |---|---|---|---|
-| 14 | 21 | 12 | 1 |
+| 15 | 21 | 12 | 1 |
 
 ---
 
@@ -1400,6 +1401,49 @@ Does **not** catch:
 
 ```regex
 \x{1B}\[[0-9;?]*[A-Za-z]
+```
+
+</details>
+
+
+---
+
+## tool_permission_abuse
+
+### PI050 — `wildcard-tool-grant`
+
+**CRITICAL** · `tool-permission-abuse`
+
+A skill or manifest grants unrestricted tool access (a bare `*` or `Bash(*)`) in its own frontmatter
+
+Catches:
+
+```text
+---
+allowed-tools: "*"
+---
+
+```
+
+The characters that matter here are invisible; escaped, that reads `---\u{000A}allowed-tools: "*"\u{000A}---\u{000A}`.
+
+Does **not** catch:
+
+```text
+---
+allowed-tools:
+  - Read
+  - Grep
+---
+
+```
+
+**Fix:** Scope the grant to the specific tools, and specific arguments, the skill actually needs.
+
+<details><summary>Regex</summary>
+
+```regex
+^(?:allowed-tools|tools)(?:\[\d+\])?\s*=\s*(?:\*|[A-Za-z][A-Za-z0-9_]*\(\s*\*\s*\))\s*$
 ```
 
 </details>
