@@ -32,11 +32,26 @@ One file per category the README claims to detect. One payload per line; blank
 lines and lines beginning with `#` are ignored. Each line is scanned as its own
 document, so recall is per payload rather than per file.
 
-Categories that are deliberately **not** here: tool and permission abuse,
-MCP/tool-description poisoning, indirect RAG-borne injection. The README does
-not claim those yet — they are the `PI050`–`PI089` ranges deferred to v0.2.0.
-Including them would depress the headline number for detection the tool never
+Categories that are deliberately **not** here yet: MCP/tool-description
+poisoning, indirect RAG-borne injection. The README does not claim those
+yet — they are the `PI060`–`PI089` ranges deferred within v0.2.0. Including
+them would depress the headline number for detection the tool never
 advertised. Add them here in the same commit that claims them.
+
+Tool and permission abuse (`PI050`–`PI059`) is no longer in that list: its 12
+threat-model payloads landed ahead of any pattern (D-04), so the corpus
+proves the ordering rather than asserting it. See `structural/` below for
+where its structured half lives.
+
+## The `structural/` directory
+
+Not every payload in this category is a line. A wildcard tool grant only
+exists as an attack once it is sitting inside a real, parseable YAML/TOML/JSON
+document — a single line split out of that document is not the attack, it is
+a fragment of one. `structural/` is a second collection mode: each file
+there is one whole payload, scanned as a single document rather than split
+into lines. See `structural/README.md` for the format and its fence-position
+constraint.
 
 The `encoding.md` payloads are different in kind: each one is an obfuscation of
 a payload the scanner catches in plain form, so a miss there means an evasion
