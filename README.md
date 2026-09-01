@@ -277,9 +277,13 @@ threat model rather than from the regexes, and `tests/recall_test.rs` pins the n
 | Jailbreaks | 12 / 12 | **100%** |
 | Role Override | 11 / 12 | **92%** |
 | Encoding/Obfuscation | 11 / 12 | **91.7%** |
-| **Total** | **58 / 60** | **96.7%** |
+| Tool & Permission Abuse | 0 / 12 | **0%** |
+| **Total** | **58 / 72** | **80.6%** |
 
-*Measured 2026-08-30 on the current pattern set, after the recursive decoder (#30).*
+*Measured 2026-08-30 on the current pattern set, after the recursive decoder (#30). The Tool &
+Permission Abuse row was measured 2026-09-01, before any `PI050`–`PI059` pattern exists (D-04) —
+its 12 threat-model payloads landed first so this 0/12 is the pre-pattern baseline, not a claim
+about a shipped detector. See [issue #33](https://github.com/UnityInFlow/injection-scanner/issues/33).*
 
 **How to read that.** The number was **10 / 60** when this corpus was first written, and the
 difference is not that the attacks got easier. It is that the patterns stopped being literal
@@ -316,13 +320,15 @@ far a pattern may go, so it grows with them.
 
 ### What this still is not
 
-Recall is measured against 60 payloads written from the threat model. It is not a claim about an
+Recall is measured against 72 payloads written from the threat model. It is not a claim about an
 adversary who has read the pattern library — every pattern here is public, and a determined
 attacker can phrase around a regex. Treat it as a pre-commit tripwire that now catches the
 common shapes of all five documented categories, not as a control that stops a motivated
-attacker. Three attack families the README does not yet claim — tool and permission abuse, MCP
-and tool-description poisoning, and indirect RAG-borne injection — have no patterns at all and
-are deliberately absent from the corpus, so they are not averaged into the number above.
+attacker. Tool and permission abuse is no longer absent from the corpus — its 12 threat-model
+payloads are measured above — but it still has no patterns at this commit; that is the deliberate
+ordering [GATE-01](.planning/REQUIREMENTS.md) exists to make visible. Two further attack
+families — MCP and tool-description poisoning, and indirect RAG-borne injection — have no
+corpus and no patterns at all, and are not averaged into the number above.
 
 The counts are pinned exactly in CI, in both directions: an improvement fails the build too, so
 the published figure cannot drift while the real one moves.
