@@ -33,6 +33,7 @@ Ordered by dependency. Each is one PR, with its own false-positive sweep.
       and `system` overrides — rather than matched with regex over raw lines. Findings from
       structured data carry near-zero false-positive risk because the shape is unambiguous, which
       is what lets them sit at CRITICAL.
+
 - [ ] **ENG-02** (#30): A recursive decoder walks base64, hex, URL-encoding, HTML entities and
       `\u` escapes, re-running detection on each decoded layer, bounded against decode bombs.
       Nested encodings (base64 inside an HTML entity inside a URL escape) are the real shape and
@@ -45,26 +46,32 @@ Ordered by dependency. Each is one PR, with its own false-positive sweep.
       own authority: wildcard tool grants, `--dangerously-skip-permissions` / `bypassPermissions`
       directives, instructions to edit `settings.json` or disable a hook. The agentic equivalent of
       privilege escalation. Depends on **ENG-01** for the frontmatter half.
+
 - [ ] **CAT-02** (#34): `PI060`–`PI069` — MCP & tool-description poisoning. Instructions hidden in
       a tool `description`, read by the model on every call and never shown to the user; unpinned
       `npx -y` servers and `http://` endpoints; cross-tool shadowing; rug-pull markers that are
       version- or date-conditional. Depends on **ENG-01** for the `mcpServers` half.
+
 - [ ] **CAT-03** (#35): `PI070`–`PI079` — persistence & lifecycle hijack. Payloads that survive
       the obvious cleanup: instructions that re-write themselves into a config, hook and lifecycle
       abuse, memory-file poisoning.
 
 ### Gates — non-negotiable, they are what made v0.1.0 trustworthy
 
-- [ ] **GATE-01**: Every new category adds **12 corpus payloads** to `tests/corpus/attack/`,
+- [x] **GATE-01**: Every new category adds **12 corpus payloads** to `tests/corpus/attack/`,
       written from the threat model and **never derived from the patterns** — a corpus built from
       each pattern's own `example` scores 100% by construction and measures nothing.
+
 - [ ] **GATE-02**: `tests/recall_test.rs` continues to pin counts **exactly**, not as a floor, so
       an improvement fails the build too and the published number cannot go stale.
+
 - [ ] **GATE-03**: Every pattern change is swept against ~1,300 files of **real third-party
       documentation**, not only the 18-file clean corpus. The 2026-08-29 sweep found 2 CRITICAL and
       25 HIGH false positives the corpus was silent about.
+
 - [ ] **GATE-04**: Each category ships as **its own PR**. Widening four categories at once produces
       an unreviewable false-positive blast radius — this is a recorded lesson, not a preference.
+
 - [ ] **GATE-05**: The false-positive control in each PR is **mutation-tested** — two of four
       v0.1.0 widenings had a control the corpus was not actually holding.
 
@@ -120,8 +127,10 @@ Tracked, not in this roadmap.
    The claim came from a comment in `tests/recall_test.rs` and was propagated into this file, into
    STATE.md and into the v0.1.0 release notes without being checked. Two misses stay, both for
    stated reasons.
+
 2. Three new categories are measured on their **own** 36 new payloads, and that number is published
    in the README alongside the existing table.
+
 3. The clean corpus and the third-party sweep both stay at **zero** regressions.
 4. Library grows 48 → ~78 patterns with the per-pattern test policy ratchet still green.
 
