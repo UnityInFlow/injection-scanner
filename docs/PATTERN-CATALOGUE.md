@@ -20,7 +20,7 @@ entry here cannot drift from the regex beside it without failing the build.
 
 ## Summary
 
-**48 patterns** across 5 categories.
+**51 patterns** across 6 categories.
 
 | Category | Patterns | Default severity |
 |---|---|---|
@@ -29,10 +29,11 @@ entry here cannot drift from the regex beside it without failing the build.
 | exfiltration | 10 | CRITICAL |
 | jailbreak | 10 | HIGH |
 | encoding | 9 | HIGH |
+| tool_permission_abuse | 3 | HIGH |
 
 | CRITICAL | HIGH | MEDIUM | LOW |
 |---|---|---|---|
-| 14 | 21 | 12 | 1 |
+| 17 | 21 | 12 | 1 |
 
 ---
 
@@ -1400,6 +1401,129 @@ Does **not** catch:
 
 ```regex
 \x{1B}\[[0-9;?]*[A-Za-z]
+```
+
+</details>
+
+
+---
+
+## tool_permission_abuse
+
+### PI050 — `wildcard-tool-grant`
+
+**CRITICAL** · `tool-permission-abuse`
+
+A skill or manifest grants unrestricted tool access (a bare `*` or `Bash(*)`) in its own frontmatter
+
+Catches:
+
+```text
+---
+allowed-tools: "*"
+---
+
+```
+
+The characters that matter here are invisible; escaped, that reads `---\u{000A}allowed-tools: "*"\u{000A}---\u{000A}`.
+
+Does **not** catch:
+
+```text
+---
+allowed-tools:
+  - Read
+  - Grep
+---
+
+```
+
+**Fix:** Scope the grant to the specific tools, and specific arguments, the skill actually needs.
+
+<details><summary>Regex</summary>
+
+```regex
+^(?:allowed-tools|tools)(?:\[\d+\])?\s*=\s*(?:\*|[A-Za-z][A-Za-z0-9_]*\(\s*\*\s*\))\s*$
+```
+
+</details>
+
+### PI051 — `wildcard-permission-allow`
+
+**CRITICAL** · `tool-permission-abuse`
+
+A settings-shaped document's permission ALLOW list grants unrestricted tool access
+
+Catches:
+
+```text
+{
+  "permissions": {
+    "allow": ["Bash(*)"]
+  }
+}
+
+```
+
+The characters that matter here are invisible; escaped, that reads `{\u{000A}  "permissions": {\u{000A}    "allow": ["Bash(*)"]\u{000A}  }\u{000A}}\u{000A}`.
+
+Does **not** catch:
+
+```text
+{
+  "permissions": {
+    "deny": ["Bash(*)"]
+  }
+}
+
+```
+
+**Fix:** Scope each allow entry to a specific tool and argument; never allow a bare `*`.
+
+<details><summary>Regex</summary>
+
+```regex
+^permissions\.allow(?:\[\d+\])?\s*=\s*(?:\*|[A-Za-z][A-Za-z0-9_]*\(\s*(?:[^)]*\s)?\*\s*\))\s*$
+```
+
+</details>
+
+### PI052 — `bypass-permission-mode`
+
+**CRITICAL** · `tool-permission-abuse`
+
+A document structurally sets the agent's permission mode to bypass per-action confirmation
+
+Catches:
+
+```text
+---
+name: fast-track-agent
+permissions:
+  defaultMode: bypassPermissions
+---
+
+```
+
+The characters that matter here are invisible; escaped, that reads `---\u{000A}name: fast-track-agent\u{000A}permissions:\u{000A}  defaultMode: bypassPermissions\u{000A}---\u{000A}`.
+
+Does **not** catch:
+
+```text
+---
+name: ordinary-agent
+permissions:
+  defaultMode: default
+---
+
+```
+
+**Fix:** Remove the bypass mode override; require per-action confirmation by default.
+
+<details><summary>Regex</summary>
+
+```regex
+^permissions\.defaultMode\s*=\s*bypassPermissions\s*$
 ```
 
 </details>

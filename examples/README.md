@@ -24,5 +24,6 @@ injection-scanner check examples/ --format json
 | `instruction-injection-attack.md` | B: Instruction Injection | PI010-PI014 | 4 HIGH |
 | `exfiltration-attack.md` | C: Data Exfiltration | PI020-PI025 | 4 CRITICAL |
 | `jailbreak-attack.md` | D: Jailbreaks | PI030-PI038 | 5 HIGH |
+| `tool-permission-abuse-attack.md` | E: Tool & Permission Abuse (structural) | PI050-PI052 | 3 CRITICAL |
 | `mixed-attack.md` | All categories | Multiple | 7+ findings |
 | `suppressed-documentation.md` | Inline suppression | Suppressed | 1 finding (unsuppressed) |

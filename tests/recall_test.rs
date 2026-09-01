@@ -35,6 +35,10 @@ const STRUCTURAL_CATEGORY: &str = "tool-permission-abuse-structural";
 ///
 /// `(category, detected, total)`
 /// Measured 2026-08-28 on the v0.1.0-dev pattern set: **56 of 60, 93.3%**.
+/// CAT-01 (#33) then added two new categories/rows totalling 12 payloads
+/// (7 prose, 5 structural); with PI050-PI052 shipped (Plan 05) the current
+/// total is **63 of 72, 87.5%** — see the `tool-permission-abuse` and
+/// `tool-permission-abuse-structural` rows below for the breakdown.
 ///
 /// Started this milestone at 10/60. The dividing line was never how hard the
 /// attacks are - it is whether a pattern matches *shape* or a literal phrase.
@@ -92,15 +96,19 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // baseline was zero.
     ("tool-permission-abuse", 0, 7),
     // tool-permission-abuse-structural: the CAT-01 (#33) structural half, 5
-    // payloads. Measured 2026-09-01 on the shipping 48-pattern set with ZERO
-    // PI05x patterns loaded: 0/5 (D-04's pre-pattern baseline). Zero is
-    // expected by construction: no pattern declares `scope: frontmatter`
-    // yet, and scanner.rs short-circuits the whole structural pass when none
-    // do. A non-zero count here without a frontmatter-scoped pattern loaded
-    // would mean that short-circuit is not doing what its comment says.
-    // This row exists so the structural half cannot silently regress to
-    // zero once patterns land (D-02).
-    (STRUCTURAL_CATEGORY, 0, 5),
+    // payloads. Pre-pattern baseline (03-01-SUMMARY.md, measured 2026-09-01 on
+    // the shipping 48-pattern set with ZERO PI05x patterns loaded) was 0/5 —
+    // expected by construction, since no pattern declared `scope: frontmatter`
+    // yet and scanner.rs short-circuits the whole structural pass when none
+    // do. Plan 05 (03-05-PLAN.md) shipped PI050 wildcard-tool-grant, PI051
+    // wildcard-permission-allow and PI052 bypass-permission-mode — all three
+    // `scope: frontmatter`, all CRITICAL (D-12) — and re-measured 2026-09-01:
+    // **5/5**, a delta of +5 over the pinned 0/5 baseline. This is GATE-01's
+    // evidence that the structural pass, inert since ENG-01 shipped, is now
+    // armed in the released binary. The prose row directly above was
+    // re-measured in the same run and did NOT move (still 0/7) — no
+    // spillover from a structural pattern onto a prose payload.
+    (STRUCTURAL_CATEGORY, 5, 5),
 ];
 
 fn scanner() -> Scanner {
