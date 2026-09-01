@@ -70,11 +70,20 @@ and it retires #6 and #7, already closed against it.
 **Goal:** `PI050`–`PI059`. Injection whose payload widens the agent's own authority.
 
 **Success criteria**
-- 10 patterns; 12 new corpus payloads written from the threat model
+- Twelve new corpus payloads written from the threat model; pattern count is not a target — it is
+  whatever the threat model requires within `PI050`–`PI059`, and the resulting number is recorded
+  after the fact
 - Both halves covered: structured (wildcard grants via ENG-01) and prose
   (`--dangerously-skip-permissions`, "no need to ask", "add this to your settings.json")
-- Complements `spec-linter` S005 rather than duplicating it — S005 lints the spec's own
-  permissions; this detects a *document persuading someone* to widen them
+- A frontmatter-scoped `PI05x` pattern **does** fire on a file's own wildcard grant, accepting
+  overlap with `spec-linter` S005 — the boundary is provenance, not phrasing: S005 lints a spec you
+  wrote, in your own repo, at authoring time; this scanner is pointed at untrusted input, so the
+  same `allowed-tools: *` is a lint finding in your own CLAUDE.md and an attack in a skill someone
+  shipped you
+
+> Both corrections above come from `03-CONTEXT.md` D-11 (the S005-boundary criterion) and D-16 (the
+> "10 patterns" criterion). CONTEXT.md is authoritative where it conflicts with this roadmap — do
+> not re-derive or re-inherit the superseded wording.
 
 **Plans:** 7 plans
 
@@ -129,7 +138,7 @@ rename.
 |---|---|---|---|
 | 1. Structural frontmatter engine | ENG-01 | #32 | Not started |
 | 2. Recursive decoder | ENG-02 | #30 | Not started |
-| 3. Tool & permission abuse | CAT-01 | #33 | Not started |
+| 3. Tool & permission abuse | CAT-01 | #33 | In progress |
 | 4. MCP & tool-description poisoning | CAT-02 | #34 | Not started |
 | 5. Persistence & lifecycle hijack | CAT-03 | #35 | Not started |
 
