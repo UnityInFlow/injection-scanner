@@ -83,17 +83,24 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // ordinary documentation. The two sentences are not separable by regex, so
     // the payload stays missed on purpose.
     ("role-override", 11, 12),
-    // tool-permission-abuse-structural: the CAT-01 (#33) structural half,
-    // measured on the shipping 48-pattern set with ZERO PI05x patterns
-    // loaded (D-04 — the corpus lands first, and this is the pre-pattern
-    // baseline). Zero is expected by construction: no pattern declares
-    // `scope: frontmatter` yet, and scanner.rs short-circuits the whole
-    // structural pass when none do. A non-zero count here without a
-    // frontmatter-scoped pattern loaded would mean that short-circuit is not
-    // doing what its comment says. This row exists so the structural half
-    // cannot silently regress to zero once patterns land (D-02) — Task 1
-    // measures only the tracer payload; Task 2 raises the total to 12.
-    (STRUCTURAL_CATEGORY, 0, 1),
+    // tool-permission-abuse: the CAT-01 (#33) prose half, 7 payloads (D-03 —
+    // no ratio was set in advance; this is what the threat model produced).
+    // Measured 2026-09-01 on the shipping 48-pattern set with ZERO PI05x
+    // patterns loaded: 0/7 (D-04's pre-pattern baseline — no existing
+    // pattern happened to fire on any of these 7 lines). Task 3 attributes
+    // this by pattern id in the plan SUMMARY, or states explicitly that the
+    // baseline was zero.
+    ("tool-permission-abuse", 0, 7),
+    // tool-permission-abuse-structural: the CAT-01 (#33) structural half, 5
+    // payloads. Measured 2026-09-01 on the shipping 48-pattern set with ZERO
+    // PI05x patterns loaded: 0/5 (D-04's pre-pattern baseline). Zero is
+    // expected by construction: no pattern declares `scope: frontmatter`
+    // yet, and scanner.rs short-circuits the whole structural pass when none
+    // do. A non-zero count here without a frontmatter-scoped pattern loaded
+    // would mean that short-circuit is not doing what its comment says.
+    // This row exists so the structural half cannot silently regress to
+    // zero once patterns land (D-02).
+    (STRUCTURAL_CATEGORY, 0, 5),
 ];
 
 fn scanner() -> Scanner {
@@ -361,12 +368,22 @@ fn every_claimed_category_has_a_corpus_file() {
 #[test]
 fn no_payload_is_duplicated_across_the_corpus() {
     // A duplicated payload counts twice and inflates whichever side it lands
-    // on, so the headline number stops meaning what it says.
+    // on, so the headline number stops meaning what it says. Structural
+    // payloads are included as whole-file strings — a copy-pasted structural
+    // document would otherwise pad the twelve unnoticed.
     let mut seen: Vec<(String, String)> = Vec::new();
     for (name, path) in categories() {
         for line in payloads(&path) {
             seen.push((line, name.clone()));
         }
+    }
+    for (path, content) in structural_payloads() {
+        let name = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("<unknown>")
+            .to_string();
+        seen.push((content, format!("{STRUCTURAL_CATEGORY}/{name}")));
     }
     let mut sorted = seen.clone();
     sorted.sort();
@@ -543,5 +560,32 @@ patterns:
         "the prose-scoped variant of the identical regex fired on a structural \
          payload — without this negative control, a silent structural pass and a \
          working one are indistinguishable"
+    );
+}
+
+/// GATE-01: exactly 12 threat-model payloads for CAT-01, split across the two
+/// rows however the threat model produced (D-03 — no ratio was set in
+/// advance). Reads both `EXPECTED` rows directly rather than re-deriving the
+/// split, so this fails loudly if either row's total drifts without the
+/// other being updated to match.
+#[test]
+fn the_cat_01_payload_totals_sum_to_twelve() {
+    let prose_total = EXPECTED
+        .iter()
+        .find(|(c, _, _)| *c == "tool-permission-abuse")
+        .map(|(_, _, total)| *total)
+        .unwrap_or_else(|| panic!("\"tool-permission-abuse\" is missing from EXPECTED"));
+    let structural_total = EXPECTED
+        .iter()
+        .find(|(c, _, _)| *c == STRUCTURAL_CATEGORY)
+        .map(|(_, _, total)| *total)
+        .unwrap_or_else(|| panic!("{STRUCTURAL_CATEGORY} is missing from EXPECTED"));
+    assert_eq!(
+        prose_total + structural_total,
+        12,
+        "CAT-01 (#33, GATE-01) requires exactly 12 threat-model payloads; \
+         EXPECTED has {prose_total} prose + {structural_total} structural = \
+         {}",
+        prose_total + structural_total
     );
 }
