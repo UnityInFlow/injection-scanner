@@ -57,7 +57,7 @@ dangerous-command detection (`sudo`, `rm -rf`, `chmod 777` — deferred, see bel
 
 ### False-positive control
 
-- **D-06:** Four new documents join `tests/corpus/clean/` (16 → 20) **before** the patterns land.
+- **D-06:** Four new documents join `tests/corpus/clean/` (**15 → 19** non-README specimens) **before** the patterns land.
   Today `grep -rniE "allowed-tools|dangerously-skip|bypassPermissions|settings\.json|permission"
   tests/corpus/clean/` returns **nothing**, so every CAT-01 pattern would otherwise ship with a
   control that cannot fail:
@@ -72,6 +72,18 @@ dangerous-command detection (`sudo`, `rm -rf`, `chmod 777` — deferred, see bel
      hardest case in the category, differing from the payload only by audience and provenance. If a
      pattern cannot stay off this, the pattern needs narrowing before it ships;
   4. an **MCP/agent setup guide** that legitimately says "add this to your settings.json".
+  **Corrected 2026-09-01** (research pass): the count above originally read "16 → 20", which counted
+  `README.md`. Measured: `ls tests/corpus/clean/ | grep -v README` is **15**, and `corpus_test.rs`'s
+  own `specimens()` filter excludes the README. Recorded because the milestone has a *blocking*
+  anti-pattern about inheriting a documented number without measuring it.
+- **D-06a (added from research):** A `permissions`-scoped pattern **must require the `.allow` path
+  segment**. A real `settings.json` carries a `permissions.deny` array whose entries
+  (`Read(.env)`, `Read(.secrets)`) have the same shape as the attack, so a pattern keyed on
+  `permissions` alone would flag a **security control** as an attack — the worst possible false
+  positive for this tool. Verified in `~/.claude/settings.json` on this machine. **Note the research
+  report attributed this to "this repo's own `.claude/settings.json`" — that is wrong; this repo's
+  file contains only a `hooks` block and no `permissions` key at all. The risk is real, the
+  attribution was not.** The deny-list document is worth adding as a fifth clean-corpus specimen.
 - **D-07:** GATE-05 is enforced by an **automated pairing test in CI**, not a manual step. For each
   new pattern: assert the shipped pattern stays **off** its control document, *and* that a
   documented **relaxed** form of the same pattern **does** match it. A control that would pass even
