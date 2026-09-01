@@ -16,6 +16,7 @@ patterns:
     raw_only: false        # optional -- default false, see below
     example: "the plainest form of the attack"          # REQUIRED
     counter_example: "legitimate text that must not match"  # optional, expected
+    relaxed_pattern: "a deliberately widened form of `pattern`"  # required for PI050+, see below
     description: "What this detects"
     remediation: "How to fix"
     tags: [tag1, tag2]
@@ -73,6 +74,42 @@ to ask why.
 > search. If you want to opt out of the normalized pass, set `raw_only`; naming
 > a tag `homoglyph` does nothing. This is pinned by
 > `tests/raw_only_test.rs::a_tag_alone_can_never_disable_the_normalized_pass`.
+
+### `relaxed_pattern`
+
+**Required for `PI050` and above** (D-09); optional and unused below that
+range — the existing 48 patterns stay exempt.
+
+`relaxed_pattern` is a deliberately **widened** variant of your pattern's own
+regex, with the narrowing removed. It is never loaded into the live scanner —
+it exists only so `tests/pattern_relaxed_control_test.rs` can prove your
+narrowing is actually load-bearing rather than asserted in a PR description.
+That test builds a second `Scanner` where `relaxed_pattern` stands in for
+`pattern`, and asserts the shipped scanner does **not** match your
+`counter_example` while the relaxed one **does**.
+
+This exists because "break it and confirm the corpus goes red" was a ritual,
+not a gate, and two PRs in a row shipped a widening whose control was not
+actually held by the corpus:
+
+- **#95.** PI021's disclosure arms depend on requiring the possessive (`your
+  system prompt`, not `the system prompt`). Relaxing it to `(?:your|the)`
+  left the entire clean corpus green — the near-miss survived by an
+  unrelated accident of pluralisation, not because the corpus caught it.
+- **#97.** PI018's precedence arm produced six HIGH findings on ordinary
+  configuration prose in its first draft. HIGH is what `install-hook` blocks
+  commits at.
+
+Like `raw_only`, it is deliberately a schema field rather than a tag, so a
+typo in a community pattern file fails to load instead of silently shipping
+without a mutation-tested control.
+
+`relaxed_pattern` is **not** rendered into
+[`docs/PATTERN-CATALOGUE.md`](docs/PATTERN-CATALOGUE.md) (D-08a). The
+catalogue documents what the scanner detects — and the shipped regex is
+already public there in the `Regex` details block — while this field
+describes what the scanner deliberately does *not* detect. That is test
+scaffolding, not a detection to disclose.
 
 ## Categories
 

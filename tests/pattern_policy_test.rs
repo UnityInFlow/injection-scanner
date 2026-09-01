@@ -211,3 +211,45 @@ fn a_legacy_pattern_that_now_complies_must_leave_the_list() {
          so they stay enforced: {graduated:?}"
     );
 }
+
+// -------------------------------------- D-09: PI050+ relaxed_pattern ratchet
+//
+// GATE-05 (issue #33) requires new patterns in the PI050 range and above to
+// carry `relaxed_pattern`, so their false-positive control is mutation-tested
+// by `tests/pattern_relaxed_control_test.rs` rather than merely asserted in a
+// PR description. The existing 48 patterns (PI001-PI049) stay exempt — D-09
+// decided a 48-file retrofit migration does not belong inside a single
+// category PR (GATE-04 discipline). Unlike `LEGACY_UNTESTED` above, there is
+// no exemption list here: every id from PI050 up is new, so the rule is
+// unconditional.
+//
+// This test is deliberately vacuous until Plan 05 ships the first pattern in
+// the PI050 range — at this commit `all_ids()` contains nothing in that
+// range, so the filter below matches zero patterns and the assertion passes
+// trivially. What stops that vacuity from hiding a broken check is
+// `tests/pattern_relaxed_control_test.rs`'s own mechanism self-test, which
+// proves the relaxed_pattern -> Scanner pairing works via a synthetic
+// fixture independent of any shipped pattern. CAT-02 and CAT-03 inherit this
+// requirement automatically, since it keys on id range rather than category.
+#[test]
+fn every_pi05x_pattern_carries_a_relaxed_pattern() {
+    let categories = load_embedded_patterns().expect("patterns must load");
+    let missing: Vec<&str> = categories
+        .iter()
+        .flat_map(|c| c.patterns.iter())
+        .filter(|p| {
+            let Some(num) = p.id.strip_prefix("PI").and_then(|n| n.parse::<u32>().ok()) else {
+                return false;
+            };
+            (50..=59).contains(&num)
+        })
+        .filter(|p| p.relaxed_pattern.as_deref().unwrap_or("").trim().is_empty())
+        .map(|p| p.id.as_str())
+        .collect();
+
+    assert!(
+        missing.is_empty(),
+        "every pattern from PI050 up needs a `relaxed_pattern:` — GATE-05 requires its \
+         false-positive control to be mutation-tested, not merely asserted. Missing: {missing:?}"
+    );
+}
