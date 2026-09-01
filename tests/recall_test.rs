@@ -91,10 +91,15 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // no ratio was set in advance; this is what the threat model produced).
     // Measured 2026-09-01 on the shipping 48-pattern set with ZERO PI05x
     // patterns loaded: 0/7 (D-04's pre-pattern baseline — no existing
-    // pattern happened to fire on any of these 7 lines). Task 3 attributes
-    // this by pattern id in the plan SUMMARY, or states explicitly that the
-    // baseline was zero.
-    ("tool-permission-abuse", 0, 7),
+    // pattern happened to fire on any of these 7 lines).
+    //
+    // INTERIM PIN (Plan 06 Task 1): PI053 skip-permissions-flag and PI054
+    // unrestricted-permission-grant shipped and re-measured at 4/7 —
+    // PI053 reaches lines 1-3 (the flag/mode-value directives), PI054
+    // reaches line 4 (the blanket-authority claim). Task 3 does the final,
+    // authoritative measurement after PI055-PI057 ship and updates the
+    // README table in the same commit (GATE-02).
+    ("tool-permission-abuse", 4, 7),
     // tool-permission-abuse-structural: the CAT-01 (#33) structural half, 5
     // payloads. Pre-pattern baseline (03-01-SUMMARY.md, measured 2026-09-01 on
     // the shipping 48-pattern set with ZERO PI05x patterns loaded) was 0/5 —
