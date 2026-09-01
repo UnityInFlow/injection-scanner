@@ -108,6 +108,34 @@ pub struct Pattern {
     /// worried about stays pinned instead of living in a PR comment.
     #[serde(default)]
     pub counter_example: Option<String>,
+
+    /// A deliberately **widened** variant of this pattern's own regex, with
+    /// the narrowing removed (D-07, D-08, GATE-05, issue #33).
+    ///
+    /// It is never loaded into the live scanner — `load_embedded_patterns`
+    /// and `load_external_patterns` both build a `Scanner` from `pattern`
+    /// only. Its sole purpose is to be swapped in for `pattern` by
+    /// `tests/pattern_relaxed_control_test.rs`, which asserts the shipped
+    /// `pattern` does NOT match this pattern's `counter_example` while
+    /// `relaxed_pattern` DOES — proving the narrowing is load-bearing rather
+    /// than asserted. GATE-05 exists because two of four v0.1.0 widenings
+    /// shipped with a control the corpus was not actually holding (#95,
+    /// #97): "break it and confirm the corpus goes red" was a PR-description
+    /// ritual, not a test, until this field made it one.
+    ///
+    /// Required for `PI050` and above; the existing 48 patterns stay exempt
+    /// (D-09) — see `tests/pattern_policy_test.rs`.
+    ///
+    /// Not rendered into `docs/PATTERN-CATALOGUE.md` (D-08a): the shipped
+    /// regex is already public there in the Regex details block, so no new
+    /// disclosure exists. This field is test scaffolding describing what the
+    /// scanner deliberately does NOT detect, not a detection to document.
+    ///
+    /// It is deliberately a schema field rather than a tag — like
+    /// `raw_only` above — so that `deny_unknown_fields` catches a typo in a
+    /// community pattern file instead of silently dropping the control.
+    #[serde(default)]
+    pub relaxed_pattern: Option<String>,
     #[serde(default)]
     pub description: String,
     #[serde(default)]

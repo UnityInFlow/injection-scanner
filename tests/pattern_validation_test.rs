@@ -43,6 +43,7 @@ fn category(name: &str, id: &str, pattern: &str) -> PatternCategory {
             scope: Default::default(),
             example: None,
             counter_example: None,
+            relaxed_pattern: None,
             description: "probe".to_string(),
             remediation: String::new(),
             tags: vec![],
@@ -119,6 +120,51 @@ fn unknown_yaml_fields_are_rejected() {
     let yaml = "category: t\ndefault_severity: LOW\npatterns:\n  - id: T1\n    name: t\n    pattern: x\n    severty: CRITICAL\n";
     let parsed: Result<PatternCategory, _> = serde_yaml::from_str(yaml);
     assert!(parsed.is_err(), "a misspelled field must be rejected");
+}
+
+// -------------------------------------------------- `relaxed_pattern` schema
+//
+// D-08/GATE-05 (issue #33): a pattern can carry a deliberately widened
+// variant of its own regex, used only by `tests/pattern_relaxed_control_test.rs`
+// to prove a narrowing is load-bearing. These three tests pin the schema
+// contract at the `Pattern` level, independent of that mutation-pairing gate.
+
+#[test]
+fn relaxed_pattern_field_loads_as_some_when_present() {
+    let yaml = "category: t\ndefault_severity: LOW\npatterns:\n  - id: T1\n    name: t\n    pattern: x\n    relaxed_pattern: y\n    description: d\n    remediation: r\n";
+    let parsed: PatternCategory =
+        serde_yaml::from_str(yaml).expect("a valid relaxed_pattern must load");
+    assert_eq!(
+        parsed.patterns[0].relaxed_pattern.as_deref(),
+        Some("y"),
+        "relaxed_pattern must load as Some when present"
+    );
+}
+
+#[test]
+fn relaxed_pattern_field_loads_as_none_when_absent() {
+    // Additive: every existing pattern file and every community overlay that
+    // predates this field must keep working unchanged.
+    let yaml = "category: t\ndefault_severity: LOW\npatterns:\n  - id: T1\n    name: t\n    pattern: x\n    description: d\n    remediation: r\n";
+    let parsed: PatternCategory =
+        serde_yaml::from_str(yaml).expect("a pattern without relaxed_pattern must still load");
+    assert_eq!(
+        parsed.patterns[0].relaxed_pattern, None,
+        "relaxed_pattern must default to None when absent"
+    );
+}
+
+#[test]
+fn a_misspelled_relaxed_pattern_field_is_rejected() {
+    // The entire reason D-08 chose a real schema field over a tag:
+    // `deny_unknown_fields` must extend to this field, so a typo fails loudly
+    // instead of silently shipping a pattern with no false-positive control.
+    let yaml = "category: t\ndefault_severity: LOW\npatterns:\n  - id: T1\n    name: t\n    pattern: x\n    relaxed_patttern: y\n    description: d\n    remediation: r\n";
+    let parsed: Result<PatternCategory, _> = serde_yaml::from_str(yaml);
+    assert!(
+        parsed.is_err(),
+        "a misspelled relaxed_pattern field must be rejected"
+    );
 }
 
 #[test]

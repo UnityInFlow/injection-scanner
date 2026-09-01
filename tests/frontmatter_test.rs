@@ -270,6 +270,7 @@ fn wildcard_grant_probe(scope: PatternScope) -> PatternCategory {
             remediation: "Name each tool explicitly.".to_string(),
             example: None,
             counter_example: None,
+            relaxed_pattern: None,
             tags: Vec::new(),
         }],
     }
