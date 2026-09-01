@@ -1,20 +1,20 @@
 {
   "version": 1,
-  "generated_by": "injection-scanner/0.0.3",
+  "generated_by": "injection-scanner/0.1.0",
   "entries": [
     {
       "file": "docs/PATTERN-CATALOGUE.md",
       "pattern_id": "PI001",
       "digest": "sha256:d4954f9cba7323d637885cae0cb7b6a9e659fd3ada0241e22eb78d9a92d77853",
       "count": 1,
-      "first_seen_line": 73
+      "first_seen_line": 74
     },
     {
       "file": "docs/PATTERN-CATALOGUE.md",
       "pattern_id": "PI031",
       "digest": "sha256:d4db10b14e9b6754cc4a5cf34caf75e0b44b1e3aa645aff1bd6b11653ed5e8c6",
       "count": 1,
-      "first_seen_line": 902
+      "first_seen_line": 903
     },
     {
       "file": "examples/encoding-attack.md",
@@ -444,6 +444,27 @@
       "first_seen_line": 18
     },
     {
+      "file": "examples/tool-permission-abuse-attack.md",
+      "pattern_id": "PI050",
+      "digest": "sha256:a7895067f7974da97cc4e20d42ecdac341b859619c6a6091cd9706a2f6f1e8d9",
+      "count": 1,
+      "first_seen_line": 4
+    },
+    {
+      "file": "examples/tool-permission-abuse-attack.md",
+      "pattern_id": "PI051",
+      "digest": "sha256:7de3d557b90e82691c253f55e7d1a14dd7c5842f028bc93a55d828523244f9fc",
+      "count": 1,
+      "first_seen_line": 6
+    },
+    {
+      "file": "examples/tool-permission-abuse-attack.md",
+      "pattern_id": "PI052",
+      "digest": "sha256:3fc3836e8390ea08f9df10c207a6f05cb7eed8fe1943aa0a1472f5fca566cccb",
+      "count": 1,
+      "first_seen_line": 8
+    },
+    {
       "file": "patterns/core/encoding.yaml",
       "pattern_id": "PI001",
       "digest": "sha256:2e4221a7f996a7299dd5be2905be6c7c27f5f5bfd60cb107a1662bfaf872e862",
@@ -498,6 +519,13 @@
       "digest": "sha256:d8f62a6861ce55d0f08a68eb8cb3e1119726b04ca4ca8e692184f17b0d957b27",
       "count": 1,
       "first_seen_line": 55
+    },
+    {
+      "file": "patterns/core/encoding.yaml",
+      "pattern_id": "PI046",
+      "digest": "sha256:60b4c64919c193e25abfee1ec4aad021953c80a8d878f627201dea505708443b",
+      "count": 1,
+      "first_seen_line": 80
     },
     {
       "file": "patterns/core/encoding.yaml",
@@ -904,6 +932,27 @@
       "digest": "sha256:a202ee6e402bb4a0ae16157ab7e1cd7ff08fde9a966cb7ea5caa819a155810b2",
       "count": 1,
       "first_seen_line": 13
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:bcd1056f132cfb82d2145d9e47f0d0a5c7a059a92f2be4cf5b1172ca4ffaf570",
+      "count": 1,
+      "first_seen_line": 9
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:bdf0189bec481c178663b2c401d6cb20966208884e3873e348a411ae0b8f459a",
+      "count": 1,
+      "first_seen_line": 10
+    },
+    {
+      "file": "tests/corpus/attack/encoding.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:d65f2d9f50a80234e064d1d5118e097d7eacda4eed8bd7cbba429d8f772e7929",
+      "count": 1,
+      "first_seen_line": 12
     },
     {
       "file": "tests/corpus/attack/encoding.md",
@@ -1345,6 +1394,41 @@
       "digest": "sha256:fc55dd8838975f23f94ae1f51406a859ee854201c980d3f0124ed3d4a301d24c",
       "count": 1,
       "first_seen_line": 10
+    },
+    {
+      "file": "tests/corpus/attack/structural/01-wildcard-allowed-tools-block-sequence.md",
+      "pattern_id": "PI050",
+      "digest": "sha256:50667d8e792a1b186182a00df8a299fbfb4ee697ed42208f25f454f27c9ca753",
+      "count": 1,
+      "first_seen_line": 4
+    },
+    {
+      "file": "tests/corpus/attack/structural/02-scalar-wildcard-tools-grant.md",
+      "pattern_id": "PI050",
+      "digest": "sha256:5dd514d9071dba7a10cfbdff1f2f7b85b46eff688722c6d79c5595aa57c183e1",
+      "count": 1,
+      "first_seen_line": 4
+    },
+    {
+      "file": "tests/corpus/attack/structural/03-json-manifest-wildcard-tools.md",
+      "pattern_id": "PI050",
+      "digest": "sha256:6d7709f79b22ff330ac2ba9707a5b60f5e3af2ca9f4d8e2a6190c552809eadeb",
+      "count": 1,
+      "first_seen_line": 4
+    },
+    {
+      "file": "tests/corpus/attack/structural/04-permissions-allow-wildcard-settings.md",
+      "pattern_id": "PI051",
+      "digest": "sha256:9faddf43244c4b887539c851bc457afc004cccde0aaa958041ed43df35f9fca0",
+      "count": 1,
+      "first_seen_line": 3
+    },
+    {
+      "file": "tests/corpus/attack/structural/05-bypass-permission-mode.md",
+      "pattern_id": "PI052",
+      "digest": "sha256:3fc3836e8390ea08f9df10c207a6f05cb7eed8fe1943aa0a1472f5fca566cccb",
+      "count": 1,
+      "first_seen_line": 5
     },
     {
       "file": "tests/fixtures/allowlisted.md",
