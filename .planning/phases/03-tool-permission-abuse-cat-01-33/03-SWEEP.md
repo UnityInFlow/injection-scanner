@@ -210,11 +210,85 @@ them (adding `injection-scanner:ignore` directives, excluding `benches/` from th
 etc.) is out of scope for this plan — GATE-04 forbids a category-widening PR from also carrying
 unrelated pattern-library or corpus edits.
 
-## After-sweep (Plan 07 fills this in)
+## After-sweep (Plan 07)
 
-<!-- Plan 07: run `scripts/gate03-sweep.sh /tmp/gate03-after <same directory list as above>` with the
-     CAT-01 patterns landed, then `scripts/gate03-sweep.sh --compare /tmp/gate03-baseline
-     /tmp/gate03-after`, and record the result here. Fill this section; do not replace the baseline
-     above. -->
+Run 2026-09-02, on the same machine, over the same 22-directory list, with `PI050`–`PI057` landed
+and the release binary rebuilt.
 
-*(Not yet run — this section is reserved for Plan 07.)*
+### Totals
+
+| | Files | Findings |
+|---|---:|---:|
+| Baseline (pre-pattern, 2026-09-01) | 3,356 | 518 |
+| After-sweep (post-pattern, 2026-09-02) | 3,371 | 575 |
+| Delta | +15 | **+57** |
+
+The +15 files are this repository's own growth across Plans 01–07 (new corpus payloads, new clean
+specimens, new test files).
+
+### The delta that matters: one new third-party finding
+
+`--compare` reports 517 findings present in the candidate and absent from the baseline. **516 of
+those are an artifact of the comparison key, not of the patterns**, and must not be read as
+regressions — see the caveat below. Excluding this repository's own worktree, the genuine
+third-party delta across ~3,200 files in 21 external directories is:
+
+| File | Line | Pattern | Severity | Verdict |
+|---|---:|---|---|---|
+| `17-skills-registry/.claude/settings.local.json` | 3 | PI051 | CRITICAL | **TRUE POSITIVE** |
+
+That file's `permissions.allow` list contains `Bash(rm -rf *)`, `Bash(rm -rf ./*)` and
+`Bash(jar xf *)` — real pre-approved unrestricted grants in a sibling repository, exactly the shape
+CAT-01 exists to detect. It is reported, not suppressed, and no pattern was widened or narrowed in
+response to it. **This is the category justifying itself on its first real sweep.**
+
+**Zero new false positives in third-party documentation.**
+
+### Caveat: the self-repo half of `--compare` is not meaningful this run
+
+`--compare` keys on `path:line:pattern_id`. The baseline swept this repository through Plan 03's
+worktree (`.claude/worktrees/agent-ade5856f6fc048a75`), which no longer exists; the after-sweep
+swept Plan 07's worktree (`.claude/worktrees/agent-a722421e377079562`). Every self-repo finding
+therefore has a different path key and appears "new" — 516 of them — regardless of whether the
+finding itself changed. Those 516 were audited rather than dismissed:
+
+- **49 are PI05x**, and every one is in a file that contains the attack strings by construction:
+  `tests/corpus/attack/` payloads (13), `examples/tool-permission-abuse-attack.md` (9),
+  `patterns/core/tool-permission-abuse.yaml`'s own `example:` fields (7), and
+  `tests/pattern_test.rs`'s per-pattern cases (19). Self-scan artifacts of the same class the
+  baseline section above already documents, not detections of anything real.
+- **The remaining 467 are pre-existing non-CAT-01 findings** carried over unchanged from the
+  baseline under a different path prefix.
+
+A future sweep should either pin a stable path for the self-repo entry or teach `--compare` to
+normalise the repository root before keying, so this half of the diff carries signal. Logged, not
+fixed here — GATE-04 forbids a category PR from also carrying unrelated tooling changes.
+
+### What GATE-03 caught, and why the gate earned its place
+
+The after-sweep was run twice. **The first run is the reason this section exists.**
+
+`PI057` (disable-guardrail-directive) as Plan 06 shipped it — `turn off|disable|remove|skip` within
+20 characters of `hook|guardrail|check|scanner|gate` — produced **49 third-party hits, 48 of them
+false positives**:
+
+- **`skip` was the dominant driver.** It is ubiquitous in ordinary engineering prose
+  (`GSD_SKIP_SCHEMA_CHECK`, `--skip-git-repo-check`, "skip that hook") and, worse, it matched
+  **negated** directives backwards: *"DO NOT skip the config gate check"* is an instruction to keep
+  a control, and the pattern read it as an instruction to remove one.
+- **`remove`** added two more, both dev-tooling prose about removing a *stale* hook reference rather
+  than disabling a *live* one.
+- Dropping `skip` and `remove` cleared 47 of the 48.
+- The 48th — *"Pass `--no-nli` to disable the contradiction check entirely"*
+  (`15-llm-diff/README.md:57`) — proved `turn off`/`disable` alone are not enough either: ordinary
+  CLI-flag documentation uses the identical verb+object grammar as the attack.
+
+`PI057` was re-narrowed to require **second-person address** — `you` co-occurring with the
+verb+object pair inside one sentence — the same framing `PI054`/`PI055` already require. Its
+`counter_example` is now that llm-diff sentence, sourced verbatim from the sweep, and
+`tests/corpus/clean/cli-flag-reference.md` was added to pin the fix. The clean corpus is now 21
+specimens and still scores zero.
+
+This is precisely the failure mode GATE-03 was written for: `PI057` passed every unit test, held
+all 20 clean specimens, and scored 12/12 on the threat-model corpus while being wrong 98% of the
+time on real documentation. No corpus-based gate would have caught it.
