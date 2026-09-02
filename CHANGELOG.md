@@ -7,6 +7,32 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **Tool & Permission Abuse** category (`PI050`-`PI057`, #33): detects documents that widen the
+  agent's own authority — the agentic equivalent of privilege escalation. Three structural
+  patterns match a wildcard tool grant, permission-allow wildcard, or bypass permission mode
+  directly in a file's own parsed frontmatter (`scope: frontmatter`, CRITICAL). Five prose
+  patterns detect persuasion to widen authority through the ordinary regex engine (HIGH):
+  skip-permissions flags and bypass-mode instructions, unrestricted-authority claims,
+  skip-confirmation directives, settings-file widening directives (the CVE-2025-53773 shape),
+  and imperative instructions telling the agent to `turn off` a hook or guardrail. Recall on this category's 12
+  threat-model payloads went from the pre-pattern 0/12 baseline to **12/12 (100%)**; measured
+  library-wide recall moved from 63/72 to **70/72 (97.2%)**.
+
+### Changed
+
+- **Behaviour change: a wildcard tool grant in a scanned file's own frontmatter is now a
+  CRITICAL finding (D-12).** Previously this shape produced no detection at all — the structural
+  pass (`scope: frontmatter`) was defined in the schema but no pattern used it, so it was inert
+  in every shipped binary. `spec-ci-plugin` shells out to this binary in consumer CI, so a
+  consumer repository whose skill or agent config carries `allowed-tools: "*"`,
+  `permissions.allow: ["Bash(*)"]` or `permissions.defaultMode: bypassPermissions` will see its
+  build go from green to red on upgrade. This is the finding the tool exists to produce, not a
+  regression — see the README's "Behaviour change" note for the full justification and the
+  `--baseline` migration path (shipped in v0.1.0) for consumers that need to accept their current
+  state before narrowing it.
+
 ## [0.1.0] - 2026-08-29
 
 ### Added
