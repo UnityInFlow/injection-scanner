@@ -120,6 +120,7 @@ scaffolding, not a detection to disclose.
 | Data Exfiltration | PI020-PI029 | CRITICAL |
 | Jailbreaks | PI030-PI039 | HIGH |
 | Encoding/Obfuscation | PI040-PI049 | HIGH |
+| Tool and Permission Abuse | PI050-PI059 | HIGH (structural patterns PI050-PI052 override to CRITICAL) |
 
 ## Grading Severity
 
