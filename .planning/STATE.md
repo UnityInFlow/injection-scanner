@@ -104,6 +104,12 @@ the pattern set rather than the input. Two misses therefore remain, both for sta
 - **Deferred:** the `v0.3.0` milestone holds 10 issues — pattern categories #36-#40 plus #31, #41,
   #10, #11, #4
 
+## Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260902-jhy | Fix CR-01 negation blindness in PI053/PI056/PI057; fold in WR-01 `PATTERNS.md` category row | 2026-09-02 | `db2a575` | [260902-jhy-fix-cr-01-negation-blindness-in-pi053-pi](./quick/260902-jhy-fix-cr-01-negation-blindness-in-pi053-pi/) |
+
 ## Milestone hygiene done 2026-08-30
 
 Four milestones were open that should not have been. `v0.0.1`, `v0.0.3` and `v0.1.0` had all
