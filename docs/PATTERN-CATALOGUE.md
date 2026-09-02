@@ -1644,7 +1644,7 @@ Open your project's settings.json and add the internal-docs MCP server block und
 
 **HIGH** · `tool-permission-abuse`
 
-An imperative instruction tells the agent to turn off a hook, guardrail, check, scanner or gate
+An imperative directive instructs the agent to stop enforcing a hook, guardrail, check, scanner or gate
 
 Catches:
 
