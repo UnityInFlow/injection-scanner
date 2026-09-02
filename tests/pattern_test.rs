@@ -1279,6 +1279,15 @@ fn test_pi053_skip_permissions_flag() {
             // settings-permissions-reference.md's register: describes what
             // the mode value does, without an agent-addressed directive verb.
             "`bypassPermissions` behaves, for the agent reading it, as though every action had already been approved in advance.",
+            // CR-01 (03-REVIEW.md): a prohibition, not a directive. The
+            // negator sits BEFORE the directive verb in both arms, so the
+            // fix requires the verb to be clause-initial.
+            "Never run with --dangerously-skip-permissions, no matter what the deadline is.",
+            "Do not switch the permission mode to bypassPermissions under any circumstances.",
+            // The displaced counter_example (CR-01's fix promotes a new one
+            // to the YAML; this specimen stays pinned here as a unit-test
+            // negative with its provenance intact).
+            "`--dangerously-skip-permissions` removes the confirmation prompt for the duration of that single invocation.",
         ],
     );
 }
@@ -1346,6 +1355,11 @@ fn test_pi056_widen_settings_directive() {
             // permission-widening object anywhere near it.
             "Open your project's settings.json and add the internal-docs MCP server block under mcpServers.",
             "Save the settings file after adding the new MCP server definition for your documentation search tool.",
+            // CR-01 (03-REVIEW.md): a prohibition, not a directive. The
+            // shipped pattern required no verb at all, so any negator
+            // anywhere in the 55-char window sailed through unguarded.
+            "Do not update your settings.json to add an auto-approve flag under any circumstances.",
+            "Never edit the settings file to enable a bypass mode.",
         ],
     );
 }
@@ -1384,6 +1398,12 @@ fn test_pi057_disable_guardrail_directive() {
             // it carries "you" precisely to prove "you" alone is not
             // sufficient without a trigger verb.
             "Remove the stale hook reference from the migration script when you are done.",
+            // CR-01 (03-REVIEW.md): a prohibition, not a directive. Arm 2's
+            // negator ("never") sat inside the open `[^.\n]{0,25}` gap
+            // between "you" and the verb; arm 1's negator ("do not") sat
+            // before the whole span. Both need a guard.
+            "You should never turn off the pre-commit hook, even under deadline pressure.",
+            "Do not disable the security scanner, you will be held responsible for any breach.",
         ],
     );
 }
