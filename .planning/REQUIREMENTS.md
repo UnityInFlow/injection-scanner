@@ -42,7 +42,7 @@ Ordered by dependency. Each is one PR, with its own false-positive sweep.
 
 ### Categories
 
-- [ ] **CAT-01** (#33): `PI050`–`PI059` — tool & permission abuse. Payloads that widen the agent's
+- [x] **CAT-01** (#33): `PI050`–`PI059` — tool & permission abuse. Payloads that widen the agent's
       own authority: wildcard tool grants, `--dangerously-skip-permissions` / `bypassPermissions`
       directives, instructions to edit `settings.json` or disable a hook. The agentic equivalent of
       privilege escalation. Depends on **ENG-01** for the frontmatter half.
@@ -62,17 +62,21 @@ Ordered by dependency. Each is one PR, with its own false-positive sweep.
       written from the threat model and **never derived from the patterns** — a corpus built from
       each pattern's own `example` scores 100% by construction and measures nothing.
 
-- [ ] **GATE-02**: `tests/recall_test.rs` continues to pin counts **exactly**, not as a floor, so
+- [x] **GATE-02**: `tests/recall_test.rs` continues to pin counts **exactly**, not as a floor, so
       an improvement fails the build too and the published number cannot go stale.
 
-- [ ] **GATE-03**: Every pattern change is swept against ~1,300 files of **real third-party
+- [x] **GATE-03**: Every pattern change is swept against ~1,300 files of **real third-party
       documentation**, not only the 18-file clean corpus. The 2026-08-29 sweep found 2 CRITICAL and
       25 HIGH false positives the corpus was silent about.
 
 - [ ] **GATE-04**: Each category ships as **its own PR**. Widening four categories at once produces
       an unreviewable false-positive blast radius — this is a recorded lesson, not a preference.
+      **Status (Phase 3, 2026-09-02):** CAT-01 shipped alone, so the one-category-at-a-time
+      substance of this gate holds. Left unchecked because this milestone's GSD branching strategy
+      is `none` — Phase 3 committed directly to `main` and no PR object exists to point at. Check
+      it when the work is raised as a PR, or amend the gate to say "its own reviewable unit".
 
-- [ ] **GATE-05**: The false-positive control in each PR is **mutation-tested** — two of four
+- [x] **GATE-05**: The false-positive control in each PR is **mutation-tested** — two of four
       v0.1.0 widenings had a control the corpus was not actually holding.
 
 ## Deferred to v0.3.0
