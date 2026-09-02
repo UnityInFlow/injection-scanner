@@ -71,10 +71,10 @@ they are where the tool differentiates: **agentic** injection, not chatbot injec
 Injection that widens the agent's own authority. Directly complements `spec-linter` S005.
 
 - Wildcard tool grants in frontmatter: `allowed-tools: *`, `Bash(*)`, `"tools": ["*"]`
-- "you have permission to run any command", "you may skip confirmation"
+- `you have permission to run any command`, `you may skip confirmation`
 - `--dangerously-skip-permissions`, `bypassPermissions`, `--yolo`, auto-approve directives
 - `sudo`, `rm -rf`, `chmod 777` embedded in a skill body
-- "add this to your settings.json" / "update your permissions to include"
+- `add this to your settings.json` / `update your permissions to include`
 
 ### `PI060`–`PI069` — MCP & Tool-Description Poisoning
 

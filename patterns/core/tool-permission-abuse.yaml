@@ -237,6 +237,6 @@ patterns:
     relaxed_pattern: "\\b(?:turn\\s+off|disable|remove|skip)\\b"
     severity: HIGH
     pattern: "\\b(?:turn\\s+off|disable|remove|skip)\\b[^.\\n]{0,20}?\\b(?:hook|guardrail|check|scanner|gate)\\b"
-    description: "An imperative instruction tells the agent to turn off a hook, guardrail, check, scanner or gate"
+    description: "An imperative directive instructs the agent to stop enforcing a hook, guardrail, check, scanner or gate"
     remediation: "Remove the directive. Disabling a safety hook or guardrail is an operator's deliberate choice, never something a document should instruct an agent to do to itself."
     tags: [tool-permission-abuse]
