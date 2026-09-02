@@ -46,3 +46,18 @@ code span so it renders as documentation rather than live prose, or reword
 the fix/description text so it no longer contains "DAN mode" outside a code
 span. This is the same self-referential-documentation failure mode the
 pattern-library skill already documents for `docs/DETECTION-BACKLOG.md`.
+
+## docs/PATTERN-CATALOGUE.md:903 — PI031 self-match on a rendered remediation
+
+**Found during:** the pre-PR whole-repo self-scan (2026-09-02, orchestrator).
+
+**Issue:** the catalogue renders a pattern's own `remediation` text, "Remove DAN
+mode reference", which matches PI031.
+
+**Why not fixed here:** the identical line is present in the catalogue at
+`origin/main`, so it pre-dates this range. Same root cause as the PI001 entry
+above — the generated catalogue quotes pattern metadata into a file the scanner
+then reads. Both should be fixed together, most likely by wrapping rendered
+`description`/`remediation` values in code spans during generation (which is the
+remediation this tool itself prints), or by excluding the generated catalogue
+from the self-scan.
