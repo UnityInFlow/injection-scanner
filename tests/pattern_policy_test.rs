@@ -223,26 +223,40 @@ fn a_legacy_pattern_that_now_complies_must_leave_the_list() {
 // no exemption list here: every id from PI050 up is new, so the rule is
 // unconditional.
 //
-// This test is deliberately vacuous until Plan 05 ships the first pattern in
-// the PI050 range — at this commit `all_ids()` contains nothing in that
-// range, so the filter below matches zero patterns and the assertion passes
-// trivially. What stops that vacuity from hiding a broken check is
-// `tests/pattern_relaxed_control_test.rs`'s own mechanism self-test, which
-// proves the relaxed_pattern -> Scanner pairing works via a synthetic
-// fixture independent of any shipped pattern. CAT-02 and CAT-03 inherit this
-// requirement automatically, since it keys on id range rather than category.
+// ADR-004 states the rule as "required for PI050 and above" — unbounded. The
+// code disagreed with its own comment: until Plan 04-01 (Phase 4 planning),
+// this filtered a CLOSED range — inclusive fifty through fifty-nine only —
+// while the comment directly above it claimed "CAT-02 and CAT-03 inherit
+// this requirement automatically, since it keys on id range rather than
+// category." That claim
+// was false — a `PI060` pattern would have satisfied `relaxed_pattern` by
+// simply not existing in the filtered set, and nothing would have caught it,
+// because the check was vacuous (zero PI050+ patterns shipped) at the moment
+// the comment was written and stayed vacuous long enough for the wrong bound
+// to go unnoticed. This is `.planning/.continue-here.md`'s blocking
+// anti-pattern by name: inheriting a documented reason without measuring it.
+//
+// `requires_relaxed_pattern` below is the fix — an open-ended predicate, "PI
+// followed by a number, at least fifty" — plus
+// `requires_relaxed_pattern_covers_every_category_boundary`, a table test
+// that does not depend on any pattern shipping (the same anti-vacuity
+// discipline `tests/pattern_relaxed_control_test.rs`'s own mechanism
+// self-test already uses). That table test is what would have caught the
+// wrong bound the day it was written, rather than the day CAT-02's first
+// `PI060` pattern silently slipped past it.
+fn requires_relaxed_pattern(id: &str) -> bool {
+    id.strip_prefix("PI")
+        .and_then(|n| n.parse::<u32>().ok())
+        .is_some_and(|num| num >= 50)
+}
+
 #[test]
 fn every_pi05x_pattern_carries_a_relaxed_pattern() {
     let categories = load_embedded_patterns().expect("patterns must load");
     let missing: Vec<&str> = categories
         .iter()
         .flat_map(|c| c.patterns.iter())
-        .filter(|p| {
-            let Some(num) = p.id.strip_prefix("PI").and_then(|n| n.parse::<u32>().ok()) else {
-                return false;
-            };
-            (50..=59).contains(&num)
-        })
+        .filter(|p| requires_relaxed_pattern(&p.id))
         .filter(|p| p.relaxed_pattern.as_deref().unwrap_or("").trim().is_empty())
         .map(|p| p.id.as_str())
         .collect();
@@ -252,4 +266,36 @@ fn every_pi05x_pattern_carries_a_relaxed_pattern() {
         "every pattern from PI050 up needs a `relaxed_pattern:` — GATE-05 requires its \
          false-positive control to be mutation-tested, not merely asserted. Missing: {missing:?}"
     );
+}
+
+/// The anti-vacuity control `requires_relaxed_pattern` needs: independent of any
+/// pattern actually shipping, so it catches a wrong threshold the moment the
+/// threshold is wrong rather than the moment the first pattern in the affected
+/// range happens to ship. Spans both sides of the PI050 boundary and both sides
+/// of the old (incorrect) 59 upper bound — PI049 exempt, PI050 required, the
+/// last CAT-01 id, both ends of the CAT-02 range this predicate exists for, the
+/// first CAT-03 id, and one malformed id that is not a pattern id at all.
+///
+/// Mutation check (run manually, not part of `cargo test`): change
+/// `requires_relaxed_pattern`'s `>= 50` to `>= 60` — this test must FAIL on the
+/// PI050/PI059 cases. Restore the threshold afterward.
+#[test]
+fn requires_relaxed_pattern_covers_every_category_boundary() {
+    let cases: &[(&str, bool)] = &[
+        ("PI049", false), // last exempt legacy id (pre-D-09)
+        ("PI050", true),  // first required id (CAT-01 start)
+        ("PI059", true),  // last id of the CAT-01 range
+        ("PI060", true),  // first id of the CAT-02 range (#34)
+        ("PI069", true),  // last id of the CAT-02 range (#34)
+        ("PI070", true),  // first id of the CAT-03 range (#35)
+        ("PI0XX", false), // malformed — not a pattern id at all
+    ];
+
+    for (id, expected) in cases {
+        assert_eq!(
+            requires_relaxed_pattern(id),
+            *expected,
+            "requires_relaxed_pattern({id:?}) should be {expected}"
+        );
+    }
 }
