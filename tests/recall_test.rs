@@ -24,11 +24,27 @@ use injection_scanner::pattern::PatternCategory;
 use injection_scanner::patterns::load_embedded_patterns;
 use injection_scanner::scanner::Scanner;
 
-/// Name of the structural half's `EXPECTED` row (D-02). A single combined row
+/// Name of CAT-01's structural `EXPECTED` row (D-02). A single combined row
 /// can stay correct while this half silently goes to zero, which is exactly
 /// what an inert ENG-01 pass looks like — hence the separate row and the
 /// separate constant, rather than a string literal repeated in two places.
+///
+/// Since Plan 04-01 Task 2, this is no longer the only structural row —
+/// `tests/corpus/attack/structural/` holds one subdirectory per category, and
+/// each subdirectory's row name is *derived* by appending [`STRUCTURAL_SUFFIX`]
+/// to the directory name, not hand-written as a second literal. This constant
+/// is kept only as the reproduction check: `the_structural_corpus_is_actually_collected`
+/// asserts a directory still produces exactly this name, so a rename of
+/// `structural/tool-permission-abuse/` cannot silently rename the pinned row
+/// out from under `EXPECTED` (see that test below).
 const STRUCTURAL_CATEGORY: &str = "tool-permission-abuse-structural";
+
+/// Appended to a structural subdirectory's name to produce its recall row
+/// name — `structural/tool-permission-abuse/` becomes the
+/// `"tool-permission-abuse-structural"` row, reproducing [`STRUCTURAL_CATEGORY`]
+/// exactly rather than restating it. Any `EXPECTED` row ending in this suffix
+/// is understood to be a structural row.
+const STRUCTURAL_SUFFIX: &str = "-structural";
 
 /// Detected payloads per category, as measured. Update deliberately, in the
 /// same commit that changes detection, and update the README table with it.
@@ -166,36 +182,73 @@ fn structural_dir() -> PathBuf {
     attack_dir().join("structural")
 }
 
-/// Every payload in `tests/corpus/attack/structural/`, whole-file, sorted,
-/// excluding `README.md`.
+/// One structural category: its recall row name (a subdirectory name of
+/// `structural_dir()` with [`STRUCTURAL_SUFFIX`] appended) and its whole-file
+/// payloads, sorted by path.
+struct StructuralCategory {
+    name: String,
+    payloads: Vec<(PathBuf, String)>,
+}
+
+/// Every category subdirectory of `tests/corpus/attack/structural/`, sorted
+/// by directory name. Each payload is read whole with `fs::read_to_string`,
+/// never through the line-splitting `payloads()` — that splitter is exactly
+/// what this directory exists to bypass; a `---`-fenced frontmatter payload
+/// is one document, not a set of independent lines split on `\n`.
+/// `categories()`'s `p.is_file()` filter only walks `attack_dir()` itself and
+/// never recurses, so it drops this whole directory silently (D-05) — this
+/// function is the second, parallel collector that actually reads it.
 ///
-/// Must NOT call `payloads()` — that line-splitter is exactly what D-01
-/// exists to bypass; a `---`-fenced frontmatter payload is one document, not
-/// a set of independent lines split on `\n`. `categories()`'s `p.is_file()`
-/// filter only walks `attack_dir()` itself and never recurses, so it drops
-/// this whole directory silently (D-05) — this function is the second,
-/// parallel collector that actually reads it.
-///
-/// Flat for now, per D-01's literal path. CAT-02 (#34) also has a structural
-/// half (`mcpServers`) and will need either its own subdirectory under
-/// `structural/` or a generalisation of this function to collect per
-/// category — do not silently paint the design into a corner GATE-04 will
-/// then make expensive to unwind.
-fn structural_payloads() -> Vec<(PathBuf, String)> {
+/// Generalised in Plan 04-01 Task 2 from a single flat directory (CAT-01
+/// only) to one subdirectory per category, so CAT-02's structural half
+/// (`mcpServers`) gets its own subdirectory here rather than being folded
+/// into CAT-01's five payloads or needing another rewrite of this collector.
+fn structural_categories() -> Vec<StructuralCategory> {
     let dir = structural_dir();
-    let mut out: Vec<(PathBuf, String)> = fs::read_dir(&dir)
+    let mut dirs: Vec<PathBuf> = fs::read_dir(&dir)
         .unwrap_or_else(|e| panic!("{} must be readable: {e}", dir.display()))
         .map(|e| e.expect("directory entry").path())
-        .filter(|p| p.is_file())
-        .filter(|p| p.file_name().and_then(|n| n.to_str()) != Some("README.md"))
-        .map(|p| {
-            let content = fs::read_to_string(&p)
-                .unwrap_or_else(|e| panic!("{} must be readable: {e}", p.display()));
-            (p, content)
-        })
+        .filter(|p| p.is_dir())
         .collect();
-    out.sort_by(|a, b| a.0.cmp(&b.0));
-    out
+    dirs.sort();
+
+    dirs.into_iter()
+        .map(|subdir| {
+            let dir_name = subdir
+                .file_name()
+                .and_then(|n| n.to_str())
+                .expect("structural category directory needs a name")
+                .to_string();
+
+            let mut payloads: Vec<(PathBuf, String)> = fs::read_dir(&subdir)
+                .unwrap_or_else(|e| panic!("{} must be readable: {e}", subdir.display()))
+                .map(|e| e.expect("directory entry").path())
+                .filter(|p| p.is_file())
+                .filter(|p| p.file_name().and_then(|n| n.to_str()) != Some("README.md"))
+                .map(|p| {
+                    let content = fs::read_to_string(&p)
+                        .unwrap_or_else(|e| panic!("{} must be readable: {e}", p.display()));
+                    (p, content)
+                })
+                .collect();
+            payloads.sort_by(|a, b| a.0.cmp(&b.0));
+
+            StructuralCategory {
+                name: format!("{dir_name}{STRUCTURAL_SUFFIX}"),
+                payloads,
+            }
+        })
+        .collect()
+}
+
+/// All payloads across every structural category, flattened. Used by the
+/// mechanism-arming test below, which only cares that the structural pass is
+/// reachable at all, not which category a given payload belongs to.
+fn all_structural_payloads() -> Vec<(PathBuf, String)> {
+    structural_categories()
+        .into_iter()
+        .flat_map(|c| c.payloads)
+        .collect()
 }
 
 /// Is `payload` reported at all?
@@ -226,29 +279,60 @@ fn measure(category: &str, path: &Path) -> (usize, usize, Vec<String>) {
     (hit, lines.len(), missed)
 }
 
-/// The structural analogue of `measure()`. Each payload is a whole file
-/// scanned as one document, rather than a line split into its own document —
-/// only the input shape differs from `measure()` (D-01); `detected()` is
-/// reused unchanged so "reported at all" means the same thing for both
-/// halves. Passes each payload's real file name in the miss list so failure
-/// output names the file, not an opaque index.
-fn measure_structural() -> (usize, usize, Vec<String>) {
-    let payloads = structural_payloads();
+/// The structural analogue of `measure()`, for one category at a time. Each
+/// payload is a whole file scanned as one document, rather than a line split
+/// into its own document — only the input shape differs from `measure()`
+/// (D-01); `detected()` is reused unchanged so "reported at all" means the
+/// same thing for both halves. Passes each payload's real file name in the
+/// miss list so failure output names the file, not an opaque index.
+fn measure_structural(category: &StructuralCategory) -> (usize, usize, Vec<String>) {
     let mut missed = Vec::new();
     let mut hit = 0;
-    for (path, content) in &payloads {
+    for (path, content) in &category.payloads {
         let name = path
             .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or("<unknown>")
             .to_string();
-        if detected(content, STRUCTURAL_CATEGORY) {
+        if detected(content, &category.name) {
             hit += 1;
         } else {
             missed.push(name);
         }
     }
-    (hit, payloads.len(), missed)
+    (hit, category.payloads.len(), missed)
+}
+
+/// Checks one recall row against `EXPECTED`'s exact pin, pushing a message
+/// into `mismatches` for an unpinned category, a corpus-size drift, or a
+/// detection count that moved in either direction. Shared by the prose loop
+/// and the structural loop in `recall_matches_the_recorded_numbers` so both
+/// halves are covered by the identical exact-pin logic rather than two
+/// versions that could silently diverge.
+fn assert_pinned_row(name: &str, hit: usize, total: usize, mismatches: &mut Vec<String>) {
+    let expected = EXPECTED.iter().find(|(c, _, _)| *c == name);
+    match expected {
+        None => mismatches.push(format!(
+            "{name}: not in EXPECTED — add (\"{name}\", {hit}, {total})"
+        )),
+        Some((_, exp_hit, exp_total)) => {
+            if *exp_total != total {
+                mismatches.push(format!(
+                    "{name}: corpus now has {total} payloads, EXPECTED says {exp_total}"
+                ));
+            }
+            if *exp_hit != hit {
+                let direction = if hit < *exp_hit {
+                    "REGRESSION — detection got worse"
+                } else {
+                    "improvement — update the number and the README"
+                };
+                mismatches.push(format!(
+                    "{name}: detected {hit}/{total}, EXPECTED {exp_hit} ({direction})"
+                ));
+            }
+        }
+    }
 }
 
 #[test]
@@ -259,72 +343,24 @@ fn recall_matches_the_recorded_numbers() {
 
     for (name, path) in categories() {
         let (hit, total, missed) = measure(&name, &path);
-        let expected = EXPECTED.iter().find(|(c, _, _)| *c == name);
-
-        match expected {
-            None => mismatches.push(format!(
-                "{name}: not in EXPECTED — add (\"{name}\", {hit}, {total})"
-            )),
-            Some((_, exp_hit, exp_total)) => {
-                if *exp_total != total {
-                    mismatches.push(format!(
-                        "{name}: corpus now has {total} payloads, EXPECTED says {exp_total}"
-                    ));
-                }
-                if *exp_hit != hit {
-                    let direction = if hit < *exp_hit {
-                        "REGRESSION — detection got worse"
-                    } else {
-                        "improvement — update the number and the README"
-                    };
-                    mismatches.push(format!(
-                        "{name}: detected {hit}/{total}, EXPECTED {exp_hit} ({direction})"
-                    ));
-                }
-            }
-        }
-
+        assert_pinned_row(&name, hit, total, &mut mismatches);
         for m in &missed {
             all_missed.push(format!("  [{name}] {m}"));
         }
         rows.push((name, hit, total));
     }
 
-    // Structural half (D-01/D-02) — folded in as an extra row, exactly like
-    // any other category, so it is covered by the same exact-pin logic
-    // rather than a parallel assertion that could silently diverge from it.
-    {
-        let (hit, total, missed) = measure_structural();
-        let name = STRUCTURAL_CATEGORY.to_string();
-        let expected = EXPECTED.iter().find(|(c, _, _)| *c == name);
-
-        match expected {
-            None => mismatches.push(format!(
-                "{name}: not in EXPECTED — add (\"{name}\", {hit}, {total})"
-            )),
-            Some((_, exp_hit, exp_total)) => {
-                if *exp_total != total {
-                    mismatches.push(format!(
-                        "{name}: corpus now has {total} payloads, EXPECTED says {exp_total}"
-                    ));
-                }
-                if *exp_hit != hit {
-                    let direction = if hit < *exp_hit {
-                        "REGRESSION — detection got worse"
-                    } else {
-                        "improvement — update the number and the README"
-                    };
-                    mismatches.push(format!(
-                        "{name}: detected {hit}/{total}, EXPECTED {exp_hit} ({direction})"
-                    ));
-                }
-            }
-        }
-
+    // Structural categories (D-01/D-02) — one row per subdirectory of
+    // `structural_dir()`, folded in exactly like any other category so each
+    // is covered by the same exact-pin logic (`assert_pinned_row`) rather
+    // than a parallel assertion that could silently diverge from it.
+    for cat in structural_categories() {
+        let (hit, total, missed) = measure_structural(&cat);
+        assert_pinned_row(&cat.name, hit, total, &mut mismatches);
         for m in &missed {
-            all_missed.push(format!("  [{name}] {m}"));
+            all_missed.push(format!("  [{}] {m}", cat.name));
         }
-        rows.push((name, hit, total));
+        rows.push((cat.name, hit, total));
     }
 
     let detected_total: usize = rows.iter().map(|(_, h, _)| h).sum();
@@ -359,17 +395,19 @@ fn recall_matches_the_recorded_numbers() {
 fn every_claimed_category_has_a_corpus_file() {
     // A category the README advertises but nobody wrote payloads for would
     // quietly read as 100% recall by absence. A claimed name may be satisfied
-    // EITHER by a top-level category file OR by the structural collector —
-    // otherwise the STRUCTURAL_CATEGORY row makes this test fail against a
-    // corpus that is actually present (D-01/D-05).
+    // EITHER by a top-level category file OR by a structural subdirectory
+    // carrying at least one payload — any EXPECTED name ending in
+    // STRUCTURAL_SUFFIX is understood to be the latter, not just the single
+    // hardcoded STRUCTURAL_CATEGORY constant (D-01/D-05).
     let present: Vec<String> = categories().into_iter().map(|(n, _)| n).collect();
-    let structural_present = !structural_payloads().is_empty();
+    let structural = structural_categories();
     for (claimed, _, _) in EXPECTED {
-        if *claimed == STRUCTURAL_CATEGORY {
+        if let Some(dir_name) = claimed.strip_suffix(STRUCTURAL_SUFFIX) {
+            let found = structural.iter().find(|c| c.name == *claimed);
             assert!(
-                structural_present,
-                "EXPECTED names category {claimed:?}, but tests/corpus/attack/structural/ \
-                 has no payloads"
+                found.is_some_and(|c| !c.payloads.is_empty()),
+                "EXPECTED names structural category {claimed:?}, but \
+                 tests/corpus/attack/structural/{dir_name}/ has no payloads (or does not exist)"
             );
             continue;
         }
@@ -384,21 +422,25 @@ fn every_claimed_category_has_a_corpus_file() {
 fn no_payload_is_duplicated_across_the_corpus() {
     // A duplicated payload counts twice and inflates whichever side it lands
     // on, so the headline number stops meaning what it says. Structural
-    // payloads are included as whole-file strings — a copy-pasted structural
-    // document would otherwise pad the twelve unnoticed.
+    // payloads are included as whole-file strings, walked across every
+    // structural category — a payload copy-pasted from one structural
+    // category into another (e.g. CAT-01 into CAT-02) would otherwise pad
+    // the totals unnoticed.
     let mut seen: Vec<(String, String)> = Vec::new();
     for (name, path) in categories() {
         for line in payloads(&path) {
             seen.push((line, name.clone()));
         }
     }
-    for (path, content) in structural_payloads() {
-        let name = path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("<unknown>")
-            .to_string();
-        seen.push((content, format!("{STRUCTURAL_CATEGORY}/{name}")));
+    for cat in structural_categories() {
+        for (path, content) in cat.payloads {
+            let name = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("<unknown>")
+                .to_string();
+            seen.push((content, format!("{}/{}", cat.name, name)));
+        }
     }
     let mut sorted = seen.clone();
     sorted.sort();
@@ -419,35 +461,76 @@ fn no_payload_is_duplicated_across_the_corpus() {
 }
 
 /// D-05's explicit requirement: the exact-pin in `recall_matches_the_recorded_numbers`
-/// is necessary but not sufficient, because a `structural_payloads()` that silently
-/// returned zero for the wrong reason (e.g. a typo'd directory name) would still
-/// round-trip against an `EXPECTED` row written to match. This asserts the directory
-/// is actually walked, independent of the pinned count.
+/// is necessary but not sufficient, because a `structural_categories()` that silently
+/// returned zero (or the wrong shape) for the wrong reason — a typo'd directory name,
+/// an unpinned new category, a renamed pinned one — would either round-trip against
+/// an `EXPECTED` row written to match, or simply not be checked at all. This is a
+/// two-sided guard: every pinned structural row needs a directory producing it, AND
+/// every discovered structural directory needs a pinned row — a directory added and
+/// never pinned would otherwise measure nothing while looking present.
 ///
-/// Mutation check (run manually, not part of `cargo test`): temporarily rename
-/// `tests/corpus/attack/structural` to something else — this test must FAIL. Restore
-/// the directory afterward.
+/// Mutation checks (run manually, not part of `cargo test`):
+///   1. temporarily rename `tests/corpus/attack/structural/tool-permission-abuse` to
+///      something else — this test must FAIL, naming the missing row. Restore
+///      afterward.
+///   2. temporarily create an empty extra subdirectory under `structural/` with one
+///      payload in it — this test must FAIL with a "not pinned" style message.
+///      Remove afterward.
 #[test]
 fn the_structural_corpus_is_actually_collected() {
-    let payloads = structural_payloads();
+    let categories = structural_categories();
     assert!(
-        !payloads.is_empty(),
-        "tests/corpus/attack/structural/ produced no payloads — categories()'s \
-         p.is_file() filter drops this directory silently (D-05), and this is the \
+        !categories.is_empty(),
+        "tests/corpus/attack/structural/ has no category subdirectories — categories()'s \
+         p.is_file() filter drops this whole directory silently (D-05), and this is the \
          independent collector that is supposed to catch it instead"
     );
-    let expected_total = EXPECTED
-        .iter()
-        .find(|(c, _, _)| *c == STRUCTURAL_CATEGORY)
-        .map(|(_, _, total)| *total)
-        .unwrap_or_else(|| panic!("{STRUCTURAL_CATEGORY} is missing from EXPECTED"));
-    assert_eq!(
-        payloads.len(),
-        expected_total,
-        "structural_payloads() found {} file(s) but EXPECTED's {STRUCTURAL_CATEGORY} \
-         row says {expected_total} — the exact-pin alone is necessary but not \
-         sufficient; this second assertion is what D-05 actually requires",
-        payloads.len()
+
+    // Every EXPECTED row ending in the structural suffix needs a subdirectory
+    // producing it, with the right payload count.
+    for (name, _, exp_total) in EXPECTED {
+        if !name.ends_with(STRUCTURAL_SUFFIX) {
+            continue;
+        }
+        let found = categories.iter().find(|c| &c.name == name);
+        match found {
+            None => panic!(
+                "EXPECTED pins structural row {name:?}, but no subdirectory of \
+                 tests/corpus/attack/structural/ produces it — has it been renamed \
+                 or deleted?"
+            ),
+            Some(cat) => assert_eq!(
+                cat.payloads.len(),
+                *exp_total,
+                "{name}: {} payload file(s) found, EXPECTED's row says {exp_total} — \
+                 the exact-pin alone is necessary but not sufficient; this second \
+                 assertion is what D-05 actually requires",
+                cat.payloads.len()
+            ),
+        }
+    }
+
+    // Every discovered structural subdirectory needs a pinned row — otherwise a
+    // newly added category directory measures nothing while looking present.
+    for cat in &categories {
+        assert!(
+            EXPECTED.iter().any(|(n, _, _)| *n == cat.name),
+            "tests/corpus/attack/structural/ has a category directory producing row \
+             {:?}, but EXPECTED does not pin it — add it deliberately in the same \
+             commit that adds the payloads",
+            cat.name
+        );
+    }
+
+    // The reproduction check STRUCTURAL_CATEGORY exists for: renaming
+    // structural/tool-permission-abuse/ must not silently rename the pinned row out
+    // from under EXPECTED. If this fails, the loop above already named the specific
+    // mismatch — this is the belt-and-suspenders assertion on the exact constant.
+    assert!(
+        categories.iter().any(|c| c.name == STRUCTURAL_CATEGORY),
+        "expected a structural category directory to produce the row \
+         {STRUCTURAL_CATEGORY:?} (tests/corpus/attack/structural/tool-permission-abuse/) \
+         — has it been renamed?"
     );
 }
 
@@ -460,10 +543,13 @@ fn the_structural_corpus_is_actually_collected() {
 /// Mutation check (run manually, not part of `cargo test`): insert a `#` comment
 /// line above the opening fence of a structural payload — this test must FAIL.
 /// Restore the file afterward.
+///
+/// Walks every structural category, not just CAT-01's — a payload authored in a
+/// later category's subdirectory with a leading comment fails exactly the same way.
 #[test]
 fn every_structural_payload_parses_as_frontmatter() {
     let mut broken = Vec::new();
-    for (path, content) in structural_payloads() {
+    for (path, content) in all_structural_payloads() {
         let name = path.display().to_string();
         match frontmatter::analyze(&content) {
             Ok(Some((_, projected))) if !projected.is_empty() => {}
@@ -530,7 +616,7 @@ patterns:
     )
     .expect("prose probe category must parse");
 
-    let payloads = structural_payloads();
+    let payloads = all_structural_payloads();
     assert!(!payloads.is_empty(), "no structural payloads to probe");
 
     let frontmatter_scanner = Scanner::new(std::slice::from_ref(&frontmatter_probe))
