@@ -123,6 +123,18 @@ Plans:
   possessive requirement is what keeps PI021 off real manifests. Expect to need a similar
   narrowing rule, and sweep real MCP manifests specifically, not just documentation
 
+**Plans:** 7 plans
+
+Plans:
+
+- [ ] 04-01-PLAN.md — Pre-edit GATE-03 baseline, per-category structural corpus collector, GATE-05 range repair
+- [ ] 04-02-PLAN.md — 12 threat-model payloads, wrapper-shape projection control, measured pre-pattern baseline (GATE-01)
+- [ ] 04-03-PLAN.md — Clean-corpus boundary specimens, vendored registry sample with provenance (D-06)
+- [ ] 04-04-PLAN.md — PI060-PI062 config hygiene, MEDIUM, `scope: frontmatter` (D-03)
+- [ ] 04-05-PLAN.md — PI063-PI065 tool-description poisoning, HIGH, prose (D-01, D-02)
+- [ ] 04-06-PLAN.md — PI066-PI069 shadowing and rug-pull heuristics, MEDIUM, prose (D-04)
+- [ ] 04-07-PLAN.md — Whole-category sweep, number reconciliation, deferral issues, phase close
+
 ### Phase 5: Persistence & lifecycle hijack — CAT-03 (#35)
 
 **Goal:** `PI070`–`PI079`. Payloads that survive the obvious cleanup.
