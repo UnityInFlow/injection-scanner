@@ -703,6 +703,13 @@
       "first_seen_line": 31
     },
     {
+      "file": "examples/tool-permission-abuse-attack.md",
+      "pattern_id": "PI058",
+      "digest": "sha256:af1736896a8d9dc452370358f8401610c4a1450a997facff3256072edeaa7315",
+      "count": 1,
+      "first_seen_line": 37
+    },
+    {
       "file": "patterns/core/encoding.yaml",
       "pattern_id": "PI001",
       "digest": "sha256:2e4221a7f996a7299dd5be2905be6c7c27f5f5bfd60cb107a1662bfaf872e862",
@@ -1242,6 +1249,20 @@
       "first_seen_line": 199
     },
     {
+      "file": "patterns/core/tool-permission-abuse.yaml",
+      "pattern_id": "PI058",
+      "digest": "sha256:9e463b0bc6909aa508a7aa8b14122cbbbd7c974adf3fa175bcff1d8968373dcb",
+      "count": 1,
+      "first_seen_line": 315
+    },
+    {
+      "file": "patterns/core/tool-permission-abuse.yaml",
+      "pattern_id": "PI058",
+      "digest": "sha256:af1736896a8d9dc452370358f8401610c4a1450a997facff3256072edeaa7315",
+      "count": 1,
+      "first_seen_line": 311
+    },
+    {
       "file": "tests/corpus/attack/encoding.md",
       "pattern_id": "PI001",
       "digest": "sha256:43c62be73ba88aa4b5dcb09c5b6471f8ef318ab06db001cf979ef6c1d8943eee",
@@ -1597,6 +1618,13 @@
       "digest": "sha256:ddc64d79cec6187814f837e19fb8ceb47dd80a18b644d81c6f92b0bdde6dc179",
       "count": 1,
       "first_seen_line": 7
+    },
+    {
+      "file": "tests/corpus/attack/instruction-injection.md",
+      "pattern_id": "PI058",
+      "digest": "sha256:af1736896a8d9dc452370358f8401610c4a1450a997facff3256072edeaa7315",
+      "count": 1,
+      "first_seen_line": 20
     },
     {
       "file": "tests/corpus/attack/jailbreak.md",
@@ -1968,6 +1996,41 @@
       "digest": "sha256:72fad1225fd92832b9d4803b704f9edd2a894acbcf1460e42957e42ea87ca97e",
       "count": 1,
       "first_seen_line": 26
+    },
+    {
+      "file": "tests/corpus/attack/tool-permission-abuse.md",
+      "pattern_id": "PI058",
+      "digest": "sha256:a07b1b0218101793055a5a7432648f4d92b13f6fbefab1460f864cab124017f4",
+      "count": 1,
+      "first_seen_line": 31
+    },
+    {
+      "file": "tests/corpus/attack/tool-permission-abuse.md",
+      "pattern_id": "PI058",
+      "digest": "sha256:a9fdfeded7c58bbe8899984be34334e18f203a18aa72a89d2c9077cf8870e989",
+      "count": 1,
+      "first_seen_line": 29
+    },
+    {
+      "file": "tests/corpus/attack/tool-permission-abuse.md",
+      "pattern_id": "PI058",
+      "digest": "sha256:af1736896a8d9dc452370358f8401610c4a1450a997facff3256072edeaa7315",
+      "count": 1,
+      "first_seen_line": 27
+    },
+    {
+      "file": "tests/corpus/attack/tool-permission-abuse.md",
+      "pattern_id": "PI058",
+      "digest": "sha256:b671b90291cf59992ddd1bfa449f3800e71446397cb66e75a3934568fadedbda",
+      "count": 1,
+      "first_seen_line": 30
+    },
+    {
+      "file": "tests/corpus/attack/tool-permission-abuse.md",
+      "pattern_id": "PI058",
+      "digest": "sha256:babc6709467632c8945cbe804967464bf692b1115baebc0badc5504ee909223a",
+      "count": 1,
+      "first_seen_line": 28
     },
     {
       "file": "tests/fixtures/allowlisted.md",

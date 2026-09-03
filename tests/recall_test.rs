@@ -41,7 +41,8 @@ const STRUCTURAL_CATEGORY: &str = "tool-permission-abuse-structural";
 /// `tool-permission-abuse-structural` rows below for the breakdown.
 /// Three payloads added 2026-09-03 with the widenings that catch them
 /// (PI014, PI015, PI018, PI029): **74 of 76**.
-/// The Czech multilingual slice added the same day: **82 of 86**.
+/// The Czech multilingual slice added the same day: **82 of 86**, and PI058's
+/// five destructive-command payloads: **87 of 91**.
 ///
 /// Started this milestone at 10/60. The dividing line was never how hard the
 /// attacks are - it is whether a pattern matches *shape* or a literal phrase.
@@ -114,7 +115,11 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // the pinned 0/7 baseline. Task 3 records the baseline/current/delta in
     // the plan SUMMARY and updates the README table in the same commit
     // (GATE-02) — the number here does not change again.
-    ("tool-permission-abuse", 7, 7),
+    //
+    // PI058 agent-directed-destructive-command (a direct order to exercise
+    // destructive authority, the shape D-14's deferral of BARE commands left
+    // open) added five release-note payloads: 12/12.
+    ("tool-permission-abuse", 12, 12),
     // tool-permission-abuse-structural: the CAT-01 (#33) structural half, 5
     // payloads. Pre-pattern baseline (03-01-SUMMARY.md, measured 2026-09-01 on
     // the shipping 48-pattern set with ZERO PI05x patterns loaded) was 0/5 —
@@ -596,13 +601,14 @@ patterns:
     );
 }
 
-/// GATE-01: exactly 12 threat-model payloads for CAT-01, split across the two
-/// rows however the threat model produced (D-03 — no ratio was set in
-/// advance). Reads both `EXPECTED` rows directly rather than re-deriving the
-/// split, so this fails loudly if either row's total drifts without the
-/// other being updated to match.
+/// GATE-01: exactly 12 threat-model payloads for CAT-01 at phase close, split
+/// across the two rows however the threat model produced (D-03 — no ratio was
+/// set in advance). PI058 agent-directed-destructive-command later added five
+/// prose payloads, so the pin is 17. Reads both `EXPECTED` rows directly
+/// rather than re-deriving the split, so this fails loudly if either row's
+/// total drifts without the other being updated to match.
 #[test]
-fn the_cat_01_payload_totals_sum_to_twelve() {
+fn the_cat_01_payload_totals_sum_to_seventeen() {
     let prose_total = EXPECTED
         .iter()
         .find(|(c, _, _)| *c == "tool-permission-abuse")
@@ -615,8 +621,9 @@ fn the_cat_01_payload_totals_sum_to_twelve() {
         .unwrap_or_else(|| panic!("{STRUCTURAL_CATEGORY} is missing from EXPECTED"));
     assert_eq!(
         prose_total + structural_total,
-        12,
-        "CAT-01 (#33, GATE-01) requires exactly 12 threat-model payloads; \
+        17,
+        "CAT-01 (#33, GATE-01) pinned 12 threat-model payloads at phase close and \
+         PI058 added five: 17 expected; \
          EXPECTED has {prose_total} prose + {structural_total} structural = \
          {}",
         prose_total + structural_total
