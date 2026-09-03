@@ -21,14 +21,14 @@ and it retires #6 and #7, already closed against it.
 
 ## Phases
 
-- [ ] **Phase 1: Structural frontmatter engine (ENG-01, #32)** — Parse YAML/TOML/JSON frontmatter
+- [x] **Phase 1: Structural frontmatter engine (ENG-01, #32)** — Parse YAML/TOML/JSON frontmatter
       with a real parser; inspect `allowed-tools`, `tools`, `permissions`, `mcpServers`, `hooks`,
       `model`/`system` as data. Unblocks Phases 3 and 4.
 
-- [ ] **Phase 2: Recursive decoder (ENG-02, #30)** — base64, hex, URL, HTML entities, `\u` escapes,
+- [x] **Phase 2: Recursive decoder (ENG-02, #30)** — base64, hex, URL, HTML entities, `\u` escapes,
       applied recursively with a decode-bomb bound. Takes recall to 59/60.
 
-- [ ] **Phase 3: Tool & permission abuse (CAT-01, #33)** — `PI050`–`PI059`.
+- [x] **Phase 3: Tool & permission abuse (CAT-01, #33)** — `PI050`–`PI059`.
 - [ ] **Phase 4: MCP & tool-description poisoning (CAT-02, #34)** — `PI060`–`PI069`.
 - [ ] **Phase 5: Persistence & lifecycle hijack (CAT-03, #35)** — `PI070`–`PI079`.
 
@@ -123,12 +123,12 @@ Plans:
   possessive requirement is what keeps PI021 off real manifests. Expect to need a similar
   narrowing rule, and sweep real MCP manifests specifically, not just documentation
 
-**Plans:** 1/7 plans executed
+**Plans:** 2/7 plans executed
 
 Plans:
 
 - [x] 04-01-PLAN.md — Pre-edit GATE-03 baseline, per-category structural corpus collector, GATE-05 range repair
-- [ ] 04-02-PLAN.md — 12 threat-model payloads, wrapper-shape projection control, measured pre-pattern baseline (GATE-01)
+- [x] 04-02-PLAN.md — 12 threat-model payloads, wrapper-shape projection control, measured pre-pattern baseline (GATE-01)
 - [ ] 04-03-PLAN.md — Clean-corpus boundary specimens, vendored registry sample with provenance (D-06)
 - [ ] 04-04-PLAN.md — PI060-PI062 config hygiene, MEDIUM, `scope: frontmatter` (D-03)
 - [ ] 04-05-PLAN.md — PI063-PI065 tool-description poisoning, HIGH, prose (D-01, D-02)
@@ -163,11 +163,14 @@ rename.
 
 | Phase | Requirement | Issue | Status |
 |---|---|---|---|
-| 1. Structural frontmatter engine | ENG-01 | #32 | Not started |
-| 2. Recursive decoder | ENG-02 | #30 | Not started |
-| 3. Tool & permission abuse | CAT-01 | #33 | In Progress|
-| 4. MCP & tool-description poisoning | CAT-02 | #34 | In Progress|
+| 1. Structural frontmatter engine | ENG-01 | #32 | **Done** — PR #104 |
+| 2. Recursive decoder | ENG-02 | #30 | **Done** — PR #108 |
+| 3. Tool & permission abuse | CAT-01 | #33 | **Done** — PR #109 |
+| 4. MCP & tool-description poisoning | CAT-02 | #34 | In Progress — 2/7 plans |
 | 5. Persistence & lifecycle hijack | CAT-03 | #35 | Not started |
 
-**Library:** 48 patterns today → ~78 at milestone end.
-**Recall:** 56/60 today → 59/60 after Phase 2, plus 36 new payloads measured separately.
+**Library:** 56 patterns today (48 + CAT-01's PI050-PI057) → ~78 at milestone end.
+**Recall:** 76/84 (90.5%) as of 04-02. The denominator grows as each category's 12
+threat-model payloads land: 60 at milestone open → 72 after CAT-01 → 84 after CAT-02's
+corpus. CAT-02 currently sits at its measured **pre-pattern baseline of 6/12** — no
+`PI060`+ pattern exists yet, by GATE-01's ordering rule.

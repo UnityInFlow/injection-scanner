@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-09-03T09:10:21.050Z"
-state_head: 19794694ba28a1cfe07d248c19c91d9d33daebc1
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-09-03T18:22:07.000Z"
+state_head: 0b878c33ab2f3122d3534cd928ac6cff04699812
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 16
-  completed_plans: 10
-  percent: 63
+  completed_plans: 11
+  percent: 69
 ---
 
 # State: injection-scanner
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md`
 
 ## Current Phase
 
-**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **in progress (1/7 plans — 04-01 done)**
+**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **in progress (2/7 plans — 04-01, 04-02 done)**
 
 Phase 3 shipped 2026-09-02 as **PR #109** (rebase-merged, issue #33 auto-closed): `PI050`-`PI057`,
 the `relaxed_pattern` schema field, and ADR-004. Its code review found one critical false positive
@@ -38,8 +38,16 @@ payloads carry a negator inside the matched sentence, so a guard would have supp
 and `PI057`'s own `example` values and failed `pattern_example_test`.
 
 Phases 1 and 2 shipped 2026-08-30; both engines are done. The two remaining phases are pattern
-categories, one PR each (GATE-04). `main` clean, in sync, **353 tests**, CI green, zero open PRs,
-still 0 merge commits.
+categories, one PR each (GATE-04). `main` clean, **357 tests**, CI green, still 0 merge commits.
+
+**One open PR: #110** — an external contribution (+2,072 lines, 32 files, CI green) that
+touches three categories at once: PI058 (CAT-01), PI070 (opens CAT-03), PI110-PI113
+(multilingual, #39, a v0.3.0 issue), plus `src/context.rs` and a new integration. It
+conflicts with GATE-04 (one category per PR), GATE-01 (its corpus is derived from its own
+patterns), GATE-02 (moves the recall pin to 93/97, changing the denominator) and GATE-03
+(evidence is 6 web pages, not the ~1,300-file sweep). It also repairs this repo's own dead
+`.claude` hooks, which used non-existent event names so every guard was a silent no-op.
+Triage before Phase 4 closes — it edits the same files Phase 4 does.
 
 **Carried into Phase 4:** `PI050+` patterns must ship a `relaxed_pattern` (GATE-05, ADR-004). The
 generalizable CR-01 rule — *fix negation where the negator sits*: clause-initial anchoring when it
@@ -95,7 +103,9 @@ Also standing: `main` stays strictly linear. A pattern's `name` is a **consumer 
 | Jailbreaks | 12/12 | 100% |
 | Role Override | 11/12 | 92% |
 | Encoding/Obfuscation | 11/12 | 91.7% |
-| **Total** | **58/60** | **96.7%** |
+| Tool & Permission Abuse | 12/12 | 100% |
+| MCP & Tool-Description Poisoning | 6/12 | 50% (pre-pattern baseline) |
+| **Total** | **76/84** | **90.5%** |
 
 Reached **58/60** on 2026-08-30 when ENG-02 landed.
 
@@ -119,6 +129,7 @@ the pattern set rather than the input. Two misses therefore remain, both for sta
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260902-jhy | Fix CR-01 negation blindness in PI053/PI056/PI057; fold in WR-01 `PATTERNS.md` category row | 2026-09-02 | `db2a575` | [260902-jhy-fix-cr-01-negation-blindness-in-pi053-pi](./quick/260902-jhy-fix-cr-01-negation-blindness-in-pi053-pi/) |
+| 260903-fast | Fix char-boundary panic in frontmatter projection (detection bypass via oversized multi-byte scalar) | 2026-09-03 | `d28dfd0` | — |
 
 ## Milestone hygiene done 2026-08-30
 
@@ -199,7 +210,7 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
 ## Session Continuity
 
 Last session: 2026-09-03T09:10:21.035Z
-Stopped at: Completed 04-01-PLAN.md
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
 
 ---
