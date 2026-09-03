@@ -132,6 +132,16 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // re-measured in the same run and did NOT move (still 0/7) — no
     // spillover from a structural pattern onto a prose payload.
     (STRUCTURAL_CATEGORY, 5, 5),
+    // mcp-tool-poisoning-structural: the CAT-02 (#34) structural half.
+    // Plan 04-02 Task 1 landed ONE payload (the wrapper-less emphasis-wrapped
+    // file-read-and-smuggle shape, GATE-01) before any PI060+ pattern exists.
+    //
+    // PLACEHOLDER: the detected count below is UNMEASURED until Task 3 runs
+    // the recall suite against the shipping 56-pattern set and records the
+    // real number, attributed to a named pattern id and match context in the
+    // plan SUMMARY. This 0 is deliberately not a measurement — expect this
+    // row to fail (or at minimum be flagged unmeasured) until Task 3 pins it.
+    ("mcp-tool-poisoning-structural", 0, 1),
 ];
 
 fn scanner() -> Scanner {
@@ -661,6 +671,130 @@ patterns:
         "the prose-scoped variant of the identical regex fired on a structural \
          payload — without this negative control, a silent structural pass and a \
          working one are indistinguishable"
+    );
+}
+
+/// GATE-01/T-04-08: the measured justification for plan 04-04's leaf-anchoring
+/// rule. Three real MCP-manifest wrapper shapes (Claude-family `mcpServers`,
+/// VS Code family `servers`, and the wrapper-less form where the server name
+/// is the top-level key — 04-RESEARCH.md §Q1/§Q2) all project the same leaf
+/// shape, and a leaf-anchored pattern must see all three. The paired negative
+/// control proves the point is load-bearing rather than decorative: a regex
+/// anchored on the Claude-family wrapper key as a literal prefix fires on
+/// only one of the three real shapes. Without that second half this test
+/// would prove only that something matched (the blocking anti-pattern
+/// `.continue-here.md` warns against), not that leaf-anchoring is necessary.
+///
+/// The probe category is parsed through the real YAML deserializer, exactly
+/// like `the_structural_pass_is_reachable_from_the_corpus` above. Its ids
+/// (`PROBE003`/`PROBE004`) are scaffolding only — never added to `patterns/`.
+///
+/// Mutation check (run manually, not part of `cargo test`): rewrite
+/// `PROBE003`'s `pattern` field below to require the Claude-family
+/// `mcpServers.` prefix as a literal prefix (i.e. swap in `PROBE004`'s
+/// pattern) — this test must FAIL on the wrapper-less and VS Code
+/// assertions. Restore afterward; the failure message is recorded in the
+/// plan SUMMARY.
+#[test]
+fn the_projection_reaches_every_manifest_wrapper_shape() {
+    let leaf_probe: PatternCategory = serde_yaml::from_str(
+        r#"
+category: probe
+default_severity: HIGH
+patterns:
+  - id: PROBE003
+    name: leaf-anchored-command-probe
+    scope: frontmatter
+    pattern: "(?:^|\\.)command\\s*=\\s*npx"
+    example: "command = npx"
+"#,
+    )
+    .expect("leaf probe category must parse");
+
+    // The negative control: the identical signal, but anchored on the
+    // Claude-family `mcpServers.` wrapper key as a literal prefix. Proves
+    // the leaf probe's reach across all three shapes is load-bearing rather
+    // than an artifact of a lenient regex — see the module comment above.
+    let wrapper_anchored_probe: PatternCategory = serde_yaml::from_str(
+        r#"
+category: probe
+default_severity: HIGH
+patterns:
+  - id: PROBE004
+    name: wrapper-anchored-command-probe
+    scope: frontmatter
+    pattern: "^mcpServers\\..*command\\s*=\\s*npx"
+    example: "mcpServers.example.command = npx"
+"#,
+    )
+    .expect("wrapper-anchored probe category must parse");
+
+    // Three synthetic in-test manifests, one per real wrapper shape measured
+    // in 04-RESEARCH.md §Q1/§Q2 — never read from disk, so this test does not
+    // depend on any committed corpus payload's exact wording.
+    let claude_wrapped =
+        r#"{"mcpServers": {"example": {"command": "npx", "args": ["-y", "some-pkg"]}}}"#;
+    let vscode_wrapped =
+        r#"{"servers": {"example": {"command": "npx", "args": ["-y", "some-pkg"]}}}"#;
+    let wrapper_less = r#"{"example": {"command": "npx", "args": ["-y", "some-pkg"]}}"#;
+
+    let leaf_scanner =
+        Scanner::new(std::slice::from_ref(&leaf_probe)).expect("leaf probe pattern must compile");
+    let wrapper_scanner = Scanner::new(std::slice::from_ref(&wrapper_anchored_probe))
+        .expect("wrapper-anchored probe pattern must compile");
+
+    let fires = |scanner: &Scanner, content: &str| {
+        !scanner
+            .scan("probe.mcp.json", content, &Suppressions::default())
+            .matches
+            .is_empty()
+    };
+
+    assert!(
+        fires(&leaf_scanner, claude_wrapped),
+        "leaf-anchored probe must fire on the mcpServers-wrapped shape"
+    );
+    assert!(
+        fires(&leaf_scanner, vscode_wrapped),
+        "leaf-anchored probe must fire on the servers-wrapped (VS Code family) shape"
+    );
+    assert!(
+        fires(&leaf_scanner, wrapper_less),
+        "leaf-anchored probe must fire on the wrapper-less shape (server name as \
+         the top-level key)"
+    );
+
+    assert!(
+        fires(&wrapper_scanner, claude_wrapped),
+        "wrapper-anchored probe (positive control) must fire on the mcpServers-wrapped shape"
+    );
+    assert!(
+        !fires(&wrapper_scanner, vscode_wrapped),
+        "wrapper-anchored probe must NOT fire on the servers-wrapped shape — a pattern \
+         anchored on `^mcpServers\\.` is measured (04-RESEARCH.md §Q1) to miss this real shape"
+    );
+    assert!(
+        !fires(&wrapper_scanner, wrapper_less),
+        "wrapper-anchored probe must NOT fire on the wrapper-less shape — a pattern \
+         anchored on `^mcpServers\\.` is measured (04-RESEARCH.md §Q1) to miss this real shape"
+    );
+
+    // The committed Task 1 payload itself must project at least one line — a
+    // payload that stops parsing reads as a corpus bug, not a detection miss
+    // (trap 2, same discipline as `every_structural_payload_parses_as_frontmatter`).
+    let payload_path = structural_dir()
+        .join("mcp-tool-poisoning")
+        .join("01-emphasis-wrapped-description-file-smuggle.md");
+    let content = fs::read_to_string(&payload_path)
+        .unwrap_or_else(|e| panic!("{} must be readable: {e}", payload_path.display()));
+    let projected = frontmatter::analyze(&content)
+        .unwrap_or_else(|e| panic!("{} must parse as frontmatter: {e}", payload_path.display()))
+        .unwrap_or_else(|| panic!("{} produced no config block at all", payload_path.display()))
+        .1;
+    assert!(
+        !projected.is_empty(),
+        "{} parsed as frontmatter but projected zero lines",
+        payload_path.display()
     );
 }
 
