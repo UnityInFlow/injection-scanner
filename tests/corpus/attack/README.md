@@ -43,7 +43,8 @@ threat-model payloads landed ahead of any pattern (D-04), so the corpus
 proves the ordering rather than asserting it. See `structural/` below for
 where its structured half lives. Multilingual (`PI110`–`PI119`) joined the same
 way with `multilingual.md` (#39): one language per slice, misses for the next
-language left in as documented misses.
+language left in as documented misses. Persistence and lifecycle hijack
+(`PI070`–`PI079`, #35) opened with `persistence-lifecycle-hijack.md`.
 
 ## The `structural/` directory
 

@@ -121,6 +121,7 @@ Neither can see what the other sees. If you touch `release.yml`, expect both.
 - PI030-PI039: Jailbreaks (Category D)
 - PI040-PI049: Encoding/obfuscation (Category E)
 - PI050-PI059: Tool and permission abuse (Category F)
+- PI070-PI079: Persistence and lifecycle hijack (Category H)
 - PI110-PI119: Multilingual evasion (Category G; Czech first, one language per slice)
 
 ## Commit Convention

@@ -25,6 +25,7 @@ injection-scanner check examples/ --format json
 | `exfiltration-attack.md` | C: Data Exfiltration | PI020-PI025 | 4 CRITICAL |
 | `jailbreak-attack.md` | D: Jailbreaks | PI030-PI038 | 5 HIGH |
 | `tool-permission-abuse-attack.md` | E: Tool & Permission Abuse | PI050-PI058 | 3 CRITICAL + prose HIGH |
+| `persistence-lifecycle-hijack-attack.md` | H: Persistence & Lifecycle Hijack | PI070 | 3 HIGH |
 | `multilingual-attack.md` | G: Multilingual (Czech) | PI110-PI113 | 4 findings |
 | `mixed-attack.md` | All categories | Multiple | 7+ findings |
 | `suppressed-documentation.md` | Inline suppression | Suppressed | 1 finding (unsuppressed) |

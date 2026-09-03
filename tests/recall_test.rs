@@ -42,7 +42,8 @@ const STRUCTURAL_CATEGORY: &str = "tool-permission-abuse-structural";
 /// Three payloads added 2026-09-03 with the widenings that catch them
 /// (PI014, PI015, PI018, PI029): **74 of 76**.
 /// The Czech multilingual slice added the same day: **82 of 86**, and PI058's
-/// five destructive-command payloads: **87 of 91**.
+/// five destructive-command payloads: **87 of 91**. CAT-03 opened with PI070
+/// and six persistence payloads: **93 of 97**.
 ///
 /// Started this milestone at 10/60. The dividing line was never how hard the
 /// attacks are - it is whether a pattern matches *shape* or a literal phrase.
@@ -139,6 +140,10 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // documented misses: the range covers one language so far, and the
     // misses show what the next language's work looks like.
     ("multilingual", 8, 10),
+    // CAT-03 (#35) opens with PI070 agent-directed-persistence-write: six
+    // payloads from install guides and support pages, every one a write that
+    // outlives the session.
+    ("persistence-lifecycle-hijack", 6, 6),
 ];
 
 fn scanner() -> Scanner {
