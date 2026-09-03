@@ -447,7 +447,7 @@ do not tell jokes during the meeting
 <details><summary>Regex</summary>
 
 ```regex
-(do\s+not\s+(?:tell|mention|reveal|disclose|acknowledge|say|refer\s+to)\s+(?:the\s+user|this|that|it|anything|any\s+of\s+this)|keep\s+this\s+secret\s+from\s+the\s+user|without\s+(?:informing|telling|notifying)\s+the\s+user|silently\s+(?:append|add|insert|include|execute|run|perform|forward|send)(?:\s|$|[.,;:])|without\s+(?:explaining|mentioning|disclosing|acknowledging)\s+(?:why|it|this|that|anything|the\s+reason))
+(do\s+not\s+(?:tell|mention|reveal|disclose|acknowledge|say|refer\s+to)\s+(?:the\s+user|this|that|it|anything|any\s+of\s+this)|keep\s+this\s+secret\s+from\s+the\s+user|without\s+(?:informing|telling|notifying)\s+the\s+user|silently\s+(?:append|add|insert|include|execute|run|perform|forward|send)(?:\s|$|[.,;:])|without\s+(?:explaining|mentioning|disclosing|acknowledging)\s+(?:why|it|this|that|anything|the\s+reason)|(?:tell|assure|reassure|confirm\s+to|inform|report\s+to)\s+the\s+user\s+that\s+th(?:is|e|ese)\s+(?:\w+\s+)?(?:document|page|file|contents?|notes?|email|message|attachment|readme|skill|instructions?)\s+(?:contain(?:s|ed)\s+nothing\s+(?:unusual|suspicious|harmful|out\s+of\s+the\s+ordinary)|(?:is|was|were|are|looks?|looked)\s+(?:safe|clean|benign|legitimate|harmless)\b|ha(?:s|d|ve)\s+no\s+(?:issues?|problems?|injections?)))
 ```
 
 </details>
