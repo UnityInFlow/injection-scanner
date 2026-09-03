@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
-stopped_at: Phase 3 shipped — PR #109 merged, #33 closed. Phase 4 (CAT-02) not started.
-last_updated: "2026-09-03T07:16:56.000Z"
-state_head: 465c7e0b1aa3bfc780127d488102fa4af8b75e64
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-09-03T09:10:21.050Z"
+state_head: 19794694ba28a1cfe07d248c19c91d9d33daebc1
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
-  percent: 60
+  total_plans: 16
+  completed_plans: 10
+  percent: 63
 ---
 
 # State: injection-scanner
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md`
 
 ## Current Phase
 
-**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **not started**
+**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **in progress (1/7 plans — 04-01 done)**
 
 Phase 3 shipped 2026-09-02 as **PR #109** (rebase-merged, issue #33 auto-closed): `PI050`-`PI057`,
 the `relaxed_pattern` schema field, and ADR-004. Its code review found one critical false positive
@@ -198,10 +198,20 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
 
 ## Session Continuity
 
-Last session: 2026-09-01T10:48:34.004Z
-Stopped at: Phase 3 planned — 7 plans, 4 waves, verification passed
-`/gsd-discuss-phase 3` (CAT-01, #33) — context gathering before planning.
-Resume file: .planning/phases/03-tool-permission-abuse-cat-01-33/03-01-PLAN.md
+Last session: 2026-09-03T09:10:21.035Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
 
 ---
-*Last updated: 2026-08-30*
+*Last updated: 2026-09-03*
+
+## Performance Metrics
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 04 P01 | ~15min (commit span) | 3 tasks | 44 files |
+
+## Decisions
+
+- [Phase 04]: GATE-03 sweep excludes ~/.cursor/extensions and ~/.vscode/extensions (vendored bundle noise, direct cause of a reproduced src/frontmatter.rs:219 panic); their config-relevant subdirectories are swept instead
+- [Phase 04]: relaxed_pattern's PI050+ GATE-05 requirement is now an open-ended predicate (id >= 50), fixing a closed 50-59 range that would have exempted every CAT-02/PI060+ pattern

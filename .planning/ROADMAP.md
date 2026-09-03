@@ -123,11 +123,11 @@ Plans:
   possessive requirement is what keeps PI021 off real manifests. Expect to need a similar
   narrowing rule, and sweep real MCP manifests specifically, not just documentation
 
-**Plans:** 7 plans
+**Plans:** 1/7 plans executed
 
 Plans:
 
-- [ ] 04-01-PLAN.md — Pre-edit GATE-03 baseline, per-category structural corpus collector, GATE-05 range repair
+- [x] 04-01-PLAN.md — Pre-edit GATE-03 baseline, per-category structural corpus collector, GATE-05 range repair
 - [ ] 04-02-PLAN.md — 12 threat-model payloads, wrapper-shape projection control, measured pre-pattern baseline (GATE-01)
 - [ ] 04-03-PLAN.md — Clean-corpus boundary specimens, vendored registry sample with provenance (D-06)
 - [ ] 04-04-PLAN.md — PI060-PI062 config hygiene, MEDIUM, `scope: frontmatter` (D-03)
@@ -166,7 +166,7 @@ rename.
 | 1. Structural frontmatter engine | ENG-01 | #32 | Not started |
 | 2. Recursive decoder | ENG-02 | #30 | Not started |
 | 3. Tool & permission abuse | CAT-01 | #33 | In Progress|
-| 4. MCP & tool-description poisoning | CAT-02 | #34 | Not started |
+| 4. MCP & tool-description poisoning | CAT-02 | #34 | In Progress|
 | 5. Persistence & lifecycle hijack | CAT-03 | #35 | Not started |
 
 **Library:** 48 patterns today → ~78 at milestone end.
