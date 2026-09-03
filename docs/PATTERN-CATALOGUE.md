@@ -419,7 +419,7 @@ You must run ./gradlew ktlintFormat before every commit
 <details><summary>Regex</summary>
 
 ```regex
-(?:the\s+developer\s+wants\s+you\s+to|(?:note|message|instruction)s?\s+to\s+the\s+(?:assistant|model|ai|agent|llm)\s*:|attention\s+(?:model|assistant|ai|agent|llm)\s*[:,]|if\s+you\s+are\s+(?:an?\s+)?(?:ai|llm|language\s+model|assistant|agent|bot|chatbot)\b[^.\n]{0,40}?(?:read(?:ing|s)?|processing|parsing|summari[sz]ing|analy[sz]ing)\b|if\s+you\s+are\s+(?:an?\s+)?(?:ai|llm|language\s+model|ai\s+(?:assistant|agent|model)|chatbot)\s*,\s*(?:follow|execute|run|ignore|do|perform|output|print|reply|respond|start|begin|include|send|disregard|skip)\b)
+(?:the\s+developer\s+wants\s+you\s+to|(?:note|message|instruction)s?\s+to\s+the\s+(?:assistant|model|ai|agent|llm)\s*:|attention\s+(?:model|assistant|ai|agent|llm)\s*[:,]|if\s+you\s+are\s+(?:an?\s+)?(?:ai|llm|language\s+model|assistant|agent|bot|chatbot)\b[^.\n]{0,40}?(?:read(?:ing|s)?|processing|parsing|summari[sz]ing|analy[sz]ing)\b|if\s+you\s+are\s+(?:an?\s+)?(?:ai|llm|language\s+model|ai\s+(?:assistant|agent|model)|chatbot)\s*,\s*(?:follow|execute|run|ignore|do|perform|output|print|reply|respond|start|begin|include|send|disregard|skip)\b|(?:ai\s+)?(?:assistants?|agents?|models?|llms?|bots?|chatbots?)\s+(?:reading|processing|parsing|summari[sz]ing|ingesting|analy[sz]ing)\s+this\s+(?:document|page|file|text|content|message|site)\b)
 ```
 
 </details>
