@@ -41,6 +41,7 @@ const STRUCTURAL_CATEGORY: &str = "tool-permission-abuse-structural";
 /// `tool-permission-abuse-structural` rows below for the breakdown.
 /// Three payloads added 2026-09-03 with the widenings that catch them
 /// (PI014, PI015, PI018, PI029): **74 of 76**.
+/// The Czech multilingual slice added the same day: **82 of 86**.
 ///
 /// Started this milestone at 10/60. The dividing line was never how hard the
 /// attacks are - it is whether a pattern matches *shape* or a literal phrase.
@@ -128,6 +129,11 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // re-measured in the same run and did NOT move (still 0/7) — no
     // spillover from a structural pattern onto a prose payload.
     (STRUCTURAL_CATEGORY, 5, 5),
+    // The Czech slice of the multilingual range (#39). Eight Czech payloads,
+    // one of them typed without diacritics, and two German ones that are
+    // documented misses: the range covers one language so far, and the
+    // misses show what the next language's work looks like.
+    ("multilingual", 8, 10),
 ];
 
 fn scanner() -> Scanner {

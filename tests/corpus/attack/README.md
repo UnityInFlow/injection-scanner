@@ -41,7 +41,9 @@ advertised. Add them here in the same commit that claims them.
 Tool and permission abuse (`PI050`–`PI059`) is no longer in that list: its 12
 threat-model payloads landed ahead of any pattern (D-04), so the corpus
 proves the ordering rather than asserting it. See `structural/` below for
-where its structured half lives.
+where its structured half lives. Multilingual (`PI110`–`PI119`) joined the same
+way with `multilingual.md` (#39): one language per slice, misses for the next
+language left in as documented misses.
 
 ## The `structural/` directory
 

@@ -318,6 +318,7 @@ fn the_attack_corpus_keeps_every_finding() {
         // again: line 16's "pretend you have no restrictions" now matches PI032
         // alongside PI033. Both rises are duplicates on already-reported lines.
         ("examples/mixed-attack.md", 10),
+        ("examples/multilingual-attack.md", 4),
     ];
 
     for (path, count) in expected {

@@ -182,14 +182,14 @@
       "pattern_id": "PI001",
       "digest": "sha256:d4954f9cba7323d637885cae0cb7b6a9e659fd3ada0241e22eb78d9a92d77853",
       "count": 1,
-      "first_seen_line": 74
+      "first_seen_line": 75
     },
     {
       "file": "docs/PATTERN-CATALOGUE.md",
       "pattern_id": "PI031",
       "digest": "sha256:d4db10b14e9b6754cc4a5cf34caf75e0b44b1e3aa645aff1bd6b11653ed5e8c6",
       "count": 1,
-      "first_seen_line": 875
+      "first_seen_line": 876
     },
     {
       "file": "examples/encoding-attack.md",
@@ -547,6 +547,34 @@
       "digest": "sha256:1b41b8582a87031e8ccc5be75838b6aa42199282930e07477663689c2d034480",
       "count": 1,
       "first_seen_line": 16
+    },
+    {
+      "file": "examples/multilingual-attack.md",
+      "pattern_id": "PI110",
+      "digest": "sha256:4e32766f4ca1d65867f6704b9034e04dbb1de7cd61dbcd2bafa3b7b5143c653f",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "examples/multilingual-attack.md",
+      "pattern_id": "PI111",
+      "digest": "sha256:776154e2d164a72c2926ecb08024c9a87437f7de670fb62e5fb0c3d615eb5b38",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "examples/multilingual-attack.md",
+      "pattern_id": "PI112",
+      "digest": "sha256:b5e84e3a43b5f9c5ecfd56029d05b2cb4a2473c87be6ead0cced1ea0188d63e5",
+      "count": 1,
+      "first_seen_line": 7
+    },
+    {
+      "file": "examples/multilingual-attack.md",
+      "pattern_id": "PI113",
+      "digest": "sha256:02ecf61da93efcf3868adcb3d0dd63a77f9aa39689f77602ae77cb3824d762eb",
+      "count": 1,
+      "first_seen_line": 9
     },
     {
       "file": "examples/role-override-attack.md",
@@ -1016,6 +1044,55 @@
       "digest": "sha256:37cae603b2981168826130a4d9cfe24e45c5dc7e51f7acfc16bc0750c9e660be",
       "count": 1,
       "first_seen_line": 111
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI001",
+      "digest": "sha256:8c18625270345ad0413bc448571a0d79d914ce2cc6f99376c14aeb020a155b6b",
+      "count": 1,
+      "first_seen_line": 28
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI014",
+      "digest": "sha256:22b2ab6dfd86561dd676d86b3117c7e1b9920ea2d0806a685e0e5bc8426d93f8",
+      "count": 1,
+      "first_seen_line": 42
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI014",
+      "digest": "sha256:946ccf92c58fe2076c7dd94292729739cd67c0e8a818a107dc777402513d5a14",
+      "count": 1,
+      "first_seen_line": 41
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI110",
+      "digest": "sha256:c7c6799157edef0f260261dd16e2bb5aa1264175e959e175b6f844a15b62b34e",
+      "count": 1,
+      "first_seen_line": 26
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI111",
+      "digest": "sha256:776154e2d164a72c2926ecb08024c9a87437f7de670fb62e5fb0c3d615eb5b38",
+      "count": 1,
+      "first_seen_line": 37
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI112",
+      "digest": "sha256:b5e84e3a43b5f9c5ecfd56029d05b2cb4a2473c87be6ead0cced1ea0188d63e5",
+      "count": 1,
+      "first_seen_line": 50
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI113",
+      "digest": "sha256:02ecf61da93efcf3868adcb3d0dd63a77f9aa39689f77602ae77cb3824d762eb",
+      "count": 1,
+      "first_seen_line": 61
     },
     {
       "file": "patterns/core/role-override.yaml",
@@ -1611,6 +1688,76 @@
       "digest": "sha256:cac116eedfcffc3632d18d4a7981317dab3132aa5d6286b49193bfee76e01bfe",
       "count": 1,
       "first_seen_line": 14
+    },
+    {
+      "file": "tests/corpus/attack/multilingual.md",
+      "pattern_id": "PI110",
+      "digest": "sha256:4e32766f4ca1d65867f6704b9034e04dbb1de7cd61dbcd2bafa3b7b5143c653f",
+      "count": 1,
+      "first_seen_line": 12
+    },
+    {
+      "file": "tests/corpus/attack/multilingual.md",
+      "pattern_id": "PI110",
+      "digest": "sha256:5b551f92261d91455f03ad4bd8a95a0b37ddb487bc945708ea4aca257e618d6e",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "tests/corpus/attack/multilingual.md",
+      "pattern_id": "PI110",
+      "digest": "sha256:a80f5f5af8aa46dfb0d196949acebd89362ab12f605d067292d426bf3dbc658e",
+      "count": 1,
+      "first_seen_line": 17
+    },
+    {
+      "file": "tests/corpus/attack/multilingual.md",
+      "pattern_id": "PI110",
+      "digest": "sha256:d06da3e48f45acd7606317c8390bb29a7b6b6fb7c0fae2d38dedc06d5e9b45bd",
+      "count": 1,
+      "first_seen_line": 18
+    },
+    {
+      "file": "tests/corpus/attack/multilingual.md",
+      "pattern_id": "PI111",
+      "digest": "sha256:273e4a749c4ef1342dbc9c1e960ead25ccb0c0eaf505e87756ae2a61a09f6c1a",
+      "count": 1,
+      "first_seen_line": 19
+    },
+    {
+      "file": "tests/corpus/attack/multilingual.md",
+      "pattern_id": "PI111",
+      "digest": "sha256:776154e2d164a72c2926ecb08024c9a87437f7de670fb62e5fb0c3d615eb5b38",
+      "count": 1,
+      "first_seen_line": 12
+    },
+    {
+      "file": "tests/corpus/attack/multilingual.md",
+      "pattern_id": "PI111",
+      "digest": "sha256:8c003a23f4ad99c0075712b07d624baa41c42105a8e534c16ce261691ef81735",
+      "count": 1,
+      "first_seen_line": 14
+    },
+    {
+      "file": "tests/corpus/attack/multilingual.md",
+      "pattern_id": "PI112",
+      "digest": "sha256:8a8627659f35a7b67c1944a90709614066b39dfd1a0b553bc51e3c2104fe528a",
+      "count": 1,
+      "first_seen_line": 12
+    },
+    {
+      "file": "tests/corpus/attack/multilingual.md",
+      "pattern_id": "PI112",
+      "digest": "sha256:a9135759b87f914dc5fc5010fce1ad9dba73484fd6309fdac94ccd52e57d559f",
+      "count": 1,
+      "first_seen_line": 16
+    },
+    {
+      "file": "tests/corpus/attack/multilingual.md",
+      "pattern_id": "PI113",
+      "digest": "sha256:02ecf61da93efcf3868adcb3d0dd63a77f9aa39689f77602ae77cb3824d762eb",
+      "count": 1,
+      "first_seen_line": 15
     },
     {
       "file": "tests/corpus/attack/role-override.md",
