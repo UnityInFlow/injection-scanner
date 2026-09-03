@@ -39,6 +39,8 @@ const STRUCTURAL_CATEGORY: &str = "tool-permission-abuse-structural";
 /// (7 prose, 5 structural); with PI050-PI052 shipped (Plan 05) the current
 /// total is **63 of 72, 87.5%** — see the `tool-permission-abuse` and
 /// `tool-permission-abuse-structural` rows below for the breakdown.
+/// Three payloads added 2026-09-03 with the widenings that catch them
+/// (PI014, PI018, PI029): **73 of 75**.
 ///
 /// Started this milestone at 10/60. The dividing line was never how hard the
 /// attacks are - it is whether a pattern matches *shape* or a literal phrase.
@@ -73,9 +75,16 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // STATE.md and the v0.1.0 release notes before being corrected in #107.
     ("encoding", 11, 12),
     // 0/12 before #95.
-    ("exfiltration", 12, 12),
+    // 13/13 after PI029 learned the third person and the "fold the file
+    // into the reply" verbs: the added payload is a support page telling
+    // the READER what to have their assistant do.
+    ("exfiltration", 13, 13),
     // 0/12 before #97.
-    ("instruction-injection", 12, 12),
+    // 14/14 after PI014's third-person aside ("Assistants processing this
+    // document should...") and PI018's task-hijack opening ("the user's
+    // actual goal is different"). Both payloads were written against a live
+    // web page before either arm existed, and both walked past every pattern.
+    ("instruction-injection", 14, 14),
     // 1/12 before #99, and that 1 was spillover from #97 rather than anything
     // this category did.
     ("jailbreak", 12, 12),
