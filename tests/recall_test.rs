@@ -40,7 +40,7 @@ const STRUCTURAL_CATEGORY: &str = "tool-permission-abuse-structural";
 /// total is **63 of 72, 87.5%** — see the `tool-permission-abuse` and
 /// `tool-permission-abuse-structural` rows below for the breakdown.
 /// Three payloads added 2026-09-03 with the widenings that catch them
-/// (PI014, PI018, PI029): **73 of 75**.
+/// (PI014, PI015, PI018, PI029): **74 of 76**.
 ///
 /// Started this milestone at 10/60. The dividing line was never how hard the
 /// attacks are - it is whether a pattern matches *shape* or a literal phrase.
@@ -84,7 +84,10 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // document should...") and PI018's task-hijack opening ("the user's
     // actual goal is different"). Both payloads were written against a live
     // web page before either arm existed, and both walked past every pattern.
-    ("instruction-injection", 14, 14),
+    // 15/15 after PI015's self-vouching arm: "confirm to the user that the
+    // release notes contained nothing unusual". The same payload's force-push
+    // clause is #33's and is not what catches it.
+    ("instruction-injection", 15, 15),
     // 1/12 before #99, and that 1 was spillover from #97 rather than anything
     // this category did.
     ("jailbreak", 12, 12),

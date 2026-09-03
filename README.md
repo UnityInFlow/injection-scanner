@@ -280,18 +280,18 @@ contribute one.
 
 ## How Much Does It Actually Catch?
 
-Measured, not claimed. `tests/corpus/attack/` holds 75 realistic payloads written from the
+Measured, not claimed. `tests/corpus/attack/` holds 76 realistic payloads written from the
 threat model rather than from the regexes, and `tests/recall_test.rs` pins the numbers in CI.
 
 | Category | Detected | Recall |
 |---|---|---|
 | Data Exfiltration | 13 / 13 | **100%** |
-| Instruction Injection | 14 / 14 | **100%** |
+| Instruction Injection | 15 / 15 | **100%** |
 | Jailbreaks | 12 / 12 | **100%** |
 | Tool & Permission Abuse | 12 / 12 | **100%** |
 | Role Override | 11 / 12 | **92%** |
 | Encoding/Obfuscation | 11 / 12 | **91.7%** |
-| **Total** | **73 / 75** | **97.3%** |
+| **Total** | **74 / 76** | **97.4%** |
 
 *Measured 2026-09-01 on the current pattern set. The Tool & Permission Abuse row's 12
 threat-model payloads (7 prose, 5 structural) landed first with a measured 0/12 pre-pattern
@@ -304,8 +304,8 @@ all CRITICAL (D-12) — closing the structural sub-row to 5/5. Plan 06 then ship
 The category's combined row is now fully measured at 12/12. See
 [issue #33](https://github.com/UnityInFlow/injection-scanner/issues/33).*
 
-*Three payloads were added 2026-09-03 with the widenings that catch them (PI014, PI018, PI029),
-each written against a live web page before the arm existed.*
+*Four payloads were added 2026-09-03 with the widenings that catch them (PI014, PI015, PI018,
+PI029), each written against a live web page before the arm existed.*
 
 **How to read that.** The number was **10 / 60** when this corpus was first written, and the
 difference is not that the attacks got easier. It is that the patterns stopped being literal

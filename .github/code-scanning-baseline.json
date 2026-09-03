@@ -840,7 +840,7 @@
       "pattern_id": "PI001",
       "digest": "sha256:2e4221a7f996a7299dd5be2905be6c7c27f5f5bfd60cb107a1662bfaf872e862",
       "count": 1,
-      "first_seen_line": 96
+      "first_seen_line": 104
     },
     {
       "file": "patterns/core/instruction-injection.yaml",
@@ -903,35 +903,35 @@
       "pattern_id": "PI016",
       "digest": "sha256:796d291884f913740e8a272dfb58d8a9525da669f7ac5bbc12b159a2cc7d1e0f",
       "count": 1,
-      "first_seen_line": 96
+      "first_seen_line": 104
     },
     {
       "file": "patterns/core/instruction-injection.yaml",
       "pattern_id": "PI018",
       "digest": "sha256:0ef178a49dceadadace5c5732285f7ab94880a29235c515b41091be08ffe7353",
       "count": 1,
-      "first_seen_line": 121
+      "first_seen_line": 129
     },
     {
       "file": "patterns/core/instruction-injection.yaml",
       "pattern_id": "PI018",
       "digest": "sha256:87e17d95821f8c8c1004a130daef4389fe9b4dac6a1f99ae6375a11d837991f0",
       "count": 1,
-      "first_seen_line": 104
+      "first_seen_line": 112
     },
     {
       "file": "patterns/core/instruction-injection.yaml",
       "pattern_id": "PI019",
       "digest": "sha256:86be9cea1d1d7b761ea1b7306361bf6cfbb1a54857572bee509f45a40292f7d4",
       "count": 1,
-      "first_seen_line": 133
+      "first_seen_line": 141
     },
     {
       "file": "patterns/core/instruction-injection.yaml",
       "pattern_id": "PI021",
       "digest": "sha256:2fb2b1a07e62a8a9fab2e923f0dc5e49f6595905da4b7d4c27b66b030fa5bdde",
       "count": 1,
-      "first_seen_line": 133
+      "first_seen_line": 141
     },
     {
       "file": "patterns/core/jailbreak.yaml",
@@ -1471,6 +1471,13 @@
       "digest": "sha256:184ca69cc121134cd4e356a3d518d7e691a465980a71a4e43ac6eb45a8bb49a6",
       "count": 1,
       "first_seen_line": 16
+    },
+    {
+      "file": "tests/corpus/attack/instruction-injection.md",
+      "pattern_id": "PI015",
+      "digest": "sha256:311726fcc852017706944cde78ec44bcae64f5a94353d19452a81a74e9a5c35a",
+      "count": 1,
+      "first_seen_line": 20
     },
     {
       "file": "tests/corpus/attack/instruction-injection.md",
