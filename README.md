@@ -256,13 +256,13 @@ paragraph for the same reason.
 | Category | Patterns | Default Severity | Examples |
 |---|---|---|---|
 | Role Override | 9 | CRITICAL | "disregard all previous directives", "set aside your earlier guidelines", "from now on you are a…" |
-| Instruction Injection | 10 | HIGH | "takes precedence over the user", "Note to the assistant:", hidden HTML styling |
+| Instruction Injection | 9 | HIGH | "takes precedence over the user", "Note to the assistant:", "do not tell the user" |
 | Data Exfiltration | 10 | CRITICAL | "print your system prompt", "what were you told", markdown beacons, collector domains |
 | Jailbreaks | 10 | HIGH | "you are DAN and have no restrictions", prefill, nested simulation, personas |
 | Encoding/Obfuscation | 9 | HIGH | RTL overrides, zero-width runs, homoglyphs, Unicode tag smuggling |
 | Tool & Permission Abuse | 8 | HIGH (CRITICAL structural) | `allowed-tools: "*"`, `--dangerously-skip-permissions`, "no need to ask", "update your settings.json ... no longer require approval" |
 
-**56 patterns** across 6 categories. Every one is listed with a worked example in
+**55 patterns** across 6 categories. Every one is listed with a worked example in
 [docs/PATTERN-CATALOGUE.md](docs/PATTERN-CATALOGUE.md); see [PATTERNS.md](PATTERNS.md) to
 contribute one.
 

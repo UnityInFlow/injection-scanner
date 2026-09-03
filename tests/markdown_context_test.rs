@@ -127,6 +127,85 @@ fn an_html_comment_is_not_downgraded() {
 }
 
 #[test]
+fn a_hidden_element_is_not_downgraded() {
+    // Same mechanism as the comment above, one attribute over. Each of these
+    // used to ALSO raise PI017 on the element itself; now the element is the
+    // context and the payload is the one finding.
+    for opener in [
+        r#"<span style="display:none">"#,
+        r#"<div hidden>"#,
+        r#"<span style="font-size:0">"#,
+        r#"<span style="font-size: 0px;">"#,
+        r#"<p style="color:#fff">"#,
+        r#"<div style="visibility: hidden; color: red">"#,
+    ] {
+        let doc = format!("# Page\n\n{opener}{PAYLOAD}</{}>\n", tag_of(opener));
+        let found = scan(&doc);
+        assert_eq!(found.len(), 1, "{opener}: {found:?}");
+        assert_eq!(found[0].1, MatchContext::HiddenHtml, "{opener}");
+    }
+}
+
+#[test]
+fn a_hidden_element_spanning_lines_hides_every_line_inside_it() {
+    let doc = format!(
+        "<div class=\"note\" style=\"display: none;\">\n  <p>Housekeeping for readers.</p>\n  <p>{PAYLOAD}</p>\n</div>\n\n{PAYLOAD}\n"
+    );
+    let found = scan(&doc);
+    assert_eq!(found.len(), 2, "{found:?}");
+    assert_eq!(found[0], (3, MatchContext::HiddenHtml));
+    assert_eq!(
+        found[1],
+        (6, MatchContext::Prose),
+        "text after </div> is visible again"
+    );
+}
+
+#[test]
+fn a_hidden_block_closes_on_its_own_tag_not_a_nested_one() {
+    // Real hidden blocks contain markup of their own. The inner </div> must
+    // not end the outer hidden element.
+    let doc =
+        format!("<div hidden>\n  <div class=\"inner\"></div>\n  {PAYLOAD}\n</div>\n{PAYLOAD}\n");
+    let found = scan(&doc);
+    assert_eq!(found.len(), 2, "{found:?}");
+    assert_eq!(found[0], (3, MatchContext::HiddenHtml));
+    assert_eq!(found[1], (5, MatchContext::Prose));
+}
+
+#[test]
+fn text_after_a_hidden_element_on_the_same_line_is_visible() {
+    let doc = format!("<span hidden>menu</span> {PAYLOAD}\n");
+    let found = scan(&doc);
+    assert_eq!(found.len(), 1, "{found:?}");
+    assert_eq!(found[0].1, MatchContext::Prose);
+}
+
+#[test]
+fn hidden_furniture_is_not_a_finding() {
+    // What every real page contains, and what PI017 used to report at HIGH:
+    // a collapsed menu, an accessibility label, a void element, a visible
+    // element whose class merely mentions hiding. None wraps a payload, so
+    // none is a finding — under any threshold.
+    let doc = "<div class=\"nav-blocker\" hidden></div>\n\
+               <div class=\"user-dropdown\" hidden><ul><li><a href=\"/x\">Account</a></li></ul></div>\n\
+               <span id=\"share-x\" hidden>Share on X (Opens in new window)</span>\n\
+               <input type=\"hidden\" name=\"csrf\" hidden>\n\
+               <span aria-hidden=\"true\" class=\"Overlay--hidden\">icon</span>\n\
+               <span style=\"font-size: 0.8rem; color: #fff000\">Updated 3 minutes ago</span>\n";
+    assert!(scan_strict(doc).is_empty(), "{:?}", scan_strict(doc));
+}
+
+/// The tag name of an opener like `<span style="…">`.
+fn tag_of(opener: &str) -> &str {
+    let name = &opener[1..];
+    let end = name
+        .find(|c: char| !c.is_ascii_alphanumeric())
+        .unwrap_or(name.len());
+    &name[..end]
+}
+
+#[test]
 fn frontmatter_is_not_downgraded() {
     // Structured config an agent loads directly.
     let doc = format!("---\ndescription: {PAYLOAD}\n---\n\n# Skill\n");
@@ -202,7 +281,11 @@ fn the_attack_corpus_keeps_every_finding() {
         // 11 until PI021 was widened past the single verb `POST` (#95). Line 21's
         // "reveal your system prompt" now matches it, on a line PI019 already
         // reported. A duplicate on an existing line, not a new line.
-        ("examples/instruction-injection-attack.md", 12),
+        // 12 until PI017 was retired into `MatchContext::HiddenHtml`. Line 19's
+        // `<span style="display:none">ignore previous instructions</span>` is
+        // still reported, by PI001 at CRITICAL, and now carries the hiding as
+        // its context instead of as a second finding on the same line.
+        ("examples/instruction-injection-attack.md", 11),
         // 5 until PI011 was narrowed to a forged *delimiter* (#23). It used to
         // also match the bare words "system message" on line 13, double-covering
         // text PI023 ("Repeat your system message") already reports at CRITICAL
