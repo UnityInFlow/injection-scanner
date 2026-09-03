@@ -1,0 +1,47 @@
+Discovered live during Task 1 (04-01) baseline capture, 2026-09-03.
+
+Command:
+  target/release/injection-scanner check /Users/jirihermann/.cursor/extensions \
+    --format json --all-files --no-ignore --exclude '.planning/**'
+
+Result: process aborted with SIGABRT-equivalent Rust panic, exit code 101.
+
+Panic transcript (stderr tail):
+  warning: skipped /Users/jirihermann/.cursor/extensions/zignd.html-css-class-completion-1.20.0/images/icon.png — looks like binary content
+
+  thread 'main' (142012154) panicked at src/frontmatter.rs:219:26:
+  assertion failed: self.is_char_boundary(new_len)
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+Location: src/frontmatter.rs:219, inside walk()'s scalar-rendering branch:
+
+    let mut rendered = render_scalar(scalar);
+    if rendered.len() > MAX_VALUE_LEN {
+        rendered.truncate(MAX_VALUE_LEN);   // <-- panics if MAX_VALUE_LEN does not
+    }                                       //     land on a UTF-8 char boundary
+
+Same failure SHAPE as the ENG-02 `tail[..12]` panic that GATE-03 caught in Phase 2
+(fixed-byte-offset slice on real multi-byte content) — different call site,
+different field (this is the frontmatter/JSON structural projection's value
+renderer, not the decoder). Reproduced deterministically against
+~/.cursor/extensions (real, unmodified, third-party vendored extension bundles
+already on this machine — not a synthetic fixture).
+
+Not fixed here: Task 1 of plan 04-01 is constrained to zero source-code diff
+(the baseline must come from the unmodified, pre-CAT-02 binary). Recorded here
+as baseline evidence and named explicitly in 04-SWEEP.md; a follow-up issue
+should be filed before or alongside this phase's PR.
+
+Because gate03-sweep.sh treats a non-0/1/2 scanner exit as fatal to the whole
+sweep run, ~/.cursor/extensions (and, by the same code path and risk profile,
+~/.vscode/extensions) were excluded from this baseline's directory list rather
+than worked around by modifying the script or the source. See 04-SWEEP.md
+"Directories added beyond the Phase 3 list" for the substitute directories
+that were swept instead (the non-extension, genuinely config-relevant
+subdirectories of ~/.cursor and ~/.vscode).
+
+The exact single file within zignd.html-css-class-completion-1.20.0/
+(likely a long single-line JSON string value under its bundled node_modules/
+tree, straddling MAX_VALUE_LEN at a multi-byte character) was not individually
+isolated — bisecting a 40,000+ file, deeply nested vendor tree was judged not
+worth the time this task can spend on a bug it is not permitted to fix.
