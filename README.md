@@ -711,6 +711,18 @@ accepting yesterday's debt never becomes a licence to add more of it.
 is rejected against `check -`: stdin has no stable file identity to record a
 baseline against.
 
+## Using It From Claude Code
+
+A `PostToolUse` hook in [`integrations/claude-code/`](integrations/claude-code/README.md)
+scans what `WebFetch` and fetching `Bash` commands (`curl`, `wget`) return, and hands any
+finding at or above a threshold to Claude as context and to the auto-mode classifier as
+`classifierContext` — the classifier never sees tool results itself, so without this it
+cannot know that a later action was prompted by a web page rather than by the user.
+
+It warns rather than blocks, and it is a tripwire rather than a gate: it catches the crude
+and the hidden, and misses a payload phrased as an ordinary sentence. The integration README
+says how to install it and what it will and will not catch.
+
 ## Choosing What Fails the Build
 
 ```bash
