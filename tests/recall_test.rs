@@ -141,11 +141,17 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // second-person arm), tool override, an env-var-targeting second-person
     // directive, and a credentials-file-reading second-person directive.
     //
-    // PLACEHOLDER: the detected count below is UNMEASURED until Task 3 runs
-    // the recall suite against the shipping 56-pattern set and records the
-    // real number, attributed to a named pattern id and match context in the
-    // plan SUMMARY. This 0 is deliberately not a measurement.
-    ("mcp-tool-poisoning", 0, 4),
+    // Measured 2026-09-03 on the shipping 56-pattern set, ZERO PI06x
+    // patterns loaded (GATE-01's pre-pattern baseline): **2/4**. Both hits
+    // are spillover from patterns designed for other categories, not
+    // anything this phase built: PI015 conceal-from-user fires on the
+    // cross-tool-shadowing payload's "silently add" clause, and PI029
+    // email-the-contents fires on the credentials-file payload's "read the
+    // contents of ~/.aws/" clause. The two misses (tool override; the
+    // env-var-targeting second-person directive) have no existing pattern
+    // that names either shape. See the plan SUMMARY for the full per-payload
+    // attribution table.
+    ("mcp-tool-poisoning", 2, 4),
     // mcp-tool-poisoning-structural: the CAT-02 (#34) structural half, 8
     // payloads -- the wrapper-less emphasis-wrapped file-read-and-smuggle
     // shape (Task 1), the same attack as a captured tools/list wire-shape
@@ -155,15 +161,27 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // `mcpServers` wrapper, a non-TLS `http://` endpoint under the VS Code
     // family `servers` wrapper, a remote-script-fetch-and-execute launch
     // under the wrapper-less form), and one encoded-description payload
-    // (measures whether the E2 decoder reaches `scope: frontmatter`
-    // projected values at all -- 04-RESEARCH.md's Open Question #1).
+    // (measures whether an encoded description is reachable at all).
     //
-    // PLACEHOLDER: the detected count below is UNMEASURED until Task 3 runs
-    // the recall suite against the shipping 56-pattern set and records the
-    // real number, attributed to a named pattern id and match context in the
-    // plan SUMMARY. This 0 is deliberately not a measurement — Task 1's own
-    // single-payload placeholder (previously 0/1) is folded into this 0/8.
-    ("mcp-tool-poisoning-structural", 0, 8),
+    // Measured 2026-09-03 on the shipping 56-pattern set, ZERO PI06x
+    // patterns loaded (GATE-01's pre-pattern baseline): **4/8**. All four
+    // hits are spillover, reached via the ordinary PROSE passes running over
+    // the raw lines of these JSON documents, not via any `scope: frontmatter`
+    // structural pattern (none exist yet): payloads 01 and 02 each fire
+    // PI015 conceal-from-user + PI029 email-the-contents (the "do not
+    // mention"/"do not tell" clause and the "read the file at ~/.ssh/"
+    // or "~/.aws/" clause respectively); payload 09 fires PI028
+    // pipe-to-shell on its literal `curl ... | sh` launch command; payload
+    // 12 fires PI029 email-the-contents on its base64-decoded description
+    // (`decode_chain: base64`) -- the encoded-description payload IS
+    // reached, but via the prose decoder pass over the raw JSON text, which
+    // is a distinct question from whether a `scope: frontmatter` pattern's
+    // projected value itself gets decoded (still open, no such pattern
+    // exists to test it). The four misses (05, 06, 07, 08 -- both rug-pull
+    // markers and both config-hygiene signals) have no existing pattern
+    // that names any of those shapes. See the plan SUMMARY for the full
+    // per-payload attribution table.
+    ("mcp-tool-poisoning-structural", 4, 8),
 ];
 
 fn scanner() -> Scanner {

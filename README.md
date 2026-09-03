@@ -280,7 +280,7 @@ contribute one.
 
 ## How Much Does It Actually Catch?
 
-Measured, not claimed. `tests/corpus/attack/` holds 72 realistic payloads written from the
+Measured, not claimed. `tests/corpus/attack/` holds 84 realistic payloads written from the
 threat model rather than from the regexes, and `tests/recall_test.rs` pins the numbers in CI.
 
 | Category | Detected | Recall |
@@ -291,7 +291,8 @@ threat model rather than from the regexes, and `tests/recall_test.rs` pins the n
 | Tool & Permission Abuse | 12 / 12 | **100%** |
 | Role Override | 11 / 12 | **92%** |
 | Encoding/Obfuscation | 11 / 12 | **91.7%** |
-| **Total** | **70 / 72** | **97.2%** |
+| MCP & Tool-Description Poisoning | 6 / 12 | **50%** |
+| **Total** | **76 / 84** | **90.5%** |
 
 *Measured 2026-09-01 on the current pattern set. The Tool & Permission Abuse row's 12
 threat-model payloads (7 prose, 5 structural) landed first with a measured 0/12 pre-pattern
@@ -303,6 +304,13 @@ all CRITICAL (D-12) — closing the structural sub-row to 5/5. Plan 06 then ship
 `PI057 disable-guardrail-directive`, all HIGH — closing the prose sub-row from its 0/7 baseline to 7/7.
 The category's combined row is now fully measured at 12/12. See
 [issue #33](https://github.com/UnityInFlow/injection-scanner/issues/33).*
+
+*Measured 2026-09-03. The MCP & Tool-Description Poisoning row's 12 threat-model payloads (4
+prose, 8 structural) landed deliberately BEFORE any `PI060`–`PI069` pattern exists (GATE-01), so
+this row is the pre-pattern baseline, not a finished measurement — every one of its 6 hits is
+spillover from patterns built for other categories (PI015 conceal-from-user, PI028 pipe-to-shell,
+PI029 email-the-contents), not anything CAT-02 built. See
+[issue #34](https://github.com/UnityInFlow/injection-scanner/issues/34).*
 
 **How to read that.** The number was **10 / 60** when this corpus was first written, and the
 difference is not that the attacks got easier. It is that the patterns stopped being literal
