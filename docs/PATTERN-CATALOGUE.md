@@ -816,7 +816,7 @@ email the team when the job finishes
 <details><summary>Regex</summary>
 
 ```regex
-(email\s+the\s+contents\s+to|send\s+a\s+copy\s+of\s+this\s+conversation\s+to|forward\s+the\s+transcript|(?:read|cat|open|load|print)\s+[^.\n]{0,20}?(?:~/\.aws/|~/\.ssh/|\.aws/credentials|\.ssh/id_|/etc/(?:passwd|shadow)|id_rsa)|(?:include|attach|append|embed|add|put)\s+[^.\n]{0,50}?(?:environment\s+variables?|env\s+vars?|credentials?|api\s+keys?|secrets?|access\s+tokens?|private\s+keys?)[^.\n]{0,50}?\s+(?:in|to|into|with)\s+your\s+(?:reply|answer|response|output|message))
+(email\s+the\s+contents\s+to|send\s+a\s+copy\s+of\s+this\s+conversation\s+to|forward\s+the\s+transcript|(?:read|cat|open|load|print)\s+[^.\n]{0,20}?(?:~/\.aws/|~/\.ssh/|\.aws/credentials|\.ssh/id_|/etc/(?:passwd|shadow)|id_rsa)|(?:include|attach|paste|insert|embed)\s+[^.\n]{0,30}?(?:~/\.aws/(?:credentials|config)|\.ssh/id_[a-z0-9]+(?:[^.a-z0-9]|$)|/etc/(?:passwd|shadow))|(?:include|attach|append|embed|add|put)\s+[^.\n]{0,50}?(?:environment\s+variables?|env\s+vars?|credentials?|api\s+keys?|secrets?|access\s+tokens?|private\s+keys?)[^.\n]{0,50}?\s+(?:in|to|into|with)\s+(?:your|its)\s+(?:reply|answer|response|output|message))
 ```
 
 </details>
