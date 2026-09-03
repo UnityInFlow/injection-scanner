@@ -401,3 +401,47 @@ fn a_yaml_alias_bomb_is_refused_rather_than_expanded() {
         "refusal must be fast; took {elapsed:?}"
     );
 }
+
+// ------------------------------------------------- oversized-scalar truncation
+
+/// A scalar longer than `MAX_VALUE_LEN` (2048) whose 2048th byte falls *inside*
+/// a multi-byte character must not panic the projection.
+///
+/// `String::truncate` asserts the index is a char boundary, so the unguarded
+/// form crashed on any third-party config carrying accented or CJK text past
+/// 2 KB — found by the Phase 4 GATE-03 sweep, which panicked on
+/// `~/.cursor/extensions`. Same class as the `tail[..12]` slice in `decode.rs`.
+#[test]
+fn an_oversized_scalar_splitting_a_multibyte_char_does_not_panic() {
+    // 'é' is two bytes and is placed so that it straddles byte offset 2048.
+    let value = format!("{}é{}", "a".repeat(2047), "b".repeat(50));
+    let content = format!("---\ndescription: {value}\n---\n\nbody\n");
+
+    let lines = rendered(&content);
+
+    let projected = lines
+        .iter()
+        .find(|l| l.starts_with("description"))
+        .expect("the description scalar must still project");
+    assert!(
+        projected.len() <= 2048 + "description = ".len(),
+        "value should be truncated, got {} bytes",
+        projected.len()
+    );
+}
+
+/// Positive control for the test above: the guard must truncate, not silently
+/// drop the whole projection. A test that only asserts "did not panic" passes
+/// equally if the scalar stopped projecting altogether.
+#[test]
+fn an_oversized_ascii_scalar_still_projects_and_truncates() {
+    let value = "a".repeat(4096);
+    let content = format!("---\ndescription: {value}\n---\n\nbody\n");
+
+    let lines = rendered(&content);
+
+    assert!(
+        lines.iter().any(|l| l.starts_with("description")),
+        "an oversized ASCII scalar must still project: {lines:?}"
+    );
+}

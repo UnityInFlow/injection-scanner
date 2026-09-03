@@ -216,7 +216,17 @@ fn walk(
             }
             let mut rendered = render_scalar(scalar);
             if rendered.len() > MAX_VALUE_LEN {
-                rendered.truncate(MAX_VALUE_LEN);
+                // `String::truncate` panics unless the byte index is a char
+                // boundary, and `MAX_VALUE_LEN` lands wherever it lands in
+                // arbitrary third-party config. Walk back to the nearest
+                // boundary first — the same class of bug as the `tail[..12]`
+                // slice in `decode.rs`, which panicked the release binary on
+                // ordinary source bytes while every fixture stayed green.
+                let mut end = MAX_VALUE_LEN;
+                while end > 0 && !rendered.is_char_boundary(end) {
+                    end -= 1;
+                }
+                rendered.truncate(end);
             }
             out.push(ProjectedLine {
                 line: locate(path, block),
