@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
-status: unknown
-stopped_at: Phase 3 planned — 7 plans, 4 waves, verification passed
-last_updated: "2026-09-01T10:48:34.020Z"
-state_head: 19031354fd386f555cab06d204c5291c34e2eebc
+status: in_progress
+stopped_at: Phase 3 shipped — PR #109 merged, #33 closed. Phase 4 (CAT-02) not started.
+last_updated: "2026-09-03T07:16:56.000Z"
+state_head: 465c7e0b1aa3bfc780127d488102fa4af8b75e64
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 2
-  percent: 0
+  completed_plans: 9
+  percent: 60
 ---
 
 # State: injection-scanner
@@ -27,16 +27,26 @@ See: `.planning/PROJECT.md`
 
 ## Current Phase
 
-**Phase 3 — Tool & permission abuse (CAT-01, #33)** · status: **planned, ready to execute**
+**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **not started**
 
-7 plans across 4 waves, 22 tasks, plan-checker passed with no blockers. Discussion locked 20
-decisions (D-01…D-17 plus D-06a/D-06b/D-08a); research and pattern mapping each corrected a
-factual error in the artifacts above them (clean-corpus count 16→15; the catalogue "disclosure"
-premise, which was false because every regex is already published).
+Phase 3 shipped 2026-09-02 as **PR #109** (rebase-merged, issue #33 auto-closed): `PI050`-`PI057`,
+the `relaxed_pattern` schema field, and ADR-004. Its code review found one critical false positive
+— **CR-01**, three prose patterns firing on *prohibitions* ("Never run with
+`--dangerously-skip-permissions`") at HIGH, the severity `install-hook` blocks commits at. Fixed in
+quick task `260902-jhy` before the PR, by structural tightening rather than a negation guard: real
+payloads carry a negator inside the matched sentence, so a guard would have suppressed `PI053`'s
+and `PI057`'s own `example` values and failed `pattern_example_test`.
 
-Phases 1 and 2 shipped 2026-08-30. **Both engines are done**; the remaining three phases are
-pattern categories, one PR each (GATE-04). `main` clean, in sync, **331 tests**, CI green, zero
-open PRs, still 0 merge commits.
+Phases 1 and 2 shipped 2026-08-30; both engines are done. The two remaining phases are pattern
+categories, one PR each (GATE-04). `main` clean, in sync, **353 tests**, CI green, zero open PRs,
+still 0 merge commits.
+
+**Carried into Phase 4:** `PI050+` patterns must ship a `relaxed_pattern` (GATE-05, ADR-004). The
+generalizable CR-01 rule — *fix negation where the negator sits*: clause-initial anchoring when it
+precedes the span, an enumerated filler set when it sits inside — applies directly to CAT-02's
+prose arms. Open follow-ups: **WR-02** (structural corpus README documents 1 of 5 payloads),
+**WR-03** (`scripts/gate03-sweep.sh` helpers declare no `local`), and two pre-existing
+`docs/PATTERN-CATALOGUE.md` self-matches (`PI001` at :74, `PI031` at :903) that predate PR #109.
 
 ## The milestone in one paragraph
 
@@ -53,7 +63,7 @@ lifecycle hook that reinstalls the attacker's instructions after the file is cle
 |---|---|---|---|
 | 1 | ENG-01 structural frontmatter engine | #32 | **Done** — PR #104 |
 | 2 | ENG-02 recursive decoder | #30 | **Done** — PR #108, also closed #6 and #7 |
-| 3 | CAT-01 tool & permission abuse `PI050-059` | #33 | Not started |
+| 3 | CAT-01 tool & permission abuse `PI050-059` | #33 | **Done** — PR #109 |
 | 4 | CAT-02 MCP & tool-description poisoning `PI060-069` | #34 | Not started |
 | 5 | CAT-03 persistence & lifecycle hijack `PI070-079` | #35 | Not started |
 
