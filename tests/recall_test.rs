@@ -132,16 +132,38 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // re-measured in the same run and did NOT move (still 0/7) — no
     // spillover from a structural pattern onto a prose payload.
     (STRUCTURAL_CATEGORY, 5, 5),
-    // mcp-tool-poisoning-structural: the CAT-02 (#34) structural half.
-    // Plan 04-02 Task 1 landed ONE payload (the wrapper-less emphasis-wrapped
-    // file-read-and-smuggle shape, GATE-01) before any PI060+ pattern exists.
+    // mcp-tool-poisoning: the CAT-02 (#34) prose half, 4 payloads (D-03 — no
+    // ratio was set in advance; structural was the natural shape for every
+    // signal that is fundamentally about a manifest/schema field --
+    // file-read-and-smuggle, rug-pull markers, config-hygiene -- and prose
+    // was the natural shape for the four sentence-shaped signals:
+    // cross-tool shadowing (third-person, D-04's accepted gap for the
+    // second-person arm), tool override, an env-var-targeting second-person
+    // directive, and a credentials-file-reading second-person directive.
     //
     // PLACEHOLDER: the detected count below is UNMEASURED until Task 3 runs
     // the recall suite against the shipping 56-pattern set and records the
     // real number, attributed to a named pattern id and match context in the
-    // plan SUMMARY. This 0 is deliberately not a measurement — expect this
-    // row to fail (or at minimum be flagged unmeasured) until Task 3 pins it.
-    ("mcp-tool-poisoning-structural", 0, 1),
+    // plan SUMMARY. This 0 is deliberately not a measurement.
+    ("mcp-tool-poisoning", 0, 4),
+    // mcp-tool-poisoning-structural: the CAT-02 (#34) structural half, 8
+    // payloads -- the wrapper-less emphasis-wrapped file-read-and-smuggle
+    // shape (Task 1), the same attack as a captured tools/list wire-shape
+    // document, two rug-pull markers (version-gated, date/review-gated)
+    // embedded in a tool's inputSchema, three server-entry config-hygiene
+    // signals (unpinned `npx -y` install under the Claude-family
+    // `mcpServers` wrapper, a non-TLS `http://` endpoint under the VS Code
+    // family `servers` wrapper, a remote-script-fetch-and-execute launch
+    // under the wrapper-less form), and one encoded-description payload
+    // (measures whether the E2 decoder reaches `scope: frontmatter`
+    // projected values at all -- 04-RESEARCH.md's Open Question #1).
+    //
+    // PLACEHOLDER: the detected count below is UNMEASURED until Task 3 runs
+    // the recall suite against the shipping 56-pattern set and records the
+    // real number, attributed to a named pattern id and match context in the
+    // plan SUMMARY. This 0 is deliberately not a measurement — Task 1's own
+    // single-payload placeholder (previously 0/1) is folded into this 0/8.
+    ("mcp-tool-poisoning-structural", 0, 8),
 ];
 
 fn scanner() -> Scanner {

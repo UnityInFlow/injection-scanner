@@ -32,16 +32,21 @@ One file per category the README claims to detect. One payload per line; blank
 lines and lines beginning with `#` are ignored. Each line is scanned as its own
 document, so recall is per payload rather than per file.
 
-Categories that are deliberately **not** here yet: MCP/tool-description
-poisoning, indirect RAG-borne injection. The README does not claim those
-yet — they are the `PI060`–`PI089` ranges deferred within v0.2.0. Including
-them would depress the headline number for detection the tool never
-advertised. Add them here in the same commit that claims them.
+Categories that are deliberately **not** here yet: indirect RAG-borne
+injection. The README does not claim it yet — it is the `PI080`–`PI089`
+range deferred within v0.2.0. Including it would depress the headline number
+for detection the tool never advertised. Add it here in the same commit that
+claims it.
 
 Tool and permission abuse (`PI050`–`PI059`) is no longer in that list: its 12
 threat-model payloads landed ahead of any pattern (D-04), so the corpus
 proves the ordering rather than asserting it. See `structural/` below for
 where its structured half lives.
+
+MCP & tool-description poisoning (`PI060`–`PI069`) is no longer in that list
+either: its 12 threat-model payloads (4 prose, 8 structural) landed ahead of
+any pattern for the same reason (GATE-01). See `mcp-tool-poisoning.md` for
+the prose half and `structural/mcp-tool-poisoning/` for the structural half.
 
 ## The `structural/` directory
 
