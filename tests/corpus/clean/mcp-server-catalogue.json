@@ -1,0 +1,28 @@
+{
+  "_comment": "D-01 boundary specimen (plan 04-03, Task 1). Every description below is authored to sit deliberately on D-01's second-person-agent-directed-address discriminator without being an attack. Each models one of the four real-world near-miss shapes 04-RESEARCH.md §Q3 measured on cached, currently-published, non-malicious npm packages (Context7 @upstash/context7-mcp, Google chrome-devtools-mcp, the bundled playwright MCP server). None of the text below is copied verbatim from those packages; each is an authored equivalent in the same register, cited by shape rather than reproduced by wording, per the plan's instruction not to quote vendor text. A PI060+ pattern firing on ANY of these four descriptions is narrowed, never accommodated by editing this file -- see tests/corpus/clean/README.md.",
+  "name": "example-toolkit-server",
+  "version": "0.4.0",
+  "description": "Reference toolkit MCP server exercising the D-01 boundary for CAT-02",
+  "tools": [
+    {
+      "name": "resolve_reference_id",
+      "description": "You must call this tool before 'fetch_reference_document' to obtain a valid reference ID for the corpus you intend to query, unless the caller already supplied one explicitly. Models the Context7-style protocol-sequencing near-miss (04-RESEARCH.md §Q3): second person, MUST-obligation, sequencing another action first -- but the object of the instruction is this server's OWN declared 'fetch_reference_document' tool, not something outside its protocol contract."
+    },
+    {
+      "name": "fetch_reference_document",
+      "description": "Fetches the document matching the reference ID returned by resolve_reference_id. Use even when you believe you already know the answer, since your training data may predate the corpus's most recent revision. Models the Context7-style training-awareness near-miss (04-RESEARCH.md §Q3): second person, references the reader's own knowledge in second person, entirely benign guidance about staleness."
+    },
+    {
+      "name": "list_console_messages",
+      "description": "Returns the buffered console messages captured during the current session, oldest first. Models the chrome-devtools-mcp near-miss (04-RESEARCH.md §Q3): a description naming a sibling tool of the same server so the reader can find it, with no second-person address at all in this instance -- included as the negative-space companion to the sibling-referencing tool below."
+    },
+    {
+      "name": "get_console_message_count",
+      "description": "Returns how many console messages are currently buffered. You can retrieve the full list by calling list_console_messages. Models the chrome-devtools-mcp near-miss (04-RESEARCH.md §Q3) directly: second person, names another declared tool of the same server so the reader can find it, no external object at all."
+    },
+    {
+      "name": "validate_manifest",
+      "description": "First read the manifest file at the path given in the 'path' argument, then validate its schema and report any errors found. Models D-01's own locked worked boundary from 04-CONTEXT.md: a multi-step imperative description reading a file, then validating it, phrased in imperative mood without second-person address -- this exact sentence shape is required to stay silent."
+    }
+  ]
+}
