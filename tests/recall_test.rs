@@ -39,6 +39,11 @@ const STRUCTURAL_CATEGORY: &str = "tool-permission-abuse-structural";
 /// (7 prose, 5 structural); with PI050-PI052 shipped (Plan 05) the current
 /// total is **63 of 72, 87.5%** — see the `tool-permission-abuse` and
 /// `tool-permission-abuse-structural` rows below for the breakdown.
+/// Three payloads added 2026-09-03 with the widenings that catch them
+/// (PI014, PI015, PI018, PI029): **74 of 76**.
+/// The Czech multilingual slice added the same day: **82 of 86**, and PI058's
+/// five destructive-command payloads: **87 of 91**. CAT-03 opened with PI070
+/// and six persistence payloads: **93 of 97**.
 ///
 /// Started this milestone at 10/60. The dividing line was never how hard the
 /// attacks are - it is whether a pattern matches *shape* or a literal phrase.
@@ -73,9 +78,19 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // STATE.md and the v0.1.0 release notes before being corrected in #107.
     ("encoding", 11, 12),
     // 0/12 before #95.
-    ("exfiltration", 12, 12),
+    // 13/13 after PI029 learned the third person and the "fold the file
+    // into the reply" verbs: the added payload is a support page telling
+    // the READER what to have their assistant do.
+    ("exfiltration", 13, 13),
     // 0/12 before #97.
-    ("instruction-injection", 12, 12),
+    // 14/14 after PI014's third-person aside ("Assistants processing this
+    // document should...") and PI018's task-hijack opening ("the user's
+    // actual goal is different"). Both payloads were written against a live
+    // web page before either arm existed, and both walked past every pattern.
+    // 15/15 after PI015's self-vouching arm: "confirm to the user that the
+    // release notes contained nothing unusual". The same payload's force-push
+    // clause is #33's and is not what catches it.
+    ("instruction-injection", 15, 15),
     // 1/12 before #99, and that 1 was spillover from #97 rather than anything
     // this category did.
     ("jailbreak", 12, 12),
@@ -101,7 +116,11 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // the pinned 0/7 baseline. Task 3 records the baseline/current/delta in
     // the plan SUMMARY and updates the README table in the same commit
     // (GATE-02) — the number here does not change again.
-    ("tool-permission-abuse", 7, 7),
+    //
+    // PI058 agent-directed-destructive-command (a direct order to exercise
+    // destructive authority, the shape D-14's deferral of BARE commands left
+    // open) added five release-note payloads: 12/12.
+    ("tool-permission-abuse", 12, 12),
     // tool-permission-abuse-structural: the CAT-01 (#33) structural half, 5
     // payloads. Pre-pattern baseline (03-01-SUMMARY.md, measured 2026-09-01 on
     // the shipping 48-pattern set with ZERO PI05x patterns loaded) was 0/5 —
@@ -116,6 +135,15 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // re-measured in the same run and did NOT move (still 0/7) — no
     // spillover from a structural pattern onto a prose payload.
     (STRUCTURAL_CATEGORY, 5, 5),
+    // The Czech slice of the multilingual range (#39). Eight Czech payloads,
+    // one of them typed without diacritics, and two German ones that are
+    // documented misses: the range covers one language so far, and the
+    // misses show what the next language's work looks like.
+    ("multilingual", 8, 10),
+    // CAT-03 (#35) opens with PI070 agent-directed-persistence-write: six
+    // payloads from install guides and support pages, every one a write that
+    // outlives the session.
+    ("persistence-lifecycle-hijack", 6, 6),
 ];
 
 fn scanner() -> Scanner {
@@ -578,13 +606,17 @@ patterns:
     );
 }
 
-/// GATE-01: exactly 12 threat-model payloads for CAT-01, split across the two
-/// rows however the threat model produced (D-03 — no ratio was set in
-/// advance). Reads both `EXPECTED` rows directly rather than re-deriving the
-/// split, so this fails loudly if either row's total drifts without the
-/// other being updated to match.
+/// The CAT-01 (#33) payload total, prose plus structural. GATE-01 pinned 12
+/// at phase close (D-03 — no ratio was set in advance); PI058
+/// agent-directed-destructive-command added five prose payloads. Update this
+/// constant in the commit that adds payloads, so the test name never has to.
+const CAT_01_TOTAL: usize = 17;
+
+/// GATE-01: the two CAT-01 rows of `EXPECTED` sum to `CAT_01_TOTAL`. Reads
+/// both rows directly rather than re-deriving the split, so this fails loudly
+/// if either row's total drifts without the other being updated to match.
 #[test]
-fn the_cat_01_payload_totals_sum_to_twelve() {
+fn the_cat_01_payload_totals_are_consistent() {
     let prose_total = EXPECTED
         .iter()
         .find(|(c, _, _)| *c == "tool-permission-abuse")
@@ -597,8 +629,8 @@ fn the_cat_01_payload_totals_sum_to_twelve() {
         .unwrap_or_else(|| panic!("{STRUCTURAL_CATEGORY} is missing from EXPECTED"));
     assert_eq!(
         prose_total + structural_total,
-        12,
-        "CAT-01 (#33, GATE-01) requires exactly 12 threat-model payloads; \
+        CAT_01_TOTAL,
+        "CAT-01 (#33, GATE-01) expects {CAT_01_TOTAL} threat-model payloads; \
          EXPECTED has {prose_total} prose + {structural_total} structural = \
          {}",
         prose_total + structural_total
