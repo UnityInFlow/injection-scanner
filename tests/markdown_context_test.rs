@@ -174,6 +174,27 @@ fn a_hidden_block_closes_on_its_own_tag_not_a_nested_one() {
 }
 
 #[test]
+fn a_hidden_element_opening_after_another_closed_on_the_same_line_still_hides_what_follows() {
+    // Review on #110: only the first opener per line used to be tracked, so a
+    // widget closing and a banner opening on one line left the banner's
+    // contents classified as prose.
+    let doc = format!("<div hidden>menu</div><div hidden>\n{PAYLOAD}\n</div>\n{PAYLOAD}\n");
+    let found = scan(&doc);
+    assert_eq!(found.len(), 2, "{found:?}");
+    assert_eq!(found[0], (2, MatchContext::HiddenHtml));
+    assert_eq!(found[1], (4, MatchContext::Prose));
+}
+
+#[test]
+fn a_hidden_element_nested_in_an_open_one_does_not_end_the_outer_block_early() {
+    let doc = format!("<div hidden><span hidden>\nlabel</span>\n{PAYLOAD}\n</div>\n{PAYLOAD}\n");
+    let found = scan(&doc);
+    assert_eq!(found.len(), 2, "{found:?}");
+    assert_eq!(found[0], (3, MatchContext::HiddenHtml));
+    assert_eq!(found[1], (5, MatchContext::Prose));
+}
+
+#[test]
 fn text_after_a_hidden_element_on_the_same_line_is_visible() {
     let doc = format!("<span hidden>menu</span> {PAYLOAD}\n");
     let found = scan(&doc);

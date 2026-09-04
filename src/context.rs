@@ -200,7 +200,18 @@ impl ContextMap {
             // A hidden element that opens here and does not close here hides
             // the lines that follow. This line itself is classified per offset
             // by `context_at`, because the text before the opener is visible.
-            if let Some(opener) = hidden_openers(line).into_iter().next() {
+            //
+            // Every opener on the line is checked, not only the first (review
+            // on #110): a collapsed widget closing and a cookie banner opening
+            // on the same line is the realistic shape, and the first opener
+            // closing must not hide the second one staying open. The FIRST
+            // opener still open at the end of the line is the one tracked,
+            // because a later one still open is nested inside it and closes
+            // before it does.
+            for opener in hidden_openers(line) {
+                if hidden_block.is_some() {
+                    break;
+                }
                 let remaining = nesting_after(line, opener.end, &opener.tag, 1);
                 if remaining > 0 {
                     hidden_block = Some((opener.tag, remaining));
@@ -400,8 +411,16 @@ fn has_bare_hidden_attribute(attributes: &str) -> bool {
         let at = search + rel;
         let before = lower[..at].chars().next_back();
         let after = lower[at + "hidden".len()..].chars().next();
-        let starts_attribute = before.is_none_or(char::is_whitespace);
-        let ends_attribute = after.is_none_or(|c| c.is_whitespace() || c == '=' || c == '/');
+        // Spelled out rather than `Option::is_none_or`, which needs Rust 1.82
+        // and the crate pins no MSRV (review on #110).
+        let starts_attribute = match before {
+            None => true,
+            Some(c) => c.is_whitespace(),
+        };
+        let ends_attribute = match after {
+            None => true,
+            Some(c) => c.is_whitespace() || c == '=' || c == '/',
+        };
         if starts_attribute && ends_attribute {
             return true;
         }
