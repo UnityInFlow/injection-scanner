@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-09-03T18:22:07.000Z"
-state_head: 0b878c33ab2f3122d3534cd928ac6cff04699812
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-09-04T07:51:59.000Z"
+state_head: 7150e5bb0c4fd5eaead05e9482713ee47d71a56b
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 16
-  completed_plans: 11
-  percent: 69
+  completed_plans: 12
+  percent: 75
 ---
 
 # State: injection-scanner
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md`
 
 ## Current Phase
 
-**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **in progress (2/7 plans — 04-01, 04-02 done)**
+**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **in progress (3/7 plans — 04-01, 04-02, 04-03 done)**
 
 Phase 3 shipped 2026-09-02 as **PR #109** (rebase-merged, issue #33 auto-closed): `PI050`-`PI057`,
 the `relaxed_pattern` schema field, and ADR-004. Its code review found one critical false positive
@@ -210,7 +210,7 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
 ## Session Continuity
 
 Last session: 2026-09-03T09:10:21.035Z
-Stopped at: Completed 04-02-PLAN.md
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
 
 ---
