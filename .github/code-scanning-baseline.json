@@ -1078,49 +1078,56 @@
       "pattern_id": "PI001",
       "digest": "sha256:8c18625270345ad0413bc448571a0d79d914ce2cc6f99376c14aeb020a155b6b",
       "count": 1,
-      "first_seen_line": 28
+      "first_seen_line": 40
     },
     {
       "file": "patterns/core/multilingual.yaml",
       "pattern_id": "PI014",
       "digest": "sha256:22b2ab6dfd86561dd676d86b3117c7e1b9920ea2d0806a685e0e5bc8426d93f8",
       "count": 1,
-      "first_seen_line": 42
+      "first_seen_line": 54
     },
     {
       "file": "patterns/core/multilingual.yaml",
       "pattern_id": "PI014",
       "digest": "sha256:946ccf92c58fe2076c7dd94292729739cd67c0e8a818a107dc777402513d5a14",
       "count": 1,
-      "first_seen_line": 41
+      "first_seen_line": 53
     },
     {
       "file": "patterns/core/multilingual.yaml",
       "pattern_id": "PI110",
       "digest": "sha256:c7c6799157edef0f260261dd16e2bb5aa1264175e959e175b6f844a15b62b34e",
       "count": 1,
-      "first_seen_line": 26
+      "first_seen_line": 38
     },
     {
       "file": "patterns/core/multilingual.yaml",
       "pattern_id": "PI111",
       "digest": "sha256:776154e2d164a72c2926ecb08024c9a87437f7de670fb62e5fb0c3d615eb5b38",
       "count": 1,
-      "first_seen_line": 37
+      "first_seen_line": 49
     },
     {
       "file": "patterns/core/multilingual.yaml",
       "pattern_id": "PI112",
       "digest": "sha256:b5e84e3a43b5f9c5ecfd56029d05b2cb4a2473c87be6ead0cced1ea0188d63e5",
       "count": 1,
-      "first_seen_line": 50
+      "first_seen_line": 62
     },
     {
       "file": "patterns/core/multilingual.yaml",
       "pattern_id": "PI113",
       "digest": "sha256:02ecf61da93efcf3868adcb3d0dd63a77f9aa39689f77602ae77cb3824d762eb",
       "count": 1,
-      "first_seen_line": 61
+      "first_seen_line": 73
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI113",
+      "digest": "sha256:c1146cad236513a2bc601a55da0299d6b84fdb87915637423cd970411be37ca9",
+      "count": 1,
+      "first_seen_line": 22
     },
     {
       "file": "patterns/core/persistence-lifecycle-hijack.yaml",

@@ -181,8 +181,10 @@ patterns:
     # not directories, and `\.ssh/id_[a-z0-9]+` must end at a non-dot, so
     # "paste ~/.ssh/id_ed25519.pub into your GitHub settings" -- the most
     # common sentence in any SSH setup guide -- does not match on the public
-    # half of the key pair.
-    pattern: "(email\\s+the\\s+contents\\s+to|send\\s+a\\s+copy\\s+of\\s+this\\s+conversation\\s+to|forward\\s+the\\s+transcript|(?:read|cat|open|load|print)\\s+[^.\\n]{0,20}?(?:~/\\.aws/|~/\\.ssh/|\\.aws/credentials|\\.ssh/id_|/etc/(?:passwd|shadow)|id_rsa)|(?:include|attach|paste|insert|embed)\\s+[^.\\n]{0,30}?(?:~/\\.aws/(?:credentials|config)|\\.ssh/id_[a-z0-9]+(?:[^.a-z0-9]|$)|/etc/(?:passwd|shadow))|(?:include|attach|append|embed|add|put)\\s+[^.\\n]{0,50}?(?:environment\\s+variables?|env\\s+vars?|credentials?|api\\s+keys?|secrets?|access\\s+tokens?|private\\s+keys?)[^.\\n]{0,50}?\\s+(?:in|to|into|with)\\s+(?:your|its)\\s+(?:reply|answer|response|output|message))"
+    # half of the key pair. A dot followed by whitespace or the end of the
+    # line is a sentence end, not an extension, so "Paste ~/.ssh/id_rsa." at
+    # the end of a sentence still matches (review on #110).
+    pattern: "(email\\s+the\\s+contents\\s+to|send\\s+a\\s+copy\\s+of\\s+this\\s+conversation\\s+to|forward\\s+the\\s+transcript|(?:read|cat|open|load|print)\\s+[^.\\n]{0,20}?(?:~/\\.aws/|~/\\.ssh/|\\.aws/credentials|\\.ssh/id_|/etc/(?:passwd|shadow)|id_rsa)|(?:include|attach|paste|insert|embed)\\s+[^.\\n]{0,30}?(?:~/\\.aws/(?:credentials|config)|\\.ssh/id_[a-z0-9]+(?:[^.a-z0-9]|\\.?(?:\\s|$))|/etc/(?:passwd|shadow))|(?:include|attach|append|embed|add|put)\\s+[^.\\n]{0,50}?(?:environment\\s+variables?|env\\s+vars?|credentials?|api\\s+keys?|secrets?|access\\s+tokens?|private\\s+keys?)[^.\\n]{0,50}?\\s+(?:in|to|into|with)\\s+(?:your|its)\\s+(?:reply|answer|response|output|message))"
     description: "Instruction to email, forward or fold conversation contents and secrets into the reply"
     remediation: "Remove instructions that forward transcripts, credentials or conversation contents outside authorized channels."
     tags: [exfiltration]

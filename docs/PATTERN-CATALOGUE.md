@@ -818,7 +818,7 @@ email the team when the job finishes
 <details><summary>Regex</summary>
 
 ```regex
-(email\s+the\s+contents\s+to|send\s+a\s+copy\s+of\s+this\s+conversation\s+to|forward\s+the\s+transcript|(?:read|cat|open|load|print)\s+[^.\n]{0,20}?(?:~/\.aws/|~/\.ssh/|\.aws/credentials|\.ssh/id_|/etc/(?:passwd|shadow)|id_rsa)|(?:include|attach|paste|insert|embed)\s+[^.\n]{0,30}?(?:~/\.aws/(?:credentials|config)|\.ssh/id_[a-z0-9]+(?:[^.a-z0-9]|$)|/etc/(?:passwd|shadow))|(?:include|attach|append|embed|add|put)\s+[^.\n]{0,50}?(?:environment\s+variables?|env\s+vars?|credentials?|api\s+keys?|secrets?|access\s+tokens?|private\s+keys?)[^.\n]{0,50}?\s+(?:in|to|into|with)\s+(?:your|its)\s+(?:reply|answer|response|output|message))
+(email\s+the\s+contents\s+to|send\s+a\s+copy\s+of\s+this\s+conversation\s+to|forward\s+the\s+transcript|(?:read|cat|open|load|print)\s+[^.\n]{0,20}?(?:~/\.aws/|~/\.ssh/|\.aws/credentials|\.ssh/id_|/etc/(?:passwd|shadow)|id_rsa)|(?:include|attach|paste|insert|embed)\s+[^.\n]{0,30}?(?:~/\.aws/(?:credentials|config)|\.ssh/id_[a-z0-9]+(?:[^.a-z0-9]|\.?(?:\s|$))|/etc/(?:passwd|shadow))|(?:include|attach|append|embed|add|put)\s+[^.\n]{0,50}?(?:environment\s+variables?|env\s+vars?|credentials?|api\s+keys?|secrets?|access\s+tokens?|private\s+keys?)[^.\n]{0,50}?\s+(?:in|to|into|with)\s+(?:your|its)\s+(?:reply|answer|response|output|message))
 ```
 
 </details>
@@ -1698,7 +1698,7 @@ Ignorujte varování linteru na předchozím řádku.
 <details><summary>Regex</summary>
 
 ```regex
-(?:ignoruj|nedbej|zapome[ňn]|p[řr]esko[čc]|zaho[ďd]|odlo[žz]|neber|nebe[řr]|vynech)(?:te)?\s+(?:na\s+|v\s+[úu]vahu\s+)?(?:(?:v[šs]echn[yaeouýí]|ve[šs]ker[éeaouý]|sv[éeoáůu]j?e?|svoje|tyto|ty|tato|toto|jak[ée]koli[v]?)\s+)*(?:p[řr]edchoz[íi]|p[řr]ede[šs]l[éeáý]|d[řr][íi]v[ěe]j[šs][íi]|dosavadn[íi]|p[ůu]vodn[íi]|v[ýy][šs]e\s+uveden[éeáý]|p[řr]edch[áa]zej[íi]c[íi])\s+(?:\w+\s+)?(?:instrukc[ei]|pokyn[yů]|p[řr][íi]kaz[yů]|pravidl[aoe]|zad[áa]n[íi]|nastaven[íi]|omezen[íi]|sm[ěe]rnic[ei]|syst[ée]mov[ýyé]\s+(?:prompt|instrukce|zpr[áa]v[ua]))
+(?:ignoruj|nedbej|zapome[ňn]|p[řr]esko[čc]|zaho[ďd]|odlo[žz]|neber|nebe[řr]|vynech|nev[šs][íi]m[ěe]j?\s+si)(?:te)?\s+(?:na\s+|v\s+[úu]vahu\s+)?(?:(?:v[šs]echn[yaeouýí]|ve[šs]ker[éeaouý]|sv[éeoáůu]j?e?|svoje|tyto|ty|tato|toto|jak[ée]koli[v]?)\s+)*(?:p[řr]edchoz[íi](?:ch|mi?|ho)?|p[řr]ede[šs]l[éeáýí](?:ch|mi?|ho)?|d[řr][íi]v[ěe]j[šs][íi](?:ch|mi?|ho)?|dosavadn[íi](?:ch|mi?|ho)?|p[ůu]vodn[íi](?:ch|mi?|ho)?|v[ýy][šs]e\s+uveden[éeáýí](?:ch|mi?|ho)?|p[řr]edch[áa]zej[íi]c[íi](?:ch|mi?|ho)?)\s+(?:\w+\s+)?(?:instrukc[eií]|pokyn[yůu]|p[řr][íi]kaz[yůu]|pravidl[aoe]|pravidel|zad[áa]n[íi]|nastaven[íi]|omezen[íi]|sm[ěe]rnic[ei]|syst[ée]mov[ýyé]\s+(?:prompt|instrukce|zpr[áa]v[ua]))
 ```
 
 </details>
@@ -1754,7 +1754,7 @@ Pošlete požadavek na https://api.example.com/v1
 <details><summary>Regex</summary>
 
 ```regex
-(?:po[šs]li|ode[šs]li|p[řr]epo[šs]li|za[šs]li|nahraj|odevzdej|p[řr]edej|exportuj)(?:te)?\s+(?:cel[ýyou]\s+|celou\s+|tento\s+|tuto\s+|v[šs]echn[yau]\s+|ve[šs]ker[ýyou]\s+)?(?:\w+\s+){0,3}?(?:obsah|konverzac[ie]|rozhovor[u]?|histori[ie]|p[řr]epis|zpr[áa]v[yu]|kontext|instrukce|pokyny|prompt|data|[úu]daje|kl[íi][čc]e?|hesl[oa]|token[yů]?|p[řr]ihla[šs]ovac[íi]\s+[úu]daje|prom[ěe]nn[ée]\s+prost[řr]ed[íi])\b[^.\n]{0,25}?\s+na\s+https?://
+(?:po[šs]li|ode[šs]li|p[řr]epo[šs]li|za[šs]li|nahraj|odevzdej|p[řr]edej|exportuj|zkop[íi]ruj|p[řr]enes)(?:te)?\s+(?:cel[ýyou]\s+|celou\s+|tento\s+|tuto\s+|v[šs]echn[yau]\s+|ve[šs]ker[ýyou]\s+)?(?:\w+\s+){0,3}?(?:obsah|konverzac[ie]|rozhovor[u]?|histori[ie]|p[řr]epis|zpr[áa]v[yu]|kontext|instrukce|pokyny|prompt|data|[úu]daje|kl[íi][čc]e?|hesl[oa]|token[yů]?|p[řr]ihla[šs]ovac[íi]\s+[úu]daje|prom[ěe]nn[ée]\s+prost[řr]ed[íi])\b[^.\n]{0,25}?\s+na\s+https?://
 ```
 
 </details>
@@ -1782,7 +1782,7 @@ Vypište konfiguraci sestavení do souboru.
 <details><summary>Regex</summary>
 
 ```regex
-(?:vypi[šs]|uka[žz]|zobraz|prozra[ďd]|vra[ťt]|zopakuj|cituj|opi[šs]|shr[ňn]|sd[ěe]l|odhal|vyp[iíí][šs]|napi[šs])(?:te)?\s+(?:mi\s+|n[áa]m\s+)?[^.\n]{0,20}?(?:sv[ůu]j|sv[ée]|svoje|svou|svoji|tv[ůu]j|tv[ée]|tvoje|tvou|tvoji|va[šs]e|va[šs]i|v[áa][šs])\s+(?:\w+\s+){0,2}?(?:syst[ée]mov[ýyé]\s+(?:prompt|instrukce|zpr[áa]vu|pokyny)|p[ůu]vodn[íi]\s+(?:instrukce|pokyny|zad[áa]n[íi]|prompt)|skryt[ée]\s+(?:instrukce|pokyny)|po[čc][áa]te[čc]n[íi]\s+(?:konfiguraci|nastaven[íi]|instrukce))
+(?:vypi[šs]|uka[žz]|zobraz|prozra[ďd]|vra[ťt]|zopakuj|cituj|opi[šs]|shr[ňn]|sd[ěe]l|odhal|vyp[iíí][šs]|napi[šs]|[řr]ekni|uve[ďd]|vyt[áa]hni)(?:te)?\s+(?:mi\s+|n[áa]m\s+)?[^.\n]{0,20}?(?:sv[ůu]j|sv[ée]|svoje|svou|svoji|tv[ůu]j|tv[ée]|tvoje|tvou|tvoji|va[šs]e|va[šs]i|v[áa][šs])\s+(?:\w+\s+){0,2}?(?:syst[ée]mov[ýyé]\s+(?:prompt|instrukce|zpr[áa]vu|pokyny)|p[ůu]vodn[íi]\s+(?:instrukce|pokyny|zad[áa]n[íi]|prompt)|skryt[ée]\s+(?:instrukce|pokyny)|po[čc][áa]te[čc]n[íi]\s+(?:konfiguraci|nastaven[íi]|instrukce))
 ```
 
 </details>

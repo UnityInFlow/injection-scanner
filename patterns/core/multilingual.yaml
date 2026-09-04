@@ -14,6 +14,18 @@ default_severity: CRITICAL
 # object noun is required, the possessive is required for disclosure, and
 # the exfiltration object has to be conversation state or a secret.
 #
+# Verb lists widened on native review (#110): `nevšímej si` (PI110, the most
+# common spoken form of "ignore", reflexive so the `si` particle is part of
+# the verb), `zkopíruj` and `přenes(te)` (PI112), `řekni`, `uveď` and
+# `vytáhni` (PI113). Rejected there for false-positive risk and kept out:
+# `ulož`/`publikuj` (PI112 -- "ulož data na https://server/backup" is a
+# backup instruction) and `popiš` (PI113 -- "popiš svůj systémový prompt" is
+# a prompt-engineering exercise).
+#
+# Case endings: the reflexive `nevšímej si` takes the genitive ("předchozích
+# instrukcí"), so priorness adjectives and object nouns accept their
+# declined forms.
+#
 # Diacritics are OPTIONAL in every pattern (`p[řr]edchoz[íi]`). Czech is
 # routinely typed without them, and an attacker who strips them would
 # otherwise walk past; the normalized pass also strips combining marks from
@@ -29,7 +41,7 @@ patterns:
     # verb x (determiner) x priorness x object, as PI001. `starou`/`starý`
     # (old) is deliberately not priorness, for PI001's reason: "zapomeňte na
     # starou konvenci pojmenování" is maintenance prose.
-    pattern: "(?:ignoruj|nedbej|zapome[ňn]|p[řr]esko[čc]|zaho[ďd]|odlo[žz]|neber|nebe[řr]|vynech)(?:te)?\\s+(?:na\\s+|v\\s+[úu]vahu\\s+)?(?:(?:v[šs]echn[yaeouýí]|ve[šs]ker[éeaouý]|sv[éeoáůu]j?e?|svoje|tyto|ty|tato|toto|jak[ée]koli[v]?)\\s+)*(?:p[řr]edchoz[íi]|p[řr]ede[šs]l[éeáý]|d[řr][íi]v[ěe]j[šs][íi]|dosavadn[íi]|p[ůu]vodn[íi]|v[ýy][šs]e\\s+uveden[éeáý]|p[řr]edch[áa]zej[íi]c[íi])\\s+(?:\\w+\\s+)?(?:instrukc[ei]|pokyn[yů]|p[řr][íi]kaz[yů]|pravidl[aoe]|zad[áa]n[íi]|nastaven[íi]|omezen[íi]|sm[ěe]rnic[ei]|syst[ée]mov[ýyé]\\s+(?:prompt|instrukce|zpr[áa]v[ua]))"
+    pattern: "(?:ignoruj|nedbej|zapome[ňn]|p[řr]esko[čc]|zaho[ďd]|odlo[žz]|neber|nebe[řr]|vynech|nev[šs][íi]m[ěe]j?\\s+si)(?:te)?\\s+(?:na\\s+|v\\s+[úu]vahu\\s+)?(?:(?:v[šs]echn[yaeouýí]|ve[šs]ker[éeaouý]|sv[éeoáůu]j?e?|svoje|tyto|ty|tato|toto|jak[ée]koli[v]?)\\s+)*(?:p[řr]edchoz[íi](?:ch|mi?|ho)?|p[řr]ede[šs]l[éeáýí](?:ch|mi?|ho)?|d[řr][íi]v[ěe]j[šs][íi](?:ch|mi?|ho)?|dosavadn[íi](?:ch|mi?|ho)?|p[ůu]vodn[íi](?:ch|mi?|ho)?|v[ýy][šs]e\\s+uveden[éeáýí](?:ch|mi?|ho)?|p[řr]edch[áa]zej[íi]c[íi](?:ch|mi?|ho)?)\\s+(?:\\w+\\s+)?(?:instrukc[eií]|pokyn[yůu]|p[řr][íi]kaz[yůu]|pravidl[aoe]|pravidel|zad[áa]n[íi]|nastaven[íi]|omezen[íi]|sm[ěe]rnic[ei]|syst[ée]mov[ýyé]\\s+(?:prompt|instrukce|zpr[áa]v[ua]))"
     description: "Czech: attempts to override agent instructions"
     remediation: "Remove the instruction override. If documenting attacks, use code blocks."
     tags: [multilingual, cs, role-override]
@@ -53,7 +65,7 @@ patterns:
     # PI020: the object has to be conversation state or a secret. "pošlete
     # požadavek na https://..." (send the request to) is how every Czech API
     # guide is written, and `požadavek` is not in the list.
-    pattern: "(?:po[šs]li|ode[šs]li|p[řr]epo[šs]li|za[šs]li|nahraj|odevzdej|p[řr]edej|exportuj)(?:te)?\\s+(?:cel[ýyou]\\s+|celou\\s+|tento\\s+|tuto\\s+|v[šs]echn[yau]\\s+|ve[šs]ker[ýyou]\\s+)?(?:\\w+\\s+){0,3}?(?:obsah|konverzac[ie]|rozhovor[u]?|histori[ie]|p[řr]epis|zpr[áa]v[yu]|kontext|instrukce|pokyny|prompt|data|[úu]daje|kl[íi][čc]e?|hesl[oa]|token[yů]?|p[řr]ihla[šs]ovac[íi]\\s+[úu]daje|prom[ěe]nn[ée]\\s+prost[řr]ed[íi])\\b[^.\\n]{0,25}?\\s+na\\s+https?://"
+    pattern: "(?:po[šs]li|ode[šs]li|p[řr]epo[šs]li|za[šs]li|nahraj|odevzdej|p[řr]edej|exportuj|zkop[íi]ruj|p[řr]enes)(?:te)?\\s+(?:cel[ýyou]\\s+|celou\\s+|tento\\s+|tuto\\s+|v[šs]echn[yau]\\s+|ve[šs]ker[ýyou]\\s+)?(?:\\w+\\s+){0,3}?(?:obsah|konverzac[ie]|rozhovor[u]?|histori[ie]|p[řr]epis|zpr[áa]v[yu]|kontext|instrukce|pokyny|prompt|data|[úu]daje|kl[íi][čc]e?|hesl[oa]|token[yů]?|p[řr]ihla[šs]ovac[íi]\\s+[úu]daje|prom[ěe]nn[ée]\\s+prost[řr]ed[íi])\\b[^.\\n]{0,25}?\\s+na\\s+https?://"
     description: "Czech: data exfiltration to an external URL"
     remediation: "Remove the data-sending instruction. Data should only flow through authorized channels."
     tags: [multilingual, cs, exfiltration, url]
@@ -64,7 +76,7 @@ patterns:
     # PI021: the possessive (`svůj`, `tvůj`) is the false-positive control,
     # for the same reason as in English -- "systémový prompt" alone is the
     # ordinary technical term in every Czech article about prompting.
-    pattern: "(?:vypi[šs]|uka[žz]|zobraz|prozra[ďd]|vra[ťt]|zopakuj|cituj|opi[šs]|shr[ňn]|sd[ěe]l|odhal|vyp[iíí][šs]|napi[šs])(?:te)?\\s+(?:mi\\s+|n[áa]m\\s+)?[^.\\n]{0,20}?(?:sv[ůu]j|sv[ée]|svoje|svou|svoji|tv[ůu]j|tv[ée]|tvoje|tvou|tvoji|va[šs]e|va[šs]i|v[áa][šs])\\s+(?:\\w+\\s+){0,2}?(?:syst[ée]mov[ýyé]\\s+(?:prompt|instrukce|zpr[áa]vu|pokyny)|p[ůu]vodn[íi]\\s+(?:instrukce|pokyny|zad[áa]n[íi]|prompt)|skryt[ée]\\s+(?:instrukce|pokyny)|po[čc][áa]te[čc]n[íi]\\s+(?:konfiguraci|nastaven[íi]|instrukce))"
+    pattern: "(?:vypi[šs]|uka[žz]|zobraz|prozra[ďd]|vra[ťt]|zopakuj|cituj|opi[šs]|shr[ňn]|sd[ěe]l|odhal|vyp[iíí][šs]|napi[šs]|[řr]ekni|uve[ďd]|vyt[áa]hni)(?:te)?\\s+(?:mi\\s+|n[áa]m\\s+)?[^.\\n]{0,20}?(?:sv[ůu]j|sv[ée]|svoje|svou|svoji|tv[ůu]j|tv[ée]|tvoje|tvou|tvoji|va[šs]e|va[šs]i|v[áa][šs])\\s+(?:\\w+\\s+){0,2}?(?:syst[ée]mov[ýyé]\\s+(?:prompt|instrukce|zpr[áa]vu|pokyny)|p[ůu]vodn[íi]\\s+(?:instrukce|pokyny|zad[áa]n[íi]|prompt)|skryt[ée]\\s+(?:instrukce|pokyny)|po[čc][áa]te[čc]n[íi]\\s+(?:konfiguraci|nastaven[íi]|instrukce))"
     description: "Czech: system prompt disclosure attempt"
     remediation: "Remove the system prompt extraction instruction."
     tags: [multilingual, cs, exfiltration]
