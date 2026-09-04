@@ -297,7 +297,7 @@ threat model rather than from the regexes, and `tests/recall_test.rs` pins the n
 | Multilingual (Czech; German misses) | 8 / 10 | **80%** |
 | **Total** | **93 / 97** | **95.9%** |
 
-*Measured 2026-09-01 on the current pattern set. The Tool & Permission Abuse row's 12
+*Table as of 2026-09-03. The Tool & Permission Abuse row's first 12
 threat-model payloads (7 prose, 5 structural) landed first with a measured 0/12 pre-pattern
 baseline (D-04), before any `PI050`–`PI059` pattern existed. Plan 05 shipped the structural half
 — `PI050 wildcard-tool-grant`, `PI051 wildcard-permission-allow`, `PI052 bypass-permission-mode`,

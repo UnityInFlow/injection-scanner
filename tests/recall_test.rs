@@ -606,14 +606,17 @@ patterns:
     );
 }
 
-/// GATE-01: exactly 12 threat-model payloads for CAT-01 at phase close, split
-/// across the two rows however the threat model produced (D-03 — no ratio was
-/// set in advance). PI058 agent-directed-destructive-command later added five
-/// prose payloads, so the pin is 17. Reads both `EXPECTED` rows directly
-/// rather than re-deriving the split, so this fails loudly if either row's
-/// total drifts without the other being updated to match.
+/// The CAT-01 (#33) payload total, prose plus structural. GATE-01 pinned 12
+/// at phase close (D-03 — no ratio was set in advance); PI058
+/// agent-directed-destructive-command added five prose payloads. Update this
+/// constant in the commit that adds payloads, so the test name never has to.
+const CAT_01_TOTAL: usize = 17;
+
+/// GATE-01: the two CAT-01 rows of `EXPECTED` sum to `CAT_01_TOTAL`. Reads
+/// both rows directly rather than re-deriving the split, so this fails loudly
+/// if either row's total drifts without the other being updated to match.
 #[test]
-fn the_cat_01_payload_totals_sum_to_seventeen() {
+fn the_cat_01_payload_totals_are_consistent() {
     let prose_total = EXPECTED
         .iter()
         .find(|(c, _, _)| *c == "tool-permission-abuse")
@@ -626,9 +629,8 @@ fn the_cat_01_payload_totals_sum_to_seventeen() {
         .unwrap_or_else(|| panic!("{STRUCTURAL_CATEGORY} is missing from EXPECTED"));
     assert_eq!(
         prose_total + structural_total,
-        17,
-        "CAT-01 (#33, GATE-01) pinned 12 threat-model payloads at phase close and \
-         PI058 added five: 17 expected; \
+        CAT_01_TOTAL,
+        "CAT-01 (#33, GATE-01) expects {CAT_01_TOTAL} threat-model payloads; \
          EXPECTED has {prose_total} prose + {structural_total} structural = \
          {}",
         prose_total + structural_total
