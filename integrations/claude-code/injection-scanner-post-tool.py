@@ -41,13 +41,23 @@ MAX_LISTED_FINDINGS = 8
 MAX_CONTEXT_CHARS = 9_000
 
 
+# The fields a tool result carries its text in. Bash returns {"stdout",
+# "stderr", ...}; the others are the names the documented and observed tool
+# shapes use. Scanning only these keeps metadata a future Claude Code version
+# might add (file paths, environment names, command echoes) out of the scan.
+TEXT_KEYS = ("stdout", "stderr", "content", "text", "result", "output", "body")
+
+
 def text_of(value):
-    """Every string inside a tool response, joined. The exact shape depends on
-    the tool: Bash returns {"stdout", "stderr", ...}, WebFetch's shape is not
-    part of the documented contract, so this collects whatever is there."""
+    """The text of a tool response. A dict is read through TEXT_KEYS when any
+    of them is present; a dict with none of them (WebFetch's shape is not part
+    of the documented contract) falls back to every string it contains."""
     if isinstance(value, str):
         return value
     if isinstance(value, dict):
+        known = [value[k] for k in TEXT_KEYS if k in value]
+        if known:
+            return "\n".join(text_of(v) for v in known)
         return "\n".join(text_of(v) for v in value.values())
     if isinstance(value, list):
         return "\n".join(text_of(v) for v in value)
