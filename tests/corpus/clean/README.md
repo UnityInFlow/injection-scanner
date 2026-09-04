@@ -41,3 +41,41 @@ already states for every other file here.
 | `mcp-manifest.json` | D-01 (pre-existing, Phase 3) — `config.systemPrompt` is the sharpest already-committed near-miss |
 | `mcp-setup-guide.md` | D-01 (pre-existing, Phase 3) — second person addressed to the human reader, not the agent |
 | `mcp-server-catalogue.json` | D-01 — one hand-written boundary manifest exercising all four real-world near-miss shapes `04-RESEARCH.md` §Q3 measured (protocol-sequencing MUST-obligation, training-awareness second person, sibling-tool naming, multi-step file-read-then-validate) |
+| `mcp-registry-filesystem-tools.md` | D-01 — vendored, real, third-party tool descriptions nobody in this repository wrote |
+| `mcp-registry-memory-tools.md` | D-01 — vendored, real, third-party tool descriptions nobody in this repository wrote |
+| `mcp-registry-everything-instructions.md` | D-01 — vendored, real, agent-directed MCP `instructions` field content (second-person imperative, addressed to "an LLM or autonomous agent"), the sharpest vendored near-miss for the discriminator |
+
+## Provenance — vendored third-party files (D-06(3))
+
+Every row below was triaged **outside this repository**, in a scratch location, by
+scanning the fetched candidate with the release binary at `--min-confidence 0`
+before it was vendored. A candidate that reported any finding would not have
+been vendored (none did — see the plan 04-03 SUMMARY for the full triage
+record). Licence is confirmed **per file, per path, at the vendored commit** —
+not inherited from the repository's top-level licence, which
+[github.com/modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers)
+itself reports as `NOASSERTION` because the repository is mid-transition from
+MIT to Apache-2.0 and the relicensing-consent status is not publicly
+enumerable per commit. Both vendored README files carry their own explicit
+`## License` section stating MIT for the server they document; that
+self-declaration is the licence recorded below, not a repository-wide
+inference.
+
+| File | Source repository | Commit SHA | Path at that commit | Licence | Date | Complete / subset |
+|---|---|---|---|---|---|---|
+| `mcp-registry-filesystem-tools.md` | `github.com/modelcontextprotocol/servers` | `d73f99efbfd40c3aa1b61e88728b3d49fb52608f` | `src/filesystem/README.md` | MIT — per the file's own `## License` section | 2026-09-04 | Subset — the `## API` section (`### Tools` + `### Tool annotations`) only; every tool definition in that section is included whole, none truncated. Setup/usage instructions and the license section itself are omitted. |
+| `mcp-registry-memory-tools.md` | `github.com/modelcontextprotocol/servers` | `d73f99efbfd40c3aa1b61e88728b3d49fb52608f` | `src/memory/README.md` | MIT — per the file's own `## License` section | 2026-09-04 | Subset — the `### Tools` section only (all 9 tool definitions, whole). The file's own `### System Prompt` section (a real second-person example prompt) was also triaged and found clean, but is a client-usage example rather than a tool definition and was left out of this task's scope. |
+| `mcp-registry-everything-instructions.md` | `github.com/modelcontextprotocol/servers` | `d73f99efbfd40c3aa1b61e88728b3d49fb52608f` | `src/everything/docs/instructions.md` | CC-BY-4.0 — per the repository's top-level `LICENSE`, which states documentation contributions (excluding specifications) are licensed under CC-BY-4.0 unconditionally, independent of the code relicensing-consent ambiguity | 2026-09-04 | Complete — the whole 28-line file |
+
+**Rejected candidates: none.** Every fetched candidate (the three vendored
+files above, plus the memory server's `### System Prompt` section, triaged and
+found clean but left unvendored for scope reasons rather than a pattern hit)
+reported zero matches at `--min-confidence 0` in the scratch triage location.
+No candidate tripped a shipped pattern. `@modelcontextprotocol/server-postgres`
+— named in `04-RESEARCH.md` §Q2 as observed live on the research machine — no
+longer exists in this registry's current `src/` tree at the vendored commit
+(archived or moved elsewhere); `server-filesystem` and `server-memory` were
+the closest available match to "actually installed and in use" per that same
+research. No package was installed for this task; every candidate was fetched
+as a file via `curl` from `raw.githubusercontent.com`. `git diff --stat
+Cargo.toml Cargo.lock` is empty.
