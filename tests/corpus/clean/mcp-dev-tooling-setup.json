@@ -1,0 +1,28 @@
+{
+  "_comment": "D-03 boundary specimen (plan 04-03, Task 3). Ordinary, unremarkable local dev-tooling MCP setup: several servers, installed the way 04-RESEARCH.md §Q2 measured is common rather than exceptional (an unpinned package-runner argument -- `npx -y <pkg>`, `uvx <pkg>` -- with no version pin). D-03 puts an unpinned-install signal in a MEDIUM severity band deliberately, below the HIGH bar install-hook blocks commits at -- but MEDIUM is not permission to fire on this file, since the clean-corpus gate counts a finding at ANY severity. Several servers exist here so a config-hygiene pattern cannot pass by being narrow enough to miss one arrangement, and one server carries a TLS (https://) endpoint so the transport arm (a future http:// non-TLS pattern) has a legitimate neighbour to distinguish itself from.",
+  "mcpServers": {
+    "docs-search": {
+      "command": "npx",
+      "args": ["-y", "@example/docs-search-mcp"],
+      "env": {
+        "DOCS_ROOT": "./docs"
+      }
+    },
+    "lint-helper": {
+      "command": "uvx",
+      "args": ["example-lint-mcp"],
+      "env": {}
+    },
+    "changelog-writer": {
+      "command": "npx",
+      "args": ["-y", "@example/changelog-mcp@latest"]
+    },
+    "remote-issue-tracker": {
+      "type": "http",
+      "url": "https://issues.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${ISSUE_TRACKER_TOKEN}"
+      }
+    }
+  }
+}

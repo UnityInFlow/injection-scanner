@@ -44,6 +44,18 @@ already states for every other file here.
 | `mcp-registry-filesystem-tools.md` | D-01 — vendored, real, third-party tool descriptions nobody in this repository wrote |
 | `mcp-registry-memory-tools.md` | D-01 — vendored, real, third-party tool descriptions nobody in this repository wrote |
 | `mcp-registry-everything-instructions.md` | D-01 — vendored, real, agent-directed MCP `instructions` field content (second-person imperative, addressed to "an LLM or autonomous agent"), the sharpest vendored near-miss for the discriminator |
+| `mcp-dev-tooling-setup.json` | D-03 — four ordinary local dev-tooling servers, three installed via an unpinned package-runner argument (`npx -y`, `uvx`) the way `04-RESEARCH.md` §Q2 measured as common rather than exceptional, plus one legitimate TLS (`https://`) endpoint as the transport arm's negative neighbour. MEDIUM severity is not permission to fire on this file — the clean-corpus gate counts a finding at any severity. |
+| `mcp-companion-tools.md` | D-04 — two sibling tools whose descriptions legitimately reference each other in both directions `04-RESEARCH.md` names ("this complements that", "prefer X over Y for this job"). Neither description changes what the referenced tool does — the boundary D-04's cross-tool-shadowing heuristic must not cross. |
+
+A fourth CAT-02 specimen, `../documentation/mcp-tool-poisoning-writeup.md`,
+lives in the sibling `documentation/` corpus rather than here — it is a
+write-up ABOUT MCP tool poisoning, not a manifest, so it is held to that
+corpus's two-sided contract instead (zero findings at default, at least one
+under `--strict`). It defends the anti-gaming clause: writing about this
+attack must not itself be reported as the attack. Its header records that
+the strict-mode matches it currently relies on come from patterns that
+already ship (`PI015`, `PI028`, `PI029`), not from `PI060`+ — plan 04-07
+re-checks it once the full CAT-02 set lands.
 
 ## Provenance — vendored third-party files (D-06(3))
 
