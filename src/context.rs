@@ -34,6 +34,22 @@ pub enum MatchContext {
     /// Inside an HTML comment. Deliberately NOT downgraded — hidden text is a
     /// delivery mechanism, not a disclaimer.
     HtmlComment,
+    /// Inside an HTML element a browser would not show: a bare `hidden`
+    /// attribute, or an inline style with `display:none`, `visibility:hidden`,
+    /// `opacity:0`, `font-size:0`, or white-on-white / black-on-black text.
+    ///
+    /// The same rationale as `HtmlComment`, and the same score: a reader never
+    /// sees the text, a model ingesting the page does. This used to be a
+    /// pattern of its own (`PI017`, "hidden HTML styling"), reported at HIGH
+    /// on the *element* regardless of what it wrapped. Five real pages scanned
+    /// end to end — a telecom homepage, two encyclopedia/OWASP articles, a blog
+    /// post, a project README — produced that finding on all five, every hit a
+    /// collapsed menu, a share widget or a cookie banner. Hiding is what every
+    /// page does; it is evidence only when it hides something a pattern
+    /// recognises. So it is a context on the payload finding now, carrying the
+    /// mechanism into the report (`[hidden html · confidence 1.0]`) without
+    /// being a finding on its own.
+    HiddenHtml,
     /// YAML/TOML frontmatter, detected lexically. Structured config an agent
     /// loads directly, but matched as raw text.
     Frontmatter,
@@ -58,6 +74,7 @@ impl MatchContext {
         match self {
             MatchContext::Prose => 1.0,
             MatchContext::HtmlComment => 1.0,
+            MatchContext::HiddenHtml => 1.0,
             MatchContext::Frontmatter => 0.9,
             MatchContext::FrontmatterStructural => 1.0,
             MatchContext::BlockQuote => 0.9,
@@ -76,6 +93,7 @@ impl MatchContext {
             MatchContext::Table => "table",
             MatchContext::BlockQuote => "block quote",
             MatchContext::HtmlComment => "html comment",
+            MatchContext::HiddenHtml => "hidden html",
             MatchContext::Frontmatter => "frontmatter",
             MatchContext::FrontmatterStructural => "frontmatter (structural)",
         }
@@ -106,6 +124,10 @@ enum LineKind {
     Table,
     BlockQuote,
     HtmlComment,
+    /// A line entirely inside a hidden element opened on an earlier line. An
+    /// element opened and closed on one line is resolved per byte offset
+    /// instead, like inline code.
+    HiddenHtml,
     Frontmatter,
 }
 
@@ -120,6 +142,12 @@ impl ContextMap {
         let mut fence: Option<(char, usize)> = None;
         let mut in_html_comment = false;
         let mut frontmatter = FrontmatterState::Unstarted;
+        // A hidden element still open at the end of a line: its tag name and
+        // how deeply that tag is nested, so `<div hidden><div>…</div></div>`
+        // closes on the right `</div>`. Counting only the opener's own tag
+        // name keeps the tracking honest on real markup, where the hidden
+        // block contains lists, links and paragraphs of its own.
+        let mut hidden_block: Option<(String, usize)> = None;
 
         for (index, raw) in content.lines().enumerate() {
             let line = raw.trim_start();
@@ -158,6 +186,38 @@ impl ContextMap {
                 continue;
             }
 
+            if let Some((tag, depth)) = hidden_block.take() {
+                // Every line of an open hidden block is hidden, including the
+                // one that closes it — the same rule fences and comments use.
+                let remaining = nesting_after(line, 0, &tag, depth);
+                if remaining > 0 {
+                    hidden_block = Some((tag, remaining));
+                }
+                lines.push(LineKind::HiddenHtml);
+                continue;
+            }
+
+            // A hidden element that opens here and does not close here hides
+            // the lines that follow. This line itself is classified per offset
+            // by `context_at`, because the text before the opener is visible.
+            //
+            // Every opener on the line is checked, not only the first (review
+            // on #110): a collapsed widget closing and a cookie banner opening
+            // on the same line is the realistic shape, and the first opener
+            // closing must not hide the second one staying open. The FIRST
+            // opener still open at the end of the line is the one tracked,
+            // because a later one still open is nested inside it and closes
+            // before it does.
+            for opener in hidden_openers(line) {
+                if hidden_block.is_some() {
+                    break;
+                }
+                let remaining = nesting_after(line, opener.end, &opener.tag, 1);
+                if remaining > 0 {
+                    hidden_block = Some((opener.tag, remaining));
+                }
+            }
+
             if line.starts_with('>') {
                 lines.push(LineKind::BlockQuote);
                 continue;
@@ -194,12 +254,20 @@ impl ContextMap {
             LineKind::FencedCode => MatchContext::FencedCode,
             LineKind::Frontmatter => MatchContext::Frontmatter,
             LineKind::HtmlComment => MatchContext::HtmlComment,
+            LineKind::HiddenHtml => MatchContext::HiddenHtml,
             LineKind::BlockQuote => MatchContext::BlockQuote,
             LineKind::Table => MatchContext::Table,
             // Only prose lines are checked for inline spans; a backtick inside a
             // table cell is already covered by the weaker Table score.
+            //
+            // Hidden markup is checked before inline code. Both score as
+            // "real" or "quoted" respectively, and a payload an attacker wrapped
+            // in `<span hidden>` is the former even if they also put backticks
+            // around it.
             LineKind::Prose => {
-                if in_inline_code(line_content, offset) {
+                if in_hidden_element(line_content, offset) {
+                    MatchContext::HiddenHtml
+                } else if in_inline_code(line_content, offset) {
                     MatchContext::InlineCode
                 } else {
                     MatchContext::Prose
@@ -259,6 +327,194 @@ fn is_table_row(line: &str) -> bool {
     }
     // A lone `|` is not a table.
     line.matches('|').count() >= 2
+}
+
+/// An opening tag on one line whose attributes hide the element.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct HiddenOpener {
+    /// Byte offset of the `<`.
+    start: usize,
+    /// Byte offset just past the `>`.
+    end: usize,
+    /// Lower-cased tag name.
+    tag: String,
+}
+
+/// Elements that never have content, so a `hidden` on them hides nothing that
+/// a pattern could match. Tracking them as block openers would leave a
+/// `<input hidden>` "open" until the end of the document.
+const VOID_ELEMENTS: &[&str] = &[
+    "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source",
+    "track", "wbr",
+];
+
+/// Every hidden opener on the line, in document order.
+///
+/// Hand-parsed rather than a regex: the question is about *attributes*, and
+/// `aria-hidden="true"` or `class="menu--hidden"` must not count. The old
+/// PI017 regex needed a terminator trick for exactly that, because the regex
+/// crate has no lookaround; reading the attribute list directly is both
+/// simpler and correct.
+fn hidden_openers(line: &str) -> Vec<HiddenOpener> {
+    let bytes = line.as_bytes();
+    let mut found = Vec::new();
+    let mut index = 0usize;
+
+    while let Some(rel) = line[index..].find('<') {
+        let start = index + rel;
+        let name_start = start + 1;
+        let name_end = name_start
+            + line[name_start..]
+                .bytes()
+                .take_while(|b| b.is_ascii_alphanumeric())
+                .count();
+        if name_end == name_start {
+            index = name_start;
+            continue;
+        }
+        let Some(close_rel) = line[name_end..].find('>') else {
+            break;
+        };
+        let end = name_end + close_rel + 1;
+        let tag = line[name_start..name_end].to_ascii_lowercase();
+        let attributes = &line[name_end..end - 1];
+
+        if !VOID_ELEMENTS.contains(&tag.as_str()) && attributes_hide(attributes) {
+            found.push(HiddenOpener { start, end, tag });
+        }
+        index = end;
+        if index >= bytes.len() {
+            break;
+        }
+    }
+
+    found
+}
+
+/// Whether an attribute list hides its element from a reader.
+fn attributes_hide(attributes: &str) -> bool {
+    if has_bare_hidden_attribute(attributes) {
+        return true;
+    }
+    match style_attribute(attributes) {
+        Some(style) => style_hides(&style),
+        None => false,
+    }
+}
+
+/// A `hidden` attribute of its own — not the suffix of `aria-hidden` or
+/// `data-hidden`, and not a class name.
+fn has_bare_hidden_attribute(attributes: &str) -> bool {
+    let lower = attributes.to_ascii_lowercase();
+    let mut search = 0usize;
+    while let Some(rel) = lower[search..].find("hidden") {
+        let at = search + rel;
+        let before = lower[..at].chars().next_back();
+        let after = lower[at + "hidden".len()..].chars().next();
+        // Spelled out rather than `Option::is_none_or`, which needs Rust 1.82
+        // and the crate pins no MSRV (review on #110).
+        let starts_attribute = match before {
+            None => true,
+            Some(c) => c.is_whitespace(),
+        };
+        let ends_attribute = match after {
+            None => true,
+            Some(c) => c.is_whitespace() || c == '=' || c == '/',
+        };
+        if starts_attribute && ends_attribute {
+            return true;
+        }
+        search = at + "hidden".len();
+    }
+    false
+}
+
+/// The value of a `style="…"` / `style='…'` attribute, lower-cased with
+/// whitespace removed so `display : none` and `display:none` compare equal.
+fn style_attribute(attributes: &str) -> Option<String> {
+    let lower = attributes.to_ascii_lowercase();
+    let at = lower.find("style")?;
+    let rest = lower[at + "style".len()..].trim_start();
+    let rest = rest.strip_prefix('=')?.trim_start();
+    let quote = rest.chars().next()?;
+    if quote != '"' && quote != '\'' {
+        return None;
+    }
+    let body = &rest[1..];
+    let end = body.find(quote).unwrap_or(body.len());
+    Some(body[..end].chars().filter(|c| !c.is_whitespace()).collect())
+}
+
+/// The inline-style mechanisms that hide text from a reader.
+///
+/// `font-size:0` needs a terminator: `font-size:0.8rem` is the most common
+/// inline style on the web and must not match on its leading zero. The colour
+/// arms need the same, or `#fff000` matches on its `#fff` prefix.
+fn style_hides(style: &str) -> bool {
+    let declarations = style.split(';');
+    for declaration in declarations {
+        let Some((property, value)) = declaration.split_once(':') else {
+            continue;
+        };
+        let hides = match property {
+            "display" => value == "none",
+            "visibility" => value == "hidden",
+            "opacity" => value == "0",
+            "font-size" => {
+                matches!(value, "0" | "0px" | "0pt" | "0em" | "0rem" | "0%")
+            }
+            "color" => matches!(value, "#fff" | "#ffffff" | "#000" | "#000000"),
+            _ => false,
+        };
+        if hides {
+            return true;
+        }
+    }
+    false
+}
+
+/// Nesting depth of `tag` after scanning `line[from..]`, starting at `depth`.
+///
+/// Counts `<tag` openers and `</tag` closers of that one name. Zero means the
+/// hidden element closed on this line.
+fn nesting_after(line: &str, from: usize, tag: &str, depth: usize) -> usize {
+    let lower = line[from..].to_ascii_lowercase();
+    let mut depth = depth;
+    let mut index = 0usize;
+    while let Some(rel) = lower[index..].find('<') {
+        let at = index + rel;
+        let rest = &lower[at + 1..];
+        if let Some(after) = rest.strip_prefix('/') {
+            if tag_name_at(after) == tag {
+                depth = depth.saturating_sub(1);
+                if depth == 0 {
+                    return 0;
+                }
+            }
+        } else if tag_name_at(rest) == tag {
+            depth += 1;
+        }
+        index = at + 1;
+    }
+    depth
+}
+
+/// The tag name starting at the head of `text`, or "" if there is none.
+fn tag_name_at(text: &str) -> &str {
+    let len = text
+        .bytes()
+        .take_while(|b| b.is_ascii_alphanumeric())
+        .count();
+    &text[..len]
+}
+
+/// Whether `offset` falls inside a hidden element opened earlier on this line
+/// and not yet closed by that point.
+fn in_hidden_element(line: &str, offset: usize) -> bool {
+    hidden_openers(line)
+        .into_iter()
+        .filter(|opener| opener.end <= offset)
+        .any(|opener| nesting_after(&line[..offset], opener.end, &opener.tag, 1) > 0)
 }
 
 /// Whether `offset` falls inside a backtick span on this line.

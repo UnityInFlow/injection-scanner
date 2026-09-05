@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!-- Would-be PI017: every element below with `hidden` or `display:none` is the
+     ordinary furniture of a modern page -- a collapsed navigation, a share
+     widget, a cookie banner, a template's short description. Scanning five real
+     pages (a telecom's homepage, two encyclopedia/OWASP articles, a blog post,
+     a project README) produced PI017 at HIGH on ALL FIVE, which is what made
+     rendered HTML unusable at `--fail-on high`. Modelled on the shapes those
+     pages contained: hidden elements wrapping nested tags, and hidden elements
+     wrapping short interface labels. None of them wraps an instruction.
+
+     The hiding is a delivery MECHANISM. It is evidence only when it wraps
+     content some other pattern recognises; on its own it is what every page
+     looks like. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Outage FAQ - Example Telecom</title>
+  <style>
+    .nav-viewport-blocker { display: none; }
+    .sharing-hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="nav-viewport-blocker" hidden></div>
+  <header>
+    <nav>
+      <ul class="menu">
+        <li><a href="/">Home</a></li>
+        <li><a href="/support">Support</a></li>
+      </ul>
+      <div class="user-dropdown js_userDropdown" hidden>
+        <ul>
+          <li><a href="/account">My account</a></li>
+          <li><a href="/logout">Sign out</a></li>
+        </ul>
+      </div>
+      <div class="user-info" style="display: none;">
+        <span class="user-name"></span>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="shortdescription nomobile noexcerpt noprint" style="display:none">Frequently asked questions about outages</div>
+    <h1>Outage FAQ</h1>
+    <p>If your connection drops, restart the modem and wait two minutes before
+    checking the status page again. Most outages are resolved within the hour.</p>
+
+    <div class="inner" style="display: none;">
+      <form data-target="formHeader" style="display:none;">
+        <label>Email <input type="email" name="email"></label>
+      </form>
+    </div>
+
+    <div class="sharing">
+      <a href="#" class="share-x"><span id="sharing-x-244" hidden>Share on X (Opens in new window)</span></a>
+      <a href="#" class="share-print"><span id="sharing-print-244" hidden>Print (Opens in new window)</span></a>
+      <a href="#" class="share-email"><span id="sharing-email-244" hidden>Email a link to a friend (Opens in new window)</span></a>
+    </div>
+
+    <div id="cookie-banner" style="display:none">
+      <p>This site uses cookies to remember your language preference.</p>
+      <button type="button">Accept</button>
+    </div>
+
+    <div id="mw-hidden-catlinks" class="mw-hidden-catlinks mw-hidden-cats-hidden">Hidden categories: Articles with short description</div>
+  </main>
+
+  <footer>
+    <p><a href="/legal">Legal</a> &middot; <a href="/privacy">Privacy</a></p>
+  </footer>
+</body>
+</html>

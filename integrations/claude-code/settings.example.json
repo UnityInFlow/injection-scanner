@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash|WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/injection-scanner-post-tool.py\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
