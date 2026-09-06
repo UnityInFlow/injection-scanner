@@ -21,6 +21,19 @@ default_severity: MEDIUM
 #     name is the top-level key; 9 of 17 sampled plugin `.mcp.json` files).
 #     A pattern anchored on `^mcpServers\.` was measured to miss two of three
 #     real shapes. Every key below is therefore LEAF-ANCHORED with `(?:^|\.)`.
+#     THE COST, NAMED RATHER THAN LEFT FOR REVIEW (#34-r1 finding 4): because
+#     one real convention has NO wrapper at all, and because a rule sees one
+#     projected line at a time and so cannot require two leaves to co-occur,
+#     nothing here can establish that the surrounding document IS an MCP
+#     manifest. A `command`, `args`, `url` or `endpoint` leaf in an unrelated
+#     structured file therefore receives an MCP-worded finding. This is
+#     inherent to the shape the manifests actually take, not a missing check:
+#     any wrapper requirement that would remove it is the exact regression
+#     T-04-17 exists to prevent. It is bounded by the MEDIUM band, which sits
+#     below the severity `install-hook` blocks commits at, and it is measured
+#     rather than assumed -- the GATE-03 sweep over 23,764 real third-party
+#     files produced ONE finding from all three patterns combined, a true
+#     positive on a real `git+https://` install source.
 #   - A string value renders WITHOUT quotes. `"command": "npx"` projects as
 #     `command = npx`, never `command = "npx"`.
 #   - An array projects ONE LINE PER ELEMENT with an `[index]` suffix, so
@@ -55,6 +68,38 @@ default_severity: MEDIUM
 # absence of a version pin. The accepted cost is that
 # tests/corpus/attack/structural/mcp-tool-poisoning/07-unpinned-npx-install-mcpservers.md
 # stays an undetected payload on purpose.
+#
+# TWO FURTHER PI060 GAPS, MEASURED AND ACCEPTED (review #34-r1 finding 1).
+# npm also accepts a bare `user/project` GitHub shorthand and a generic tarball
+# URL carrying no archive extension. Both are genuine off-registry sources and
+# both evade PI060. Widening to reach them was tried and measured, not reasoned
+# about:
+#   - Widened to `user/project`, PI060 fired on TWO real, official third-party
+#     manifests on the development machine -- the codex-security and
+#     openai-developers plugin manifests -- on `args = ./mcp/server.mjs`, an
+#     ordinary relative launch path that is `user/project`-shaped by accident.
+#     The same shape is what every TypeScript MCP server template emits as
+#     `build/index.js`.
+#   - Widened to any `https?://` argument, PI060 fires on
+#     `npx -y mcp-remote https://.../sse`, the ecosystem-standard way a stdio
+#     client reaches a remote server.
+# Both are the ecosystem default, and a pattern firing on the ecosystem default
+# is unshippable at any severity -- the same reasoning that produced the
+# install-SOURCE discriminator above. The clean corpus did NOT catch either
+# widening when the review was filed; tests/corpus/clean/mcp-plugin-local-launch.json
+# was added so that it now does, and both evaded forms are locked as negatives
+# in tests/pattern_test.rs so the gap is enforced rather than merely written down.
+#
+# PI062 INHERITS TWO PI028 GAPS, DELIBERATELY (review #34-r1 finding 3).
+# PI062 misses a pipe to an absolute interpreter path and the full
+# `Invoke-WebRequest`/`Invoke-Expression` cmdlet spelling. So does PI028, which
+# is the point: T-04-21 requires the two vocabularies stay identical character
+# for character, so closing either gap HERE alone would create precisely the
+# divergent second list that threat exists to prevent. PI028 is CRITICAL and
+# runs over prose across the whole corpus, so widening it is its own change
+# with its own GATE-03 sweep, outside CAT-02's PI060-PI069 scope. Both forms
+# are locked as PI062 negatives so that a future fix to PI028 fails this test
+# and is forced to update the two together.
 patterns:
   - id: PI060
     example: |
