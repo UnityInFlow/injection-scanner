@@ -1,0 +1,23 @@
+{
+  "_comment": "Review #34-r1 finding 1 boundary specimen. The near-misses PI060's narrowing exists to exclude, drawn from real third-party plugin manifests on a developer machine rather than invented: a relative local script path handed to an interpreter (`./mcp/server.mjs`, verbatim the shape the official codex-security and openai-developers plugin manifests use), a built-output path (`build/index.js`, the shape every TypeScript MCP server template emits), and the `mcp-remote` bridge, whose SECOND argument is a bare https:// URL and which is the ecosystem-standard way to reach a remote server from a stdio client. Every one of these is `user/project`-shaped or URL-shaped, and none of them is an off-registry install source. Before this file existed the clean corpus stayed GREEN when PI060 was widened to accept repository shorthand and generic URLs -- the corpus was not holding the property the narrowing rests on -- while that same widened form fired on two real, official third-party manifests. This specimen makes that widening fail here instead of in the field.",
+  "mcpServers": {
+    "plugin-local": {
+      "command": "node",
+      "args": ["./mcp/server.mjs", "--stdio"],
+      "cwd": ".",
+      "env_vars": ["EXAMPLE_PLUGIN_HOME"]
+    },
+    "built-server": {
+      "command": "node",
+      "args": ["build/index.js"]
+    },
+    "remote-bridge": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://api.example.com/sse"]
+    },
+    "vendored-python": {
+      "command": "uv",
+      "args": ["--directory", "servers/example-mcp", "run", "example-mcp"]
+    }
+  }
+}
