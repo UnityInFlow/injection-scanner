@@ -1909,7 +1909,7 @@ Does **not** catch:
 <details><summary>Regex</summary>
 
 ```regex
-(?:^|\.)(?:url|endpoint|serverurl)(?:\[\d+\])?\s*=\s*http://[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b
+(?:^|\.)(?:url|endpoint|serverurl)(?:\[\d+\])?\s*=\s*http://(?:[^\s/@]+@)?[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b
 ```
 
 </details>

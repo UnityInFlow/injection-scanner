@@ -126,12 +126,31 @@ patterns:
     # `http://build-box:8080`, which is the accepted cost of not having a
     # lookahead: those are the same local-development shape as loopback.
     #
+    # RFC 3986 makes `userinfo@` an OPTIONAL part of the authority, so the
+    # host is matched after an optional `[^\s/@]+@` rather than immediately
+    # after `http://` (review #34-r1 finding 2). This does NOT change which
+    # HOSTS qualify -- `http://user@localhost` still has no dot and is still
+    # excluded -- so the loopback narrowing is untouched. It closes the one
+    # plaintext shape where the credential is itself on the wire, which is
+    # what this pattern's description already claims to catch.
+    #
+    # ACCEPTED LIMITATION: an IP-LITERAL host is not detected, and that is
+    # the same no-lookahead cost as the LAN name above rather than an
+    # oversight (review #34-r1 finding 2, first half). Re-admitting numeric
+    # hosts means hand-enumerating loopback, RFC 1918 and link-local, and any
+    # error in that alternation fires on ordinary local development. Measured
+    # cost of leaving it: across 2,362 real config files on the development
+    # machine there is not one non-TLS `url`/`endpoint` leaf of ANY host
+    # form, and the GATE-03 sweep over 23,764 files recorded zero PI061
+    # findings. tests/pattern_test.rs locks both gaps as negatives so they
+    # cannot be widened by accident.
+    #
     # 04-RESEARCH.md Q2 sampled 49 real manifests and found every endpoint on
     # TLS, so this pattern's positive cases are synthesised by necessity while
     # its negative cases -- the TLS endpoint in
     # tests/corpus/clean/mcp-dev-tooling-setup.json, and loopback -- are drawn
     # from reality.
-    pattern: "(?:^|\\.)(?:url|endpoint|serverurl)(?:\\[\\d+\\])?\\s*=\\s*http://[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}\\b"
+    pattern: "(?:^|\\.)(?:url|endpoint|serverurl)(?:\\[\\d+\\])?\\s*=\\s*http://(?:[^\\s/@]+@)?[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}\\b"
     description: "An MCP server endpoint is reached over plaintext HTTP, so every tool call, argument and bearer token on that transport is readable and rewritable in transit"
     remediation: "Serve the MCP endpoint over TLS and change the URL to https://, or bind it to a loopback address if it is genuinely local-only."
     tags: [mcp-tool-poisoning, transport]
