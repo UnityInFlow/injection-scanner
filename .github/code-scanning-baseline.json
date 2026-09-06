@@ -480,8 +480,29 @@
     },
     {
       "file": "examples/mcp-tool-poisoning-attack.md",
+      "pattern_id": "PI028",
+      "digest": "sha256:81b907889d024a1705bc04b074893948fab11fe357a84304e836be4aa3fa7282",
+      "count": 1,
+      "first_seen_line": 15
+    },
+    {
+      "file": "examples/mcp-tool-poisoning-attack.md",
       "pattern_id": "PI060",
       "digest": "sha256:f50a2555fa562bf13fb99143666c9852bd2939baaff1a3747e5904ef70edb028",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "examples/mcp-tool-poisoning-attack.md",
+      "pattern_id": "PI061",
+      "digest": "sha256:70fa0a753da3daf09dac5bc9bfd01c0f52958e4f3defb0ae163db0fb213bd803",
+      "count": 1,
+      "first_seen_line": 10
+    },
+    {
+      "file": "examples/mcp-tool-poisoning-attack.md",
+      "pattern_id": "PI062",
+      "digest": "sha256:c4a1149fe99bd7fe6f006329a57fea0842b0a97542da130e944a4a555be6e094",
       "count": 1,
       "first_seen_line": 5
     },
@@ -1079,6 +1100,13 @@
       "digest": "sha256:37cae603b2981168826130a4d9cfe24e45c5dc7e51f7acfc16bc0750c9e660be",
       "count": 1,
       "first_seen_line": 111
+    },
+    {
+      "file": "patterns/core/mcp-tool-poisoning.yaml",
+      "pattern_id": "PI028",
+      "digest": "sha256:81b907889d024a1705bc04b074893948fab11fe357a84304e836be4aa3fa7282",
+      "count": 1,
+      "first_seen_line": 143
     },
     {
       "file": "patterns/core/multilingual.yaml",
@@ -2026,9 +2054,23 @@
       "first_seen_line": 5
     },
     {
+      "file": "tests/corpus/attack/structural/mcp-tool-poisoning/08-non-tls-endpoint-servers-wrapper.md",
+      "pattern_id": "PI061",
+      "digest": "sha256:70fa0a753da3daf09dac5bc9bfd01c0f52958e4f3defb0ae163db0fb213bd803",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
       "file": "tests/corpus/attack/structural/mcp-tool-poisoning/09-remote-script-fetch-execute-server.md",
       "pattern_id": "PI028",
       "digest": "sha256:81b907889d024a1705bc04b074893948fab11fe357a84304e836be4aa3fa7282",
+      "count": 1,
+      "first_seen_line": 4
+    },
+    {
+      "file": "tests/corpus/attack/structural/mcp-tool-poisoning/09-remote-script-fetch-execute-server.md",
+      "pattern_id": "PI062",
+      "digest": "sha256:c4a1149fe99bd7fe6f006329a57fea0842b0a97542da130e944a4a555be6e094",
       "count": 1,
       "first_seen_line": 4
     },
