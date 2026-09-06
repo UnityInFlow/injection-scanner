@@ -1,13 +1,13 @@
 Discovered live during Task 1 (04-01) baseline capture, 2026-09-03.
 
 Command:
-  target/release/injection-scanner check /Users/jirihermann/.cursor/extensions \
+  target/release/injection-scanner check $HOME/.cursor/extensions \
     --format json --all-files --no-ignore --exclude '.planning/**'
 
 Result: process aborted with SIGABRT-equivalent Rust panic, exit code 101.
 
 Panic transcript (stderr tail):
-  warning: skipped /Users/jirihermann/.cursor/extensions/zignd.html-css-class-completion-1.20.0/images/icon.png — looks like binary content
+  warning: skipped $HOME/.cursor/extensions/zignd.html-css-class-completion-1.20.0/images/icon.png — looks like binary content
 
   thread 'main' (142012154) panicked at src/frontmatter.rs:219:26:
   assertion failed: self.is_char_boundary(new_len)
