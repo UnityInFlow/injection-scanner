@@ -226,7 +226,7 @@ so the comparison that carries this plan's verdict is not affected by the drift 
 $ bash scripts/gate03-sweep.sh --compare \
     .planning/local/sweep-mainbase-04-04-2026-09-06 \
     .planning/local/sweep-after-04-04-2026-09-06
-/Users/jirihermann/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/serena/.mcp.json:4	PI060
+$HOME/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/serena/.mcp.json:4	PI060
 exit=1
 ```
 
