@@ -1106,7 +1106,7 @@
       "pattern_id": "PI028",
       "digest": "sha256:81b907889d024a1705bc04b074893948fab11fe357a84304e836be4aa3fa7282",
       "count": 1,
-      "first_seen_line": 143
+      "first_seen_line": 162
     },
     {
       "file": "patterns/core/multilingual.yaml",

@@ -1696,6 +1696,14 @@ fn test_pi061_plaintext_mcp_endpoint() {
             "{\"mcpServers\": {\"legacy\": {\"type\": \"http\", \"url\": \"http://mcp.example.org:8080/rpc\"}}}\n",
             // No wrapper key at all.
             "{\"legacy-direct\": {\"type\": \"http\", \"endpoint\": \"http://relay.example.net/mcp\"}}\n",
+            // RFC 3986 authority carries OPTIONAL userinfo before the host.
+            // Review #34-r1 finding 2: the first shipped form matched the
+            // host immediately after `http://`, so a credential-bearing
+            // authority evaded the pattern -- the one plaintext shape where
+            // the credential itself is on the wire, which is precisely what
+            // this pattern's description claims to catch.
+            "{\"x\": {\"type\": \"http\", \"endpoint\": \"http://token@remote.example.com/mcp\"}}\n",
+            "{\"servers\": {\"legacy\": {\"type\": \"http\", \"url\": \"http://user:pass@mcp.example.org:8080/rpc\"}}}\n",
         ],
     );
     assert_negatives(
@@ -1707,6 +1715,22 @@ fn test_pi061_plaintext_mcp_endpoint() {
             "{\"mcpServers\": {\"local-dev\": {\"type\": \"http\", \"url\": \"http://127.0.0.1:8787/mcp\"}}}\n",
             // The real TLS endpoint mcp-dev-tooling-setup.json carries.
             "{\"mcpServers\": {\"remote-issue-tracker\": {\"type\": \"http\", \"url\": \"https://issues.example.com/mcp\"}}}\n",
+            // ACCEPTED LIMITATION, locked here so it cannot be widened by
+            // accident. An IP-literal host is NOT detected. The `regex` crate
+            // has no lookahead, so loopback is excluded by requiring a
+            // registrable domain -- an alphabetic final label -- and every
+            // IPv4/IPv6 literal fails that requirement along with `127.0.0.1`
+            // and `[::1]`. Re-including numeric hosts means enumerating
+            // loopback, RFC 1918 and link-local by hand, and any error in
+            // that alternation re-admits the ordinary local-development shape
+            // this pattern exists not to fire on. Measured cost: zero
+            // non-TLS `url`/`endpoint` leaves of ANY host form occur across
+            // 2,362 real config files on the development machine, and the
+            // GATE-03 sweep recorded zero PI061 findings over 23,764 files.
+            "{\"servers\": {\"x\": {\"type\": \"http\", \"url\": \"http://198.51.100.42:8080/mcp\"}}}\n",
+            // Same class, already named in the YAML header: a single-label
+            // LAN name is the same local-development shape as loopback.
+            "{\"servers\": {\"x\": {\"type\": \"http\", \"url\": \"http://build-box:8080/mcp\"}}}\n",
         ],
     );
 }
