@@ -11,6 +11,7 @@ use crate::normalize::{normalize, Normalized};
 use crate::pattern::{
     PatternCategory, PatternError, PatternScope, ScanMatch, ScanReport, Severity,
 };
+use crate::prefilter::{select_into, CandidateSet, LiteralPrefilter};
 
 /// Upper bound on reported matches per pattern per line.
 ///
@@ -95,6 +96,20 @@ impl CompiledPattern {
 /// content, which is precisely wrong for a pre-commit hook.
 pub struct Scanner {
     compiled: Vec<CompiledPattern>,
+    /// One Aho-Corasick automaton over every pattern's required literal
+    /// prefixes (issue #4).
+    ///
+    /// `None` means "run every regex against every haystack" — the behaviour
+    /// that predates this field. It is the correct answer whenever no pattern
+    /// yields a literal the extractor will vouch for, and it is what
+    /// [`Scanner::without_prefilter`] installs so the equivalence tests can run
+    /// both paths over the same input.
+    ///
+    /// Indices into it line up with `compiled`, which is why it is built from
+    /// the patterns that actually compiled rather than from the input
+    /// categories: a pattern dropped by an invalid regex must not shift every
+    /// later pattern's index.
+    prefilter: Option<LiteralPrefilter>,
 }
 
 impl Scanner {
@@ -127,6 +142,9 @@ impl Scanner {
     pub fn new_lenient(categories: &[PatternCategory]) -> (Self, Vec<PatternError>) {
         let mut compiled = Vec::new();
         let mut errors = Vec::new();
+        // Regex source and case flag for each entry of `compiled`, in the same
+        // order, so the prefilter's pattern indices are `compiled`'s indices.
+        let mut sources: Vec<(String, bool)> = Vec::new();
         // id -> the category that first claimed it. A second claim is rejected:
         // two patterns sharing an id emit findings with the same `pattern_id`
         // but different severity, message and remediation, which corrupts the
@@ -155,16 +173,19 @@ impl Scanner {
                     .case_insensitive(!case_sensitive)
                     .build()
                 {
-                    Ok(regex) => compiled.push(CompiledPattern {
-                        id: pattern.id.clone(),
-                        name: pattern.name.clone(),
-                        severity,
-                        description: pattern.description.clone(),
-                        remediation: pattern.remediation.clone(),
-                        regex,
-                        raw_only: pattern.raw_only.unwrap_or(false),
-                        scope: pattern.scope,
-                    }),
+                    Ok(regex) => {
+                        sources.push((pattern.pattern.clone(), case_sensitive));
+                        compiled.push(CompiledPattern {
+                            id: pattern.id.clone(),
+                            name: pattern.name.clone(),
+                            severity,
+                            description: pattern.description.clone(),
+                            remediation: pattern.remediation.clone(),
+                            regex,
+                            raw_only: pattern.raw_only.unwrap_or(false),
+                            scope: pattern.scope,
+                        });
+                    }
                     Err(source) => errors.push(PatternError::InvalidRegex {
                         id: pattern.id.clone(),
                         pattern: pattern.pattern.clone(),
@@ -174,7 +195,51 @@ impl Scanner {
             }
         }
 
-        (Self { compiled }, errors)
+        let borrowed: Vec<(&str, bool)> = sources
+            .iter()
+            .map(|(source, case_sensitive)| (source.as_str(), *case_sensitive))
+            .collect();
+        let prefilter = LiteralPrefilter::build(&borrowed);
+
+        (
+            Self {
+                compiled,
+                prefilter,
+            },
+            errors,
+        )
+    }
+
+    /// Turn the literal prefilter off, matching every pattern directly.
+    ///
+    /// This is the reference path, and it exists to be compared against: the
+    /// prefilter is an optimisation, so a scanner built with it and a scanner
+    /// built without it must report exactly the same findings on exactly the
+    /// same input. `tests/prefilter_equivalence_test.rs` runs both over the
+    /// corpus and every pattern's own example and requires byte-identical
+    /// reports. Without a way to switch the prefilter off, that property could
+    /// only be argued rather than tested — and a prefilter that is too
+    /// aggressive fails silently, by not reporting something, which is the one
+    /// failure mode a security scanner must not have.
+    #[must_use]
+    pub fn without_prefilter(mut self) -> Self {
+        self.prefilter = None;
+        self
+    }
+
+    /// How many patterns the prefilter can rule out without running their regex.
+    ///
+    /// Zero when there is no prefilter. Exposed so a test can assert the
+    /// optimisation has not silently degenerated into "run everything".
+    pub fn prefilterable_count(&self) -> usize {
+        self.prefilter
+            .as_ref()
+            .map_or(0, LiteralPrefilter::filterable_count)
+    }
+
+    /// Which patterns could possibly match `haystack`.
+    fn candidates(&self, haystack: &str, out: &mut CandidateSet) {
+        select_into(self.prefilter.as_ref(), haystack, out);
     }
 
     /// Number of patterns successfully compiled into this scanner.
@@ -220,10 +285,20 @@ impl Scanner {
         let mut suppressed = Vec::new();
         let mut low_confidence = Vec::new();
 
+        // Reused across every haystack of every pass (issue #4). The prefilter
+        // narrows ~55 regex searches per line down to the handful whose
+        // required literals actually occur; a pattern it excludes provably has
+        // no match, so this changes cost and nothing else.
+        let mut candidates = CandidateSet::new(self.compiled.len());
+
         for (line_index, line) in content.lines().enumerate() {
             let line_number = line_index + 1;
+            self.candidates(line, &mut candidates);
 
-            for cp in &self.compiled {
+            for (pattern_index, cp) in self.compiled.iter().enumerate() {
+                if !candidates.contains(pattern_index) {
+                    continue;
+                }
                 // A structural rule never runs over raw text — see
                 // `CompiledPattern::scope`.
                 if cp.scope != PatternScope::Prose {
@@ -277,7 +352,11 @@ impl Scanner {
         // match whose span crosses a break. Everything else is already filed.
         let source_lines: Vec<&str> = content.lines().collect();
         for block in joined_blocks(content) {
-            for cp in &self.compiled {
+            self.candidates(&block.text, &mut candidates);
+            for (pattern_index, cp) in self.compiled.iter().enumerate() {
+                if !candidates.contains(pattern_index) {
+                    continue;
+                }
                 if cp.scope != PatternScope::Prose {
                     continue;
                 }
@@ -356,8 +435,12 @@ impl Scanner {
             for (line_index, normalized_line) in normalized.text.lines().enumerate() {
                 let line_start = normalized_line_start;
                 normalized_line_start += normalized_line.len() + 1;
+                self.candidates(normalized_line, &mut candidates);
 
-                for cp in &self.compiled {
+                for (pattern_index, cp) in self.compiled.iter().enumerate() {
+                    if !candidates.contains(pattern_index) {
+                        continue;
+                    }
                     if cp.raw_only || cp.scope != PatternScope::Prose {
                         continue;
                     }
@@ -426,7 +509,11 @@ impl Scanner {
                         .unwrap_or(line)
                         .to_string();
 
-                    for cp in &self.compiled {
+                    self.candidates(&layer.text, &mut candidates);
+                    for (pattern_index, cp) in self.compiled.iter().enumerate() {
+                        if !candidates.contains(pattern_index) {
+                            continue;
+                        }
                         if cp.scope != PatternScope::Prose || cp.raw_only {
                             continue;
                         }
@@ -475,7 +562,11 @@ impl Scanner {
         } else if let Ok(Some((_, projected))) = analyze(content) {
             for projected_line in &projected {
                 let rendered = projected_line.render();
-                for cp in &self.compiled {
+                self.candidates(&rendered, &mut candidates);
+                for (pattern_index, cp) in self.compiled.iter().enumerate() {
+                    if !candidates.contains(pattern_index) {
+                        continue;
+                    }
                     if cp.scope != PatternScope::Frontmatter {
                         continue;
                     }

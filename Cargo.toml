@@ -22,6 +22,13 @@ ignore = "0.4.33"
 unicode-normalization = "0.1.25"
 unicode-security = "0.1.2"
 sha2 = "0.10"
+# Multi-pattern literal prefiltering (`src/prefilter.rs`, issue #4). Neither is
+# a new crate in the tree: `regex` already depends on both, and `ignore` pulls
+# `aho-corasick` in through `globset`. Naming them directly only makes the
+# existing edges explicit — `cargo tree -i aho-corasick` showed them before this
+# change — so the binary gains no third-party code it was not already shipping.
+aho-corasick = "1.1.5"
+regex-syntax = "0.8.11"
 
 [dev-dependencies]
 # Benchmarks only (`benches/scan.rs`). The CI-enforced perf guard is a plain

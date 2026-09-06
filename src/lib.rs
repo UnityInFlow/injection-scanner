@@ -22,6 +22,7 @@ pub mod multiline;
 pub mod normalize;
 pub mod pattern;
 pub mod patterns;
+pub mod prefilter;
 pub mod reporter;
 pub mod sarif;
 pub mod scanner;
