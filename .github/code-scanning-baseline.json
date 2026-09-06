@@ -182,14 +182,14 @@
       "pattern_id": "PI001",
       "digest": "sha256:d4954f9cba7323d637885cae0cb7b6a9e659fd3ada0241e22eb78d9a92d77853",
       "count": 1,
-      "first_seen_line": 76
+      "first_seen_line": 77
     },
     {
       "file": "docs/PATTERN-CATALOGUE.md",
       "pattern_id": "PI031",
       "digest": "sha256:d4db10b14e9b6754cc4a5cf34caf75e0b44b1e3aa645aff1bd6b11653ed5e8c6",
       "count": 1,
-      "first_seen_line": 877
+      "first_seen_line": 878
     },
     {
       "file": "examples/encoding-attack.md",
@@ -477,6 +477,13 @@
       "digest": "sha256:d1452d5b44bdead5b70163d977ed3de478de8460ea0de4e1c3f44bce8189aba5",
       "count": 1,
       "first_seen_line": 21
+    },
+    {
+      "file": "examples/mcp-tool-poisoning-attack.md",
+      "pattern_id": "PI060",
+      "digest": "sha256:f50a2555fa562bf13fb99143666c9852bd2939baaff1a3747e5904ef70edb028",
+      "count": 1,
+      "first_seen_line": 5
     },
     {
       "file": "examples/mixed-attack.md",
@@ -1085,14 +1092,14 @@
       "pattern_id": "PI014",
       "digest": "sha256:22b2ab6dfd86561dd676d86b3117c7e1b9920ea2d0806a685e0e5bc8426d93f8",
       "count": 1,
-      "first_seen_line": 54
+      "first_seen_line": 59
     },
     {
       "file": "patterns/core/multilingual.yaml",
       "pattern_id": "PI014",
       "digest": "sha256:946ccf92c58fe2076c7dd94292729739cd67c0e8a818a107dc777402513d5a14",
       "count": 1,
-      "first_seen_line": 53
+      "first_seen_line": 58
     },
     {
       "file": "patterns/core/multilingual.yaml",
@@ -1106,21 +1113,21 @@
       "pattern_id": "PI111",
       "digest": "sha256:776154e2d164a72c2926ecb08024c9a87437f7de670fb62e5fb0c3d615eb5b38",
       "count": 1,
-      "first_seen_line": 49
+      "first_seen_line": 54
     },
     {
       "file": "patterns/core/multilingual.yaml",
       "pattern_id": "PI112",
       "digest": "sha256:b5e84e3a43b5f9c5ecfd56029d05b2cb4a2473c87be6ead0cced1ea0188d63e5",
       "count": 1,
-      "first_seen_line": 62
+      "first_seen_line": 70
     },
     {
       "file": "patterns/core/multilingual.yaml",
       "pattern_id": "PI113",
       "digest": "sha256:02ecf61da93efcf3868adcb3d0dd63a77f9aa39689f77602ae77cb3824d762eb",
       "count": 1,
-      "first_seen_line": 73
+      "first_seen_line": 85
     },
     {
       "file": "patterns/core/multilingual.yaml",
@@ -1774,6 +1781,20 @@
       "first_seen_line": 14
     },
     {
+      "file": "tests/corpus/attack/mcp-tool-poisoning.md",
+      "pattern_id": "PI015",
+      "digest": "sha256:4ce03fe5ac122ffe7f4bb43832e7f49899865639ea2b4639c8239b9b8b85e89e",
+      "count": 1,
+      "first_seen_line": 23
+    },
+    {
+      "file": "tests/corpus/attack/mcp-tool-poisoning.md",
+      "pattern_id": "PI029",
+      "digest": "sha256:a2665d329dbc58f743052605da82cd27081803ed06fca06de670efdc4cbea33a",
+      "count": 1,
+      "first_seen_line": 26
+    },
+    {
       "file": "tests/corpus/attack/multilingual.md",
       "pattern_id": "PI110",
       "digest": "sha256:4e32766f4ca1d65867f6704b9034e04dbb1de7cd61dbcd2bafa3b7b5143c653f",
@@ -1977,35 +1998,77 @@
       "first_seen_line": 10
     },
     {
-      "file": "tests/corpus/attack/structural/01-wildcard-allowed-tools-block-sequence.md",
+      "file": "tests/corpus/attack/structural/mcp-tool-poisoning/01-emphasis-wrapped-description-file-smuggle.md",
+      "pattern_id": "PI015",
+      "digest": "sha256:12ce24103954d2c86856489efe43ded5be97487e6523ddb3a73440894b3140fe",
+      "count": 1,
+      "first_seen_line": 8
+    },
+    {
+      "file": "tests/corpus/attack/structural/mcp-tool-poisoning/01-emphasis-wrapped-description-file-smuggle.md",
+      "pattern_id": "PI029",
+      "digest": "sha256:977ae53a9514a472eed33ef9a2358aee423c666fa7fa5ba0fc86bc46fea62d3a",
+      "count": 1,
+      "first_seen_line": 8
+    },
+    {
+      "file": "tests/corpus/attack/structural/mcp-tool-poisoning/02-tool-listing-wire-shape-credential-smuggle.md",
+      "pattern_id": "PI015",
+      "digest": "sha256:3818e9b50d5da206d083b9f6323298506a889275498ecf8feba11f6e1fc81f7f",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "tests/corpus/attack/structural/mcp-tool-poisoning/02-tool-listing-wire-shape-credential-smuggle.md",
+      "pattern_id": "PI029",
+      "digest": "sha256:2ed6662feb5eadfed20d08ec0b2527a6407032c7c1193aed5a826073c7661915",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "tests/corpus/attack/structural/mcp-tool-poisoning/09-remote-script-fetch-execute-server.md",
+      "pattern_id": "PI028",
+      "digest": "sha256:81b907889d024a1705bc04b074893948fab11fe357a84304e836be4aa3fa7282",
+      "count": 1,
+      "first_seen_line": 4
+    },
+    {
+      "file": "tests/corpus/attack/structural/mcp-tool-poisoning/12-encoded-description-payload.md",
+      "pattern_id": "PI029",
+      "digest": "sha256:dbaff96a5150ad22027c95ab34959f42127dc73b840350cb308ef79ec49ecb73",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "tests/corpus/attack/structural/tool-permission-abuse/01-wildcard-allowed-tools-block-sequence.md",
       "pattern_id": "PI050",
       "digest": "sha256:50667d8e792a1b186182a00df8a299fbfb4ee697ed42208f25f454f27c9ca753",
       "count": 1,
       "first_seen_line": 4
     },
     {
-      "file": "tests/corpus/attack/structural/02-scalar-wildcard-tools-grant.md",
+      "file": "tests/corpus/attack/structural/tool-permission-abuse/02-scalar-wildcard-tools-grant.md",
       "pattern_id": "PI050",
       "digest": "sha256:5dd514d9071dba7a10cfbdff1f2f7b85b46eff688722c6d79c5595aa57c183e1",
       "count": 1,
       "first_seen_line": 4
     },
     {
-      "file": "tests/corpus/attack/structural/03-json-manifest-wildcard-tools.md",
+      "file": "tests/corpus/attack/structural/tool-permission-abuse/03-json-manifest-wildcard-tools.md",
       "pattern_id": "PI050",
       "digest": "sha256:6d7709f79b22ff330ac2ba9707a5b60f5e3af2ca9f4d8e2a6190c552809eadeb",
       "count": 1,
       "first_seen_line": 4
     },
     {
-      "file": "tests/corpus/attack/structural/04-permissions-allow-wildcard-settings.md",
+      "file": "tests/corpus/attack/structural/tool-permission-abuse/04-permissions-allow-wildcard-settings.md",
       "pattern_id": "PI051",
       "digest": "sha256:9faddf43244c4b887539c851bc457afc004cccde0aaa958041ed43df35f9fca0",
       "count": 1,
       "first_seen_line": 3
     },
     {
-      "file": "tests/corpus/attack/structural/05-bypass-permission-mode.md",
+      "file": "tests/corpus/attack/structural/tool-permission-abuse/05-bypass-permission-mode.md",
       "pattern_id": "PI052",
       "digest": "sha256:3fc3836e8390ea08f9df10c207a6f05cb7eed8fe1943aa0a1472f5fca566cccb",
       "count": 1,

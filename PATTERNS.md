@@ -121,6 +121,7 @@ scaffolding, not a detection to disclose.
 | Jailbreaks | PI030-PI039 | HIGH |
 | Encoding/Obfuscation | PI040-PI049 | HIGH |
 | Tool and Permission Abuse | PI050-PI059 | HIGH (structural patterns PI050-PI052 override to CRITICAL) |
+| MCP & Tool-Description Poisoning | PI060-PI069 | MEDIUM (the config-hygiene band; description-poisoning arms override to HIGH) |
 | Persistence & Lifecycle Hijack | PI070-PI079 | HIGH |
 | Multilingual | PI110-PI119 | CRITICAL |
 
