@@ -172,12 +172,35 @@ patterns:
     # lookahead: those are the same local-development shape as loopback.
     #
     # RFC 3986 makes `userinfo@` an OPTIONAL part of the authority, so the
-    # host is matched after an optional `[^\s/@]+@` rather than immediately
-    # after `http://` (review #34-r1 finding 2). This does NOT change which
-    # HOSTS qualify -- `http://user@localhost` still has no dot and is still
-    # excluded -- so the loopback narrowing is untouched. It closes the one
-    # plaintext shape where the credential is itself on the wire, which is
-    # what this pattern's description already claims to catch.
+    # host is matched after an optional `[^\s/?#@]+@` rather than immediately
+    # after `http://` (review #34-r1 finding 2). It closes the one plaintext
+    # shape where the credential is itself on the wire, which is what this
+    # pattern's description already claims to catch.
+    #
+    # THAT OPTIONALITY HAD TO BE PAID FOR (review #34-r2). An optional group
+    # may simply be skipped, and then the host expression is free to match
+    # the USERINFO instead -- so `http://example.com@localhost:3000/mcp`,
+    # a loopback URL, matched on `example.com` and was reported as a
+    # plaintext endpoint. The trailing `\b` did not stop it, because `@` is
+    # a non-word character and so a word boundary sits happily in front of
+    # it. The host is therefore terminated by an explicit authority
+    # delimiter -- `:` (port), `/` (path), `?`, `#`, whitespace, or the end
+    # of the value -- rather than by `\b`. `@` is not in that set, which is
+    # what forces the credential to be consumed as userinfo and the real
+    # host to be judged on its own. Two labels are not enough to escape it
+    # either: `http://a.b.example.com@localhost/mcp` cannot stop at
+    # `a.b.example`, because `.` is not a terminator.
+    #
+    # The optional `:[^\s/?#@]*` between the host and that terminator is the
+    # port, and it is written to admit anything BUT an `@` on purpose. It
+    # keeps `http://api.example.com:${PORT}/mcp` detected -- a templated port
+    # is ordinary in these manifests, so requiring digits would have traded
+    # one miss for another -- while still refusing
+    # `http://svc.acct:pw@127.0.0.1:8080/mcp`, where what follows the colon
+    # is a password and the real host is an IP literal. The cost is that the
+    # terminator character is part of `matched_text`; the benefit is that the
+    # loopback narrowing this pattern documents is now actually true of
+    # every authority form, not only of the ones without credentials.
     #
     # ACCEPTED LIMITATION: an IP-LITERAL host is not detected, and that is
     # the same no-lookahead cost as the LAN name above rather than an
@@ -195,7 +218,7 @@ patterns:
     # its negative cases -- the TLS endpoint in
     # tests/corpus/clean/mcp-dev-tooling-setup.json, and loopback -- are drawn
     # from reality.
-    pattern: "(?:^|\\.)(?:url|endpoint|serverurl)(?:\\[\\d+\\])?\\s*=\\s*http://(?:[^\\s/@]+@)?[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}\\b"
+    pattern: "(?:^|\\.)(?:url|endpoint|serverurl)(?:\\[\\d+\\])?\\s*=\\s*http://(?:[^\\s/?#@]+@)?[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}(?::[^\\s/?#@]*)?(?:$|[\\s/?#])"
     description: "An MCP server endpoint is reached over plaintext HTTP, so every tool call, argument and bearer token on that transport is readable and rewritable in transit"
     remediation: "Serve the MCP endpoint over TLS and change the URL to https://, or bind it to a loopback address if it is genuinely local-only."
     tags: [mcp-tool-poisoning, transport]

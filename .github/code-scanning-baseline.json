@@ -495,7 +495,7 @@
     {
       "file": "examples/mcp-tool-poisoning-attack.md",
       "pattern_id": "PI061",
-      "digest": "sha256:70fa0a753da3daf09dac5bc9bfd01c0f52958e4f3defb0ae163db0fb213bd803",
+      "digest": "sha256:d73b77279ce72f65aad4de18bd06abf9128181e66400a8ce3acda16cdf4571bc",
       "count": 1,
       "first_seen_line": 10
     },
@@ -1106,7 +1106,7 @@
       "pattern_id": "PI028",
       "digest": "sha256:81b907889d024a1705bc04b074893948fab11fe357a84304e836be4aa3fa7282",
       "count": 1,
-      "first_seen_line": 162
+      "first_seen_line": 230
     },
     {
       "file": "patterns/core/multilingual.yaml",
@@ -2056,7 +2056,7 @@
     {
       "file": "tests/corpus/attack/structural/mcp-tool-poisoning/08-non-tls-endpoint-servers-wrapper.md",
       "pattern_id": "PI061",
-      "digest": "sha256:70fa0a753da3daf09dac5bc9bfd01c0f52958e4f3defb0ae163db0fb213bd803",
+      "digest": "sha256:d73b77279ce72f65aad4de18bd06abf9128181e66400a8ce3acda16cdf4571bc",
       "count": 1,
       "first_seen_line": 5
     },
