@@ -29,5 +29,5 @@ the checksum file names alike:
 Nothing else changed: the per-directory list, the file and finding counts, and every SHA-256 sum
 are byte-for-byte the values the run produced, and the three runs' directory lists remain
 identical to one another. To verify a local copy of the raw reports, expand the placeholders back
-before running `shasum -c` — e.g. `sed "s#^\\(.*  \\./\\)HOME_#\\1#"` against the local file names,
-or compare sums directly, which the substitution does not touch.
+in the file-name column before running `shasum -a 256 -c` — `sed 's#HOME_#<home-slug>_#; s#SCRATCH_#<scratch-slug>_#'`
+— or compare the sums directly, which the substitution never touches.
