@@ -163,3 +163,147 @@ third-party files. Because `--compare` is one-directional (candidate minus basel
 plan that needs to confirm nothing *disappeared* must diff in both directions explicitly — this
 baseline's `manifest.tsv`/`*.json` files are the fixed reference point for that comparison, and
 must not be regenerated once a CAT-02 pattern exists.
+
+---
+
+# Phase 4 Plan 04 — GATE-03 delta for the structural half (2026-09-06)
+
+**Verdict: one addition, zero removals, no re-narrowing needed.** PI060, PI061 and PI062 add
+exactly one finding across 23,764 real third-party files, and it is a true positive on a real
+manifest. Nothing that the pre-04-04 binary reported disappeared.
+
+## Deviation from the plan, stated up front
+
+The plan named the output directory `sweep-after-04-04-2026-09-03`. This ran on **2026-09-06**, so
+the directory is `sweep-after-04-04-2026-09-06`; the date in a plan written on 09-03 is not a
+contract about when the run happens.
+
+More importantly, the plan assumed **one** comparison pair — the 04-01 baseline binary (`b4f05ef`)
+against this plan's binary. That is no longer a clean attribution, because `main` moved underneath
+Phase 4: commit `0d50e92` merged PR #110 (`aaaadad`, "Hidden HTML as context, badge-safe beacons,
+every measured miss closed"), which retired `PI017` into `MatchContext::HiddenHtml` and made
+`PI026` badge-safe. Comparing straight to `b4f05ef` therefore attributes PR #110's delta to plan
+04-04. **A third sweep was run to separate them**, with a release binary built from `0d50e92`
+itself — the exact tree this branch started from, PR #110 merged, zero CAT-02 patterns. Both
+directions were then run against that, which is the comparison that actually isolates this plan's
+work. Both directions against `b4f05ef` are also recorded below, for continuity with 04-01.
+
+## Runs
+
+| Run | Binary tree | Pattern set | Files | Findings | Output |
+|---|---|---|---:|---:|---|
+| 04-01 baseline | `b4f05ef` | 56 patterns, zero CAT-02 | 23,738 | 584 | `sweep-baseline-2026-09-03/` |
+| main-base (NEW) | `0d50e92` (PR #110 merged) | 61 patterns, zero CAT-02 | 23,764 | 518 | `sweep-mainbase-04-04-2026-09-06/` |
+| 04-04 candidate | this branch after Task 2 | 64 patterns, PI060–PI062 | 23,764 | 519 | `sweep-after-04-04-2026-09-06/` |
+
+All three runs used the **same 32-directory list**, reproduced from
+`sweep-baseline-2026-09-03/manifest.tsv` rather than re-derived — verified programmatically:
+`directory list identical: True`, 32 rows in each manifest, `swept` in every row, zero
+`skipped-missing`.
+
+Raw per-directory JSON reports are kept out of the public history for the reason recorded in the
+baseline's `RAW-REPORTS.md` (they inventory one developer machine). Each run's committed directory
+carries `manifest.tsv`, `summary.tsv` and `checksums.sha256` over its 32 raw reports; the reports
+themselves live in the gitignored `.planning/local/<run-name>/`.
+
+## Per-directory file counts, and the one row that moved
+
+Only one directory's file count moved at all between the baseline and the two 2026-09-06 runs:
+
+| Directory | Files then | Files now | Change |
+|---|---:|---:|---|
+| `~/.claude/plugins/cache` | 952 | 978 | **+26 (+2.7%)** |
+
+Every other one of the 32 rows is byte-for-byte identical in file count. +2.7% is under the
+"more than a few percent" flag threshold, and it is the expected shape of a plugin cache on a
+machine that has installed plugins in the three days since — the corpus drifted slightly, it did
+not shift. The two 2026-09-06 runs saw an **identical** corpus (23,764 files each, row for row),
+so the comparison that carries this plan's verdict is not affected by the drift at all.
+
+## Direction 1 — ADDITIONS (main-base `0d50e92` → 04-04 candidate)
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-mainbase-04-04-2026-09-06 \
+    .planning/local/sweep-after-04-04-2026-09-06
+/Users/jirihermann/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/serena/.mcp.json:4	PI060
+exit=1
+```
+
+**One entry. Adjudicated:**
+
+| File | Line | Pattern | Verdict |
+|---|---:|---|---|
+| `~/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/serena/.mcp.json` | 4 | `PI060` | **TRUE POSITIVE** |
+
+Opened and read. The file is a real, wrapper-less `.mcp.json` from the official Claude plugin
+marketplace whose entire content is one server launched as
+`uvx --from git+https://github.com/oraios/serena serena start-mcp-server`. The projected leaf
+`serena.args[1] = git+https://github.com/oraios/serena` is precisely the shape PI060 names: an MCP
+server whose code is fetched from a git repository rather than from a package registry, so what
+the agent loads is whatever that repository's default branch holds at install time, unpinned and
+unpublished.
+
+That the server itself is a well-known, benign project does not make the finding false. The signal
+is a supply-chain property of the *installation*, not a claim about the *author*, which is exactly
+why D-03 puts this band at MEDIUM — below the severity `install-hook` blocks commits at — rather
+than at HIGH. A user who has deliberately chosen a git-installed server sees one MEDIUM
+observation and moves on; nothing is blocked.
+
+It is also the only such manifest on this machine. The Task 1 probe measured **1 off-registry
+install source in 46 real manifests**, and this sweep independently reproduces that count on a
+much larger corpus: one PI060 finding in 23,764 files.
+
+**PI061 and PI062 add zero findings.** That is the measurement, not a defect: 04-RESEARCH.md §Q2
+found every endpoint across 49 real manifests on TLS, and no real manifest on this machine launches
+a server by piping a download into a shell. Both patterns are exercised by unit tests, by their
+`example`/`counter_example` pairing, by their `relaxed_pattern` mutation control, and by
+`examples/mcp-tool-poisoning-attack.md` via the attack-corpus ratchet; PI061 additionally moves the
+recall row. They are covered, they simply have no real-world instance here.
+
+## Direction 2 — REMOVALS (arguments swapped: 04-04 candidate → main-base `0d50e92`)
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-after-04-04-2026-09-06 \
+    .planning/local/sweep-mainbase-04-04-2026-09-06
+exit=0
+```
+
+**Empty. Zero entries, nothing to adjudicate.** This is the direction the script cannot see on its
+own and the reason the plan required the swap. It rules out the specific hazard the plan named:
+three new `scope: frontmatter` patterns arm the structural pass on documents where it may not have
+run before, and a finding that *disappeared* would mean a document had stopped being parsed rather
+than stopped being suspicious. Nothing disappeared, so nothing in that class happened.
+
+## Both directions against the 04-01 baseline (`b4f05ef`), for continuity
+
+**Additions: 1 — the same `serena/.mcp.json:4 PI060` entry above, and nothing else.**
+
+**Removals: 66**, and every one predates this branch. By pattern:
+
+| Pattern | Removals | Mechanism |
+|---|---:|---|
+| `PI026` | 39 | PR #110 (`aaaadad`) made the beacon arm badge-safe. Shields/badge image URLs in READMEs no longer produce a finding. |
+| `PI017` | 27 | PR #110 retired `PI017` as a finding of its own; hidden HTML styling is now a *context* on the finding it wraps (`MatchContext::HiddenHtml`), not a separate report. `PI017` is no longer in the pattern set at all. |
+
+Both mechanisms are named in PR #110's own commit subject — "Hidden HTML as context, badge-safe
+beacons" — and both are on `main`. The conclusive evidence that none of the 66 belongs to plan
+04-04 is Direction 2 above: against the binary built from `0d50e92`, this plan removes **zero**
+findings. The 584 → 518 drop happened when PR #110 merged, before a line of this plan was written.
+
+## No re-narrowing was performed
+
+The additions list contains no false positive, so the stop-and-re-narrow branch was not entered.
+`cargo test --locked` is green, recall is re-pinned (CAT-02 structural 4/8 → 5/8, total 99/109 →
+100/109), and `docs/PATTERN-CATALOGUE.md` plus `.github/code-scanning-baseline.json` were
+regenerated in the commits that changed the pattern library.
+
+## Carried into plan 04-05
+
+- The 04-01 baseline (`b4f05ef`) is now **two pattern-set generations old**. Plans 04-05 to 04-07
+  should compare against `sweep-mainbase-04-04-2026-09-06` or a newer pre-edit capture, not
+  against `sweep-baseline-2026-09-03`, or they will re-inherit PR #110's 66 removals as if they
+  were their own.
+- `~/.claude/plugins/cache` is drifting (+2.7% in three days). A later plan comparing against a
+  baseline captured today should expect that row to keep moving.
