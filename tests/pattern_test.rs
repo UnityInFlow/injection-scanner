@@ -1717,6 +1717,10 @@ fn test_pi061_plaintext_mcp_endpoint() {
             // this pattern's description claims to catch.
             "{\"x\": {\"type\": \"http\", \"endpoint\": \"http://token@remote.example.com/mcp\"}}\n",
             "{\"servers\": {\"legacy\": {\"type\": \"http\", \"url\": \"http://user:pass@mcp.example.org:8080/rpc\"}}}\n",
+            // A DOTTED userinfo in front of a real remote host still fires:
+            // the fix for review #34-r2 constrains what may FOLLOW the host,
+            // never what may precede it.
+            "{\"x\": {\"type\": \"http\", \"url\": \"http://ci.bot:pw@relay.example.net/mcp\"}}\n",
         ],
     );
     assert_negatives(
@@ -1744,6 +1748,20 @@ fn test_pi061_plaintext_mcp_endpoint() {
             // Same class, already named in the YAML header: a single-label
             // LAN name is the same local-development shape as loopback.
             "{\"servers\": {\"x\": {\"type\": \"http\", \"url\": \"http://build-box:8080/mcp\"}}}\n",
+            // Review #34-r2. RFC 3986 userinfo is OPTIONAL, so the host
+            // expression placed after an optional `userinfo@` group could
+            // also be satisfied by the USERINFO itself whenever the real host
+            // was one this pattern excludes. A domain-shaped credential in
+            // front of a loopback or IP-literal host therefore reported the
+            // very URL the loopback narrowing documents itself as never
+            // touching. The host must now be followed by a real authority
+            // delimiter -- `:`, `/`, `?`, `#` or end of value -- and `@` is
+            // not one, so the userinfo can no longer be read as the host.
+            "{\"servers\": {\"local\": {\"type\": \"http\", \"url\": \"http://example.com@localhost:3000/mcp\"}}}\n",
+            "{\"servers\": {\"local\": {\"type\": \"http\", \"url\": \"http://svc.acct:pw@127.0.0.1:8080/mcp\"}}}\n",
+            // Multi-dot userinfo: the same evasion with more than one label
+            // to backtrack through.
+            "{\"servers\": {\"local\": {\"type\": \"http\", \"url\": \"http://a.b.example.com@localhost/mcp\"}}}\n",
         ],
     );
 }
