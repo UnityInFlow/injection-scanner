@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-09-04T07:51:59.000Z"
-state_head: 7150e5bb0c4fd5eaead05e9482713ee47d71a56b
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-09-06T00:00:00.000Z"
+state_head: caa67ce
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 16
-  completed_plans: 12
-  percent: 75
+  completed_plans: 13
+  percent: 81
 ---
 
 # State: injection-scanner
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md`
 
 ## Current Phase
 
-**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **in progress (3/7 plans — 04-01, 04-02, 04-03 done)**
+**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **in progress (4/7 plans — 04-01, 04-02, 04-03, 04-04 done)**
 
 Phase 3 shipped 2026-09-02 as **PR #109** (rebase-merged, issue #33 auto-closed): `PI050`-`PI057`,
 the `relaxed_pattern` schema field, and ADR-004. Its code review found one critical false positive
@@ -56,6 +56,47 @@ prose arms. Open follow-ups: **WR-02** (structural corpus README documents 1 of 
 **WR-03** (`scripts/gate03-sweep.sh` helpers declare no `local`), and two pre-existing
 `docs/PATTERN-CATALOGUE.md` self-matches (`PI001` at :74, `PI031` at :903) that predate PR #109.
 
+**04-04 shipped 2026-09-06 (3 commits, branch `feat/34-mcp-tool-poisoning-pi060`).** D-03's three
+config-hygiene signals are live: `PI060` unvetted-mcp-server-source, `PI061` plaintext-mcp-endpoint,
+`PI062` remote-script-mcp-launch — all `scope: frontmatter`, all leaf-anchored across every real
+wrapper convention, all MEDIUM by **category default** so no shipped pattern in
+`patterns/core/mcp-tool-poisoning.yaml` carries a `severity` field at all. That is D-03's
+below-the-commit-blocking-line requirement held by construction rather than one field at a time.
+64 patterns, **373 tests**, recall **100/109 (91.7%)** with the CAT-02 structural row at 5/8.
+
+Three things from it worth not rediscovering.
+
+**(1) D-03's wording did not survive measurement, and the plan required measuring rather than
+reading.** "Unpinned `npx -y <pkg>`" is the *ecosystem default*, not an outlier: a scratch probe
+outside the repo over the 46 real manifests in the sweep list fired on **8** of them — 8 of the 24
+that declare a launch command at all — against **1** using an off-registry source. This repo's own
+false-positive gate already contains the shape (plan 04-03's `mcp-dev-tooling-setup.json` is built
+from `npx -y @example/docs-search-mcp`), so a pin-based pattern fails `corpus_test` on day one.
+`PI060` therefore discriminates on the install **source**. The accepted cost —
+attack payload `07-unpinned-npx-install-mcpservers.md` stays undetected on purpose — is named in
+the YAML header, the README callout, the `recall_test` comment and the SUMMARY.
+
+**(2) The structural pass matches ONE projected line at a time.** `src/scanner.rs`'s fourth pass
+renders each projected leaf separately, so **no structural regex can require two leaves to
+co-occur**. `command = npx` and `args[0] = -y` are different lines; "unpinned `npx -y`" is not
+expressible as one pattern regardless of the false-positive argument. Also: the `regex` crate has
+**no lookahead**, so `PI061` excludes loopback structurally, by requiring a registrable-domain host.
+
+**(3) `main` moved under the phase, and the 04-01 GATE-03 baseline is now two pattern-set
+generations old.** Comparing straight to `sweep-baseline-2026-09-03` reports **66 removals that
+belong to PR #110** (`PI017` retired into `MatchContext::HiddenHtml`, `PI026` made badge-safe), not
+to the plan under test. 04-04 built a third sweep from the merge-base `0d50e92` to isolate its own
+delta: **+1 finding, 0 removals** over 23,764 real files, the addition being a true positive on a
+real `uvx --from git+https://…` manifest. **Plans 04-05/04-06/04-07 must compare against
+`sweep-mainbase-04-04-2026-09-06/`**, not the 04-01 baseline.
+
+**New open follow-up from 04-04:** `docs/DETECTION-BACKLOG.md` now self-matches **ten** times
+(`PI011`, `PI014`, `PI019`, `PI027`, `PI028`, `PI029`, `PI039`, `PI045`, `PI054`, `PI055`). Verified
+by stashing all of 04-04's work and re-running: it is identical with and without them, so it arrived
+with the PR #110 merge and is **not** 04-04's. It is the exact "the scanner flags its own
+documentation" failure the pattern-library skill warns about and the 2026-08 audit listed. Needs its
+own issue or quick task; fixing it inside a pattern PR would confound that PR's GATE-03 delta.
+
 ## The milestone in one paragraph
 
 v0.1.0 made the scanner detect the attacks its README already claimed — recall **10/60 -> 56/60**.
@@ -72,7 +113,7 @@ lifecycle hook that reinstalls the attacker's instructions after the file is cle
 | 1 | ENG-01 structural frontmatter engine | #32 | **Done** — PR #104 |
 | 2 | ENG-02 recursive decoder | #30 | **Done** — PR #108, also closed #6 and #7 |
 | 3 | CAT-01 tool & permission abuse `PI050-059` | #33 | **Done** — PR #109 |
-| 4 | CAT-02 MCP & tool-description poisoning `PI060-069` | #34 | Not started |
+| 4 | CAT-02 MCP & tool-description poisoning `PI060-069` | #34 | In progress — 4/7 plans (04-04 shipped `PI060`-`PI062`) |
 | 5 | CAT-03 persistence & lifecycle hijack `PI070-079` | #35 | Not started |
 
 Engines first, and the dependency is real rather than tidiness: #32 states it is the prerequisite
@@ -96,16 +137,23 @@ Also standing: `main` stays strictly linear. A pattern's `name` is a **consumer 
 
 ## Detection recall — the published number
 
+Re-synced with `tests/recall_test.rs` and the README on 2026-09-06 — this table had drifted two
+milestones behind (it still showed the 84-payload denominator and had no rows for the persistence
+or multilingual ranges). The authority is `EXPECTED` in `tests/recall_test.rs`; if the two disagree,
+that array wins.
+
 | Category | Detected | Recall |
 |---|---|---|
-| Data Exfiltration | 12/12 | 100% |
-| Instruction Injection | 12/12 | 100% |
+| Data Exfiltration | 13/13 | 100% |
+| Instruction Injection | 15/15 | 100% |
 | Jailbreaks | 12/12 | 100% |
+| Tool & Permission Abuse | 17/17 | 100% |
+| Persistence & Lifecycle Hijack | 6/6 | 100% |
 | Role Override | 11/12 | 92% |
 | Encoding/Obfuscation | 11/12 | 91.7% |
-| Tool & Permission Abuse | 12/12 | 100% |
-| MCP & Tool-Description Poisoning | 6/12 | 50% (pre-pattern baseline) |
-| **Total** | **76/84** | **90.5%** |
+| Multilingual (Czech; German misses) | 8/10 | 80% |
+| MCP & Tool-Description Poisoning | 7/12 | 58.3% (config-hygiene band shipped; prose + rug-pull arms pending) |
+| **Total** | **100/109** | **91.7%** |
 
 Reached **58/60** on 2026-08-30 when ENG-02 landed.
 
@@ -209,12 +257,12 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
 
 ## Session Continuity
 
-Last session: 2026-09-03T09:10:21.035Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-09-06T00:00:00.000Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None
 
 ---
-*Last updated: 2026-09-03*
+*Last updated: 2026-09-06*
 
 ## Performance Metrics
 
