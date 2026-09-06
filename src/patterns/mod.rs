@@ -23,6 +23,7 @@ const TOOL_PERMISSION_ABUSE_YAML: &str =
 const MULTILINGUAL_YAML: &str = include_str!("../../patterns/core/multilingual.yaml");
 const PERSISTENCE_YAML: &str =
     include_str!("../../patterns/core/persistence-lifecycle-hijack.yaml");
+const MCP_TOOL_POISONING_YAML: &str = include_str!("../../patterns/core/mcp-tool-poisoning.yaml");
 
 /// Load all embedded (compile-time) pattern categories.
 ///
@@ -38,6 +39,7 @@ pub fn load_embedded_patterns() -> Result<Vec<PatternCategory>, PatternError> {
         TOOL_PERMISSION_ABUSE_YAML,
         MULTILINGUAL_YAML,
         PERSISTENCE_YAML,
+        MCP_TOOL_POISONING_YAML,
     ];
 
     yamls

