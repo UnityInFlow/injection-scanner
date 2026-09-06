@@ -200,7 +200,24 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // markers and both config-hygiene signals) have no existing pattern
     // that names any of those shapes. See the plan SUMMARY for the full
     // per-payload attribution table.
-    ("mcp-tool-poisoning-structural", 4, 8),
+    //
+    // Plan 04-04 shipped D-03's three config-hygiene signals -- PI060
+    // unvetted-mcp-server-source, PI061 plaintext-mcp-endpoint, PI062
+    // remote-script-mcp-launch, all MEDIUM -- and re-measured 2026-09-06:
+    // **5/8**, a delta of +1. Only payload 08 moves, caught by PI061 on its
+    // `http://` endpoint. Payload 09 was already detected by PI028
+    // pipe-to-shell over the raw JSON text and is now ALSO reached
+    // structurally by PI062, which changes no count. Payload 07 --
+    // `npx -y quick-utils-mcp@latest` -- stays an undetected payload ON
+    // PURPOSE: that plain unpinned registry install was measured on 8 of the
+    // 46 real manifests inside the 04-SWEEP.md directory list (8 of the 24
+    // that declare any launch command), and it is the shape
+    // tests/corpus/clean/mcp-dev-tooling-setup.json is built from, so a
+    // pattern catching it would fail the clean-corpus gate on day one. PI060
+    // discriminates on the install SOURCE instead; see the header of
+    // patterns/core/mcp-tool-poisoning.yaml. The remaining two misses (05,
+    // 06, both rug-pull markers) are a later plan's work.
+    ("mcp-tool-poisoning-structural", 5, 8),
     // The Czech slice of the multilingual range (#39). Eight Czech payloads,
     // one of them typed without diacritics, and two German ones that are
     // documented misses: the range covers one language so far, and the
