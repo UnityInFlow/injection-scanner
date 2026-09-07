@@ -4,6 +4,49 @@ Every deferral this phase measured or carried forward, with its issue number or 
 open status, why it was deferred, and what would trigger revisiting it. Written at close-out
 (plan 04-07) so nothing survives only as tacit knowledge in a SUMMARY once this branch merges.
 
+**Updated post-close-out** by the `/gsd-code-review --fix` pass over `04-REVIEW.md` — two more
+measured, unfixable-without-a-real-redesign gaps were found and filed, added below without
+renumbering the close-out's own list.
+
+## Newly filed issues (from the 04-REVIEW.md code-review-fix pass)
+
+### CR-02 — PI064's destination check cannot exclude a tool's own output field — [issue #134](https://github.com/UnityInFlow/injection-scanner/issues/134)
+
+**What:** PI064's destination clause treats `field` the same as `argument`/`parameter`/`param`,
+but a named field in a tool's own response is exactly where returned file content is supposed to
+go. Measured false positives, HIGH severity (commit-blocking): "Reads the specified file and
+returns its contents in the 'text' field of the response." and "The tool reads the file and
+includes its contents in the result field."
+
+**Why deferred:** No `regex`-crate-compatible fix exists that keeps the existing true-positive
+test (`tests/pattern_test.rs`'s "...in the 'debug' field before returning.") while excluding the
+two false positives above — the crate has no lookaround, so "not one of the tool's own declared
+output-field names" cannot be expressed without an exhaustive, unmaintainable exclusion list.
+Dropping `field` outright was rejected because it breaks the existing positive pin; per the
+review's own guidance ("if a fix would lose a true positive, say so... rather than weakening the
+pin"), the cost is documented in the pattern's header comment instead of a regex change that
+would trade one false-positive class for a false negative.
+
+**What would trigger revisiting it:** Issue #134 itself — the real fix requires restructuring the
+discriminator so the destination noun must be phrased as an INPUT to a further action ("as the X
+argument when replying/calling/forwarding") rather than accepting bare "in the X field".
+
+### WR-04 — PI067's tool-shape discriminator also matches ordinary code-style-guide prose — [issue #135](https://github.com/UnityInFlow/injection-scanner/issues/135)
+
+**What:** The backtick/snake_case/paren-suffix tool-shape requirement that closed the sweep's
+25-false-positive class also matches "a never/always sentence about two backtick-quoted
+snake_case identifiers" independent of any MCP tool — e.g. "Never use \`user_id\` as the primary
+key -- always use \`account_id\` instead." (a database-column naming convention, not tool
+substitution).
+
+**Why deferred:** Not a regression — the sweep's own 25 real hits stay correctly excluded — but a
+residual, semantic distinction ("this identifier is an MCP tool" vs. "this identifier is a
+column/variable name") that a syntactic shape-proxy cannot make. No cheap regex-only fix exists.
+
+**What would trigger revisiting it:** Real-world false-positive data on PI067 in production, or
+landing issue #131 (D-05's structural cross-reference), which would let a future pass verify a
+referenced identifier is an actually-declared tool rather than merely tool-shaped.
+
 ## Newly filed issues (measured limitations from this phase's own work)
 
 ### 1. JSONC parse gap — [issue #129](https://github.com/UnityInFlow/injection-scanner/issues/129)
@@ -162,3 +205,5 @@ close with more regex. Recorded for the developer review packet in `04-07-SUMMAR
 | 6 | Registry candidate rejected (04-03) | N/A — none rejected | — |
 | 7 | D-01 third-person blind spot | Existing, accepted, partially narrowed by PI066 | recorded in shipped files, not filed |
 | 8 | Rug-pull bound (PI068/PI069) | Existing, accepted | recorded in shipped files, not filed |
+| 9 | CR-02 — PI064 destination check vs. tool's own output field | Newly filed (04-REVIEW.md fix pass) | #134 |
+| 10 | WR-04 — PI067 tool-shape proxy also matches style-guide prose | Newly filed (04-REVIEW.md fix pass) | #135 |
