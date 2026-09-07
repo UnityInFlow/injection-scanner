@@ -90,16 +90,18 @@ default_severity: MEDIUM
 # was added so that it now does, and both evaded forms are locked as negatives
 # in tests/pattern_test.rs so the gap is enforced rather than merely written down.
 #
-# PI062 INHERITS TWO PI028 GAPS, DELIBERATELY (review #34-r1 finding 3).
-# PI062 misses a pipe to an absolute interpreter path and the full
-# `Invoke-WebRequest`/`Invoke-Expression` cmdlet spelling. So does PI028, which
-# is the point: T-04-21 requires the two vocabularies stay identical character
-# for character, so closing either gap HERE alone would create precisely the
-# divergent second list that threat exists to prevent. PI028 is CRITICAL and
-# runs over prose across the whole corpus, so widening it is its own change
-# with its own GATE-03 sweep, outside CAT-02's PI060-PI069 scope. Both forms
-# are locked as PI062 negatives so that a future fix to PI028 fails this test
-# and is forced to update the two together.
+# PI062 SHARES PI028'S LAUNCHER VOCABULARY, CHARACTER FOR CHARACTER (T-04-21).
+# Two gaps were left open here by #34 and are now closed by #122: a pipe to an
+# ABSOLUTE interpreter path (`/bin/sh`, `/bin/bash`, `/bin/zsh`,
+# `/usr/bin/env sh`) and the full `Invoke-WebRequest`/`Invoke-Expression`
+# cmdlet spelling. They were left open deliberately rather than patched here
+# alone, because closing either gap in one of the two patterns would create
+# precisely the divergent second list T-04-21 exists to prevent -- PI028 is
+# CRITICAL and runs over prose across the whole corpus, so widening it needed
+# its own change and its own GATE-03 sweep. #122 is that change, and it moves
+# both patterns together. The two forms that #34 locked as PI062 NEGATIVES are
+# now POSITIVES in `tests/pattern_test.rs`, which is exactly the forcing
+# function those assertions were written to be.
 patterns:
   - id: PI060
     example: |
@@ -241,17 +243,19 @@ patterns:
     # launch command that fetches a remote URL at all, download-only included.
     # The counter_example above downloads and redirects to a file, which is
     # what makes it the specimen that catches a relaxation.
-    relaxed_pattern: "(?:^|\\.)(?:args|command)(?:\\[\\d+\\])?\\s*=\\s*.*(?:curl|wget|iwr)\\s+\\S*\\s*(?:-\\S+\\s+)*https?://"
+    relaxed_pattern: "(?:^|\\.)(?:args|command)(?:\\[\\d+\\])?\\s*=\\s*.*(?:curl|wget|iwr|invoke-webrequest)\\s+\\S*\\s*(?:-\\S+\\s+)*https?://"
     name: remote-script-mcp-launch
     scope: frontmatter
     # The fetch-and-execute vocabulary is PI028 pipe-to-shell's, character for
-    # character, deliberately rather than coincidentally: the two are the same
+    # character (both arms widened together in #122: absolute interpreter
+    # paths and the full PowerShell cmdlet spelling), deliberately rather than
+    # coincidentally: the two are the same
     # signal read by different passes -- PI028 over prose, this one over a
     # projected launch-command value -- and a divergent second list would be a
     # maintenance trap (T-04-21). What differs is only the leaf anchoring in
     # front of it, and the `command`-as-array tolerance opencode's manifests
     # need.
-    pattern: "(?:^|\\.)(?:args|command)(?:\\[\\d+\\])?\\s*=\\s*.*(?:(?:curl|wget)\\s+[^\\n|;]*\\|\\s*(?:ba)?sh\\b|iwr\\s+[^\\n|;]*\\|\\s*iex\\b)"
+    pattern: "(?:^|\\.)(?:args|command)(?:\\[\\d+\\])?\\s*=\\s*.*(?:(?:curl|wget)\\s+[^\\n|;]*\\|\\s*(?:/(?:usr/)?bin/)?(?:env\\s+)?(?:ba|z)?sh\\b|(?:iwr|invoke-webrequest)\\s+[^\\n|;]*\\|\\s*(?:iex|invoke-expression)\\b)"
     description: "An MCP server's launch command downloads a remote script and pipes it straight into an interpreter, so the code the agent runs is whatever that URL serves at launch time"
     remediation: "Download the installer, review it, and commit or vendor it; then launch the server from the reviewed copy rather than from a live URL."
     tags: [mcp-tool-poisoning, supply-chain, shell]

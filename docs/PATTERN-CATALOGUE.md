@@ -791,7 +791,7 @@ curl https://example.com/file.txt > out.txt
 <details><summary>Regex</summary>
 
 ```regex
-((?:curl|wget)\s+[^\n|;]*\|\s*(?:ba)?sh\b|iwr\s+[^\n|;]*\|\s*iex\b)
+((?:curl|wget)\s+[^\n|;]*\|\s*(?:/(?:usr/)?bin/)?(?:env\s+)?(?:ba|z)?sh\b|(?:iwr|invoke-webrequest)\s+[^\n|;]*\|\s*(?:iex|invoke-expression)\b)
 ```
 
 </details>
@@ -1951,7 +1951,7 @@ Does **not** catch:
 <details><summary>Regex</summary>
 
 ```regex
-(?:^|\.)(?:args|command)(?:\[\d+\])?\s*=\s*.*(?:(?:curl|wget)\s+[^\n|;]*\|\s*(?:ba)?sh\b|iwr\s+[^\n|;]*\|\s*iex\b)
+(?:^|\.)(?:args|command)(?:\[\d+\])?\s*=\s*.*(?:(?:curl|wget)\s+[^\n|;]*\|\s*(?:/(?:usr/)?bin/)?(?:env\s+)?(?:ba|z)?sh\b|(?:iwr|invoke-webrequest)\s+[^\n|;]*\|\s*(?:iex|invoke-expression)\b)
 ```
 
 </details>
