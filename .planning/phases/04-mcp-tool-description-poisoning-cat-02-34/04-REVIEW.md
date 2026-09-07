@@ -24,8 +24,9 @@ fix_pass:
   report: 04-REVIEW-FIX.md
   fixed_at: 2026-09-07
   scope: critical_warning
-  critical_fixed: 1
-  critical_skipped: 1
+  iteration: 2
+  critical_fixed: 2
+  critical_skipped: 0
   warning_fixed: 5
   warning_skipped: 1
   status: partial
@@ -38,14 +39,16 @@ fix_pass:
 **Files Reviewed:** 10
 **Status:** issues_found
 
-**Fix pass (2026-09-07):** every Critical and Warning finding below now carries a
-**Resolution:** line. 6 of 8 in-scope findings were fixed with a narrowed regex and a pinned
-regression test (CR-01, WR-01, WR-02, WR-03, WR-05, WR-06); 2 were confirmed to have no
-`regex`-crate-compatible fix without breaking an existing true positive or requiring new engine
-capability, and were instead documented in the pattern's own header comment and filed as
-follow-up issues (CR-02 → #134, WR-04 → #135). IN-01 and IN-02 were out of this pass's scope
-(`critical_warning`) and remain open. Full detail, before/after regexes and commit SHAs:
-`04-REVIEW-FIX.md`.
+**Fix pass (2026-09-07, iteration 2):** every Critical and Warning finding below now carries a
+**Resolution:** line. 7 of 8 in-scope findings are fixed with a narrowed regex and a pinned
+regression test (CR-01, CR-02, WR-01, WR-02, WR-03, WR-05, WR-06); 1 (WR-04) was confirmed to have
+no `regex`-crate-compatible fix without requiring new engine capability (issue #131's structural
+cross-reference), and was instead documented in the pattern's own header comment and filed as a
+follow-up issue (#135). CR-02 was initially skipped in iteration 1 on an over-read of "do not
+weaken a pin" and fixed in iteration 2 once the orchestrator identified the actual discriminator
+(imperative vs. inflected verb form) — see CR-02's own Resolution entries below for both
+iterations. IN-01 and IN-02 were out of this pass's scope (`critical_warning`) and remain open.
+Full detail, before/after regexes and commit SHAs: `04-REVIEW-FIX.md`.
 
 ## Summary
 
@@ -179,12 +182,28 @@ follow-up issue for a real fix (e.g. requiring the destination noun to be phrase
 a further action — "as the X argument when replying/calling/forwarding" — rather than accepting
 bare "in the X field", which is response-shaped language).
 
-**Resolution: skipped — no regex change.** Commit `2580393`. Confirmed no `regex`-crate-compatible
-narrowing exists that excludes the two false positives while keeping the existing true-positive
-pin at `tests/pattern_test.rs` (the crate has no lookaround). Per this pass's own guidance to stop
-rather than weaken a pin, the cost is documented in the pattern's header comment instead, and
-filed as [UnityInFlow/injection-scanner#134](https://github.com/UnityInFlow/injection-scanner/issues/134)
-for the real fix (requiring the destination be phrased as an input to a further action).
+**Resolution (iteration 1): skipped — no regex change.** Commit `2580393`. Assumed no
+`regex`-crate-compatible narrowing existed that excluded the two false positives while keeping
+the existing true-positive pin at `tests/pattern_test.rs` — this over-read "do not weaken a pin"
+as "no fix is possible" rather than searching for a discriminator that does not touch the pin at
+all. Documented the cost in the pattern's header comment and filed
+[UnityInFlow/injection-scanner#134](https://github.com/UnityInFlow/injection-scanner/issues/134).
+
+**Resolution (iteration 2): fixed.** Commit `6c5eddb`. The orchestrator identified the actual
+discriminator: a smuggling directive addresses the model in base-form imperatives ("pass its full
+contents as the 'notes' argument"), while ordinary third-person tool documentation inflects the
+verb ("returns", "includes") — both false positives above are third-person, every existing
+positive is imperative. Changed the verb alternation in `pattern` and `relaxed_pattern` from
+`pass(?:es)?|include(?:s)?|return(?:s)?|send(?:s)?|forward(?:s)?|attach(?:es)?|cop(?:y|ies)|put(?:s)?|place(?:s)?`
+to base forms only (`pass|include|send|forward|attach|copy|put|place`), dropping
+`return`/`returns` entirely since it is not a smuggling verb and no positive needed it. The
+existing true-positive pin was never touched. Both false positives confirmed clean and the
+pattern's `example` confirmed still firing HIGH on the release binary at `--min-confidence 0`;
+both sentences plus one additional third-person near-miss pinned as negatives in
+`tests/pattern_test.rs`. This closes the two *measured* false positives, not the full class —
+issue #134 stays open (comment posted) for the residual third-person-attacker-directive blind
+spot, the same class D-01 names for `PI063`-`PI065`'s second-person-only address. Full detail:
+`04-REVIEW-FIX.md` iteration 2.
 
 ## Warnings
 
