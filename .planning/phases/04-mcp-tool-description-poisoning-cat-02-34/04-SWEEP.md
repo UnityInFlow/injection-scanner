@@ -726,3 +726,179 @@ byte-for-byte empty in both directions on the first re-run.
 
 `git diff --stat Cargo.toml Cargo.lock` is empty at every commit in this plan. No package was
 installed or upgraded.
+
+# Phase 4 Plan 06 — GATE-03 delta for the heuristic half (2026-09-07)
+
+## Why `sweep-after-04-05-2026-09-07` is this plan's pre-edit baseline
+
+The orchestrator's own instruction for this plan: the committed tree at `85cacde` is exactly the
+tree `sweep-after-04-05-2026-09-07/` was captured on, so that run is reused as-is rather than
+capturing a fresh pre-edit baseline in a separate worktree. This isolates the delta from PI066
+cross-tool-shadowing, PI067 tool-override-directive, PI068 version-conditional-directive and PI069
+deferred-activation-directive — the four heuristic arms this plan ships — from everything that
+came before. `sweep-baseline-2026-09-03` and `sweep-mainbase-04-04-2026-09-06` remain stale for
+this plan for the same reason 04-05's own section names: three-plus merges of unrelated history
+sit between them and this branch.
+
+## Runs
+
+| Run | Binary tree | Pattern set | Files | Findings | Output |
+|---|---|---|---:|---:|---|
+| after-04-05 (reused pre-edit baseline) | `85cacde` (this branch, plan 04-05's finished tree) | 67 patterns, zero `PI066`-`PI069` | 23,770 | 519 | `sweep-after-04-05-2026-09-07/` (already committed) |
+| after-04-06, first capture | this branch after all three tasks, `PI066`/`PI067` NOT yet re-narrowed | 71 patterns | 23,770 | 723 | not committed — superseded by the re-narrowed run below |
+| after-04-06, re-narrowed (candidate) | this branch after all three tasks, `PI066`/`PI067` re-narrowed with a tool-shaped-object requirement | 71 patterns, `PI066`-`PI069` shipped | 23,770 | 519 | `sweep-after-04-06-2026-09-07/` |
+
+Both `after-04-05` and the final `after-04-06` candidate used the **same 32-directory list**,
+reproduced from `sweep-after-04-05-2026-09-07/manifest.tsv`: 32 rows in each manifest, `swept` in
+every row, zero `skipped-missing`, byte-identical file counts row for row (`diff` on the
+directory-name-and-count columns empty). `$SCRATCH/cursor-safe` and `$SCRATCH/vscode-safe` were
+re-created fresh for this session under the same narrowing `sweep-baseline-2026-09-03` documents
+(excluding `extensions/`) — 776 and 2 files respectively, within the same drift band `04-SWEEP.md`
+already names for this directory pair.
+
+## A real false positive found by the first capture, fixed, and re-swept
+
+The first candidate sweep found 26 additions relative to `sweep-after-04-05-2026-09-07` — one
+`PI066` and twenty-five `PI067` — and every single one was a false positive: ordinary "never do X,
+always do Y" imperative style-guide advice, with zero tool-substitution or cross-tool-shadowing
+content. Representative examples pulled directly from the sweep:
+
+- `"Never use category names as scope IDs — always use the GUID."` (a Wix skill's e-commerce
+  reference doc)
+- `"Never call hooks conditionally** — use conditional keys (\`null\`) instead"` (a Vercel `swr`
+  skill)
+- `"Never use \`any\` type, use \`unknown\` or generics instead"` (a TypeScript refactoring agent's
+  best-practices list)
+- `"ALWAYS use a navigation stack title instead of a custom text element on the page"` (an Expo
+  native-UI skill)
+- `"when true, run the analysis in §7 and include verdicts and findings in the report"` (an
+  NVIDIA Omniverse USD tooling spec — the single `PI066` hit; matched via the generic
+  `runs?` verb plus `include` landing in the directive-verb list, with no actual tool name
+  anywhere in the sentence)
+
+**Root cause.** Both patterns' first drafted arms keyed only on TRIGGER WORDS — never/always/
+instead-of for PI067, when + calls/invokes/uses/runs for PI066's Arm A — with no requirement on
+WHAT was being used, called, or invoked. That grammar ("never do X, always do Y"; "when
+[condition], do Y") is ordinary technical-writing style throughout real documentation, not
+specific to naming two tools. Twenty-five real hits across ~23,900 files is exactly the outcome
+`04-RESEARCH.md` predicted for this category's heuristic arms and precisely what this plan's own
+Task 3 instructions anticipated: "these four arms are the most heuristic in the category and the
+most likely to fire on ordinary documentation about tools."
+
+**Fix.** Both patterns now require an explicit TOOL-shaped object immediately after the relevant
+verb: a backtick-quoted code span, a snake_case identifier (contains an underscore), or an
+identifier immediately followed by `()`. None of the 25 `PI067` false positives meet that bar on
+BOTH sides of the substitution — their objects are ordinary English nouns ("category names",
+"hooks", "a navigation stack title") or, where one side happens to be a single backtick-quoted
+term (`` `any` ``, `` `unknown` ``), the OTHER clause's verb is bare "use" with no "always" keyword
+at all, which the re-narrowed Arm B no longer accepts as a trigger on its own (Arm B now requires
+"always" literally, paired with its own verb+tool-object, never a bare trailing "instead"). The
+`PI066` fix adds the same tool-shaped-object requirement to Arm A between the verb and the clause
+boundary. Before/after counts for the whole sweep, from `summary.tsv`:
+
+| Pattern | Before (first capture) | After (re-narrowed) |
+|---|---:|---:|
+| `PI066` | 2 (1 unique finding × 2 backup copies) | 0 |
+| `PI067` | 25 | 0 |
+| `PI068` | 0 | 0 |
+| `PI069` | 0 | 0 |
+
+`tests/pattern_test.rs`'s existing positives, negatives and the corpus's `mcp-companion-tools.md`
+boundary specimen were re-verified green against the re-narrowed patterns (`cargo test --test
+pattern_test --test corpus_test --test pattern_relaxed_control_test`, all passing) before the
+sweep was re-run. The full gate (`cargo test --locked`, `cargo fmt --check`, `cargo clippy -D
+warnings`) was re-run green after landing the fix, per the plan's instruction to re-run the full
+gate after every re-narrowing.
+
+## No re-narrowing beyond the fix above was needed
+
+`PI068` and `PI069` reported zero findings in BOTH the first and the re-narrowed capture — their
+directive-consequent narrowing held from the first draft. Only `PI066`/`PI067`'s trigger-word-only
+arms needed the tool-shaped-object fix. The corrected binary's sweep came back clean of all four
+patterns on the first re-run.
+
+## Direction 1 — ADDITIONS (after-04-05 → after-04-06 candidate)
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-after-04-05-2026-09-07 \
+    .planning/local/sweep-after-04-06-2026-09-07
+exit=0
+```
+
+**Empty.** Zero new true positives and zero new false positives, over the SAME 32-directory,
+23,770-file list, comparing this branch before and after all four of this plan's arms. `PI066`,
+`PI067`, `PI068` and `PI069` are absent from `summary.tsv` on both sides of this comparison
+(neither run's aggregate lists any of the four ids at all).
+
+## Direction 2 — REMOVALS (arguments swapped: after-04-06 candidate → after-04-05)
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-after-04-06-2026-09-07 \
+    .planning/local/sweep-after-04-05-2026-09-07
+exit=0
+```
+
+**Empty.** Nothing that the pre-edit binary reported disappeared. Manifest-level per-directory
+finding counts are identical row for row between the two runs (519 = 519, both directions) —
+byte-for-byte the same result 04-05's own mainbase/candidate pair produced, now extended across
+this plan's four additional patterns.
+
+## Continuity comparison against the 04-01 baseline (`sweep-baseline-2026-09-03`), both directions
+
+Recorded for continuity with 04-01, per the plan's own `<verify>` block, but **not** the pair this
+plan's verdict rests on — the after-04-05/after-04-06 pair above isolates this plan's delta; this
+pair does not, because three-plus pattern-set generations of unrelated history sit between them
+(the same caveat 04-05's own section names for this same baseline).
+
+**Direction 1 (04-01 baseline → after-04-06 candidate), 2 entries:**
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-baseline-2026-09-03 \
+    .planning/local/sweep-after-04-06-2026-09-07
+exit=1
+```
+
+| File | Pattern | Adjudication |
+|---|---|---|
+| `$HOME/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/serena/.mcp.json:4` | `PI060` | **Not this plan's.** The identical entry 04-05's own continuity section adjudicated: a real `uvx --from git+https://…` install, already a true positive as of plan 04-04. Predates this plan; `PI060` is unmodified here. |
+| `$SCRATCH/cursor-safe/gsd-core/bin/lib/security.cjs:331` | `PI011` | **Path-churn artifact, not a real addition.** The identical file and pattern 04-05's continuity section already documented — only the session-scratch UUID in the absolute path differs between captures. Cancels out with its counterpart in Direction 2; net effect zero. |
+
+**Direction 2 (after-04-06 candidate → 04-01 baseline), 67 entries:**
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-after-04-06-2026-09-07 \
+    .planning/local/sweep-baseline-2026-09-03
+exit=1
+```
+
+| Pattern | Count | Adjudication |
+|---|---:|---|
+| `PI026` | 39 | **Not this plan's.** PR #110 made it badge-safe, already adjudicated in plan 04-04's GATE-03 section and re-confirmed in 04-05's. |
+| `PI017` | 27 | **Not this plan's.** PR #110 retired it into `MatchContext::HiddenHtml`, already adjudicated in plan 04-04's GATE-03 section and re-confirmed in 04-05's. |
+| `PI011` | 1 | **Path-churn artifact.** The counterpart of the addition above — same file, same pattern, old scratch-session path from the 04-01 baseline capture. Net zero once paired with its Direction-1 counterpart. |
+
+Every entry in both directions against the stale 04-01 baseline is accounted for and matches
+04-05's own continuity numbers exactly (69 total lines, same breakdown): 66 are the pre-existing
+PR #110 delta already adjudicated in plan 04-04, and the remaining 3 (1 + 1 + 1, counting the
+path-churn pair once per direction) are the same true positive and the same scratch-artifact
+04-05's section names. **Nothing in either direction is attributable to `PI066`, `PI067`, `PI068`
+or `PI069`.**
+
+## Every finding in every direction was adjudicated
+
+No entry in any of the four comparison runs above was left unexamined. The two runs against the
+isolating `sweep-after-04-05-2026-09-07` baseline are empty in both directions. The two runs
+against the stale 04-01 baseline are non-empty but every one of their 69 total lines is either the
+pre-existing PR #110 delta (66 lines, plan 04-04's to adjudicate, not this plan's), a single true
+positive predating this plan (`PI060`, plan 04-04's), or a harmless scratch-session path artifact
+that cancels to zero across the two directions. This plan closes with an unadjudicated-entry count
+of zero.
+
+## `Cargo.toml`/`Cargo.lock` (T-04-SC)
+
+`git diff --stat Cargo.toml Cargo.lock` is empty at every commit in this plan. No package was
+installed or upgraded.
