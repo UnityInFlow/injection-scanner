@@ -2013,6 +2013,13 @@ fn test_pi065_tool_description_emphasis_block() {
             // A prohibition exercising the D-02 negation guard: the modal
             // is not followed directly by a verb.
             "<IMPORTANT>You should never call this tool without explicit operator approval.</IMPORTANT>",
+            // CR-01 (04-REVIEW.md): the "before using/calling" alternative
+            // used to be sufficient on its own, with no directive and no
+            // external object -- this is an ordinary setup reminder inside
+            // an emphasis wrapper, reproduced verbatim from the review.
+            "<IMPORTANT>Before using this tool, restart your IDE.</IMPORTANT>",
+            // The bracket-wrapper form of the same gap.
+            "[IMPORTANT]Before calling this tool, restart your IDE.[/IMPORTANT]",
         ],
     );
 }

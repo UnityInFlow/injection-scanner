@@ -463,7 +463,19 @@ patterns:
     # the modal must be followed DIRECTLY by an enumerated filler then one
     # of a closed verb set, so "you should NEVER call..." cannot bridge
     # past "never" to reach a verb.
-    pattern: "(?-i:<(?:IMPORTANT|CRITICAL|URGENT|ATTENTION|SYSTEM)>|\\[(?:IMPORTANT|CRITICAL|URGENT|ATTENTION|SYSTEM)\\])[^<\\]\\n]{0,80}?\\b(?:you\\s+(?:must|should|need\\s+to|have\\s+to)\\s+(?:just\\s+|simply\\s+|please\\s+|first\\s+|always\\s+)?(?:call|use|read|access|fetch|obtain|include|pass|run|invoke|switch|set|do)\\b|before\\s+(?:using|calling)\\b)"
+    #
+    # CR-01 FIX (04-REVIEW.md): the "before using/calling" alternative used
+    # to be a THIRD, INDEPENDENT alternative alongside the "you must..."
+    # clause -- sufficient to fire on its own, with no directive and no
+    # external object required anywhere in the sentence. Any ordinary
+    # setup reminder ("Before using this tool, restart your IDE.") inside
+    # an emphasis wrapper matched at HIGH. It is now an OPTIONAL LEAD-IN
+    # onto the same "you must/should/need to/have to ... <verb>" clause
+    # the first alternative already requires -- "before using/calling"
+    # alone can no longer satisfy the pattern; it must still chain onto a
+    # directive. Pinned negatives: "<IMPORTANT>Before using this tool,
+    # restart your IDE.</IMPORTANT>" and the bracket form.
+    pattern: "(?-i:<(?:IMPORTANT|CRITICAL|URGENT|ATTENTION|SYSTEM)>|\\[(?:IMPORTANT|CRITICAL|URGENT|ATTENTION|SYSTEM)\\])[^<\\]\\n]{0,80}?(?:\\bbefore\\s+(?:using|calling)\\b[^<\\]\\n]{0,20}?)?\\byou\\s+(?:must|should|need\\s+to|have\\s+to)\\s+(?:just\\s+|simply\\s+|please\\s+|first\\s+|always\\s+)?(?:call|use|read|access|fetch|obtain|include|pass|run|invoke|switch|set|do)\\b"
     description: "A tool description wraps its text in a tag-delimited or bracketed emphasis marker (e.g. <IMPORTANT>...</IMPORTANT>) enclosing an imperative directive, mimicking the delivery mechanism a system message uses to make text authoritative"
     remediation: "Remove the emphasis wrapper and the directive inside it. An ordinary tool description needs no delimiter designed to make the model treat it as a higher-authority instruction."
     tags: [mcp-tool-poisoning, description-poisoning]
