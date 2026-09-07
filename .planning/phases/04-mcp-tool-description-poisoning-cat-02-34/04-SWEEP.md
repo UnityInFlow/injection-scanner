@@ -1167,3 +1167,32 @@ primary evidence, with this GATE-03 delta as the required real-world non-regress
 
 See `.planning/phases/04-mcp-tool-description-poisoning-cat-02-34/sweep-after-04-review-fixes-2026-09-07/RAW-REPORTS.md`
 for the redaction convention and the full manifest/checksum record.
+
+## Addendum — iteration 2, CR-02 (PI064), no new sweep captured
+
+Iteration 2 of the review-fix pass shipped a real fix for CR-02 (PI064's destination-check false
+positive), narrowed to base-form-imperative verbs only (dropping the `-s`/`-es` inflected forms
+and `return`/`returns` entirely). No fresh GATE-03 sweep was captured for this change, for two
+reasons taken together:
+
+1. **The change is monotone — it can only remove matches, never add one.** Every alternative in
+   the old verb set (`pass(?:es)?|include(?:s)?|return(?:s)?|send(?:s)?|forward(?:s)?|attach(?:es)?|cop(?:y|ies)|put(?:s)?|place(?:s)?`)
+   strictly contains its iteration-2 replacement
+   (`pass|include|send|forward|attach|copy|put|place`) as a subset of what it could match — no
+   inflected form or `return`/`returns` occurrence can newly match under the narrower set that
+   did not already match under the wider one. A pattern that can only lose matches relative to
+   its own prior form cannot introduce a new true or false positive anywhere a prior sweep
+   already ran clean.
+2. **The pass-1 candidate sweep (`sweep-after-04-review-fixes-2026-09-07`, captured earlier in
+   this same review-fix pass, before this PI064 change) recorded zero PI064 hits** across all
+   23,774 files in the 32-directory list — see that run's `summary.tsv`. Since PI064 already
+   fired nowhere in this corpus, a change that can only remove PI064 matches has nothing to
+   remove here, and the two-directional delta from `sweep-after-04-06-2026-09-07` recorded above
+   is unaffected: it is still 519/519, byte-for-byte identical, because the corpus never held a
+   PI064 finding to begin with.
+
+The real evidence for this fix is the same as CR-02's own reproduction: the review's two exact
+false-positive sentences, confirmed clean on the release binary at `--min-confidence 0` after the
+change, and the pattern's `example` confirmed still firing HIGH — recorded in
+`04-REVIEW-FIX.md`'s iteration-2 entry for CR-02, alongside the pinned regression tests in
+`tests/pattern_test.rs`.
