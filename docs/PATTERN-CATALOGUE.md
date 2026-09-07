@@ -791,7 +791,7 @@ curl https://example.com/file.txt > out.txt
 <details><summary>Regex</summary>
 
 ```regex
-((?:curl|wget)\s+[^\n|;]*\|\s*(?:/(?:usr/)?bin/)?(?:env\s+)?(?:ba|z)?sh\b|(?:iwr|invoke-webrequest)\s+[^\n|;]*\|\s*(?:iex|invoke-expression)\b)
+((?:curl|wget)\s+[^\n|;]*\|\s*(?:(?:sudo|command|exec)\s+)*["']?(?:/(?:usr/)?(?:local/)?bin/)?(?:env\s+(?:-\S+\s+|[A-Za-z_]\w*=\S*\s+)*)?(?:ba|z|da|k)?sh\b|(?:[\w.]+\\+)?(?:iwr|irm|invoke-webrequest|invoke-restmethod)\s+[^\n|;]*\|\s*(?:[\w.]+\\+)?(?:iex|invoke-expression)\b)
 ```
 
 </details>
@@ -1951,7 +1951,7 @@ Does **not** catch:
 <details><summary>Regex</summary>
 
 ```regex
-(?:^|\.)(?:args|command)(?:\[\d+\])?\s*=\s*.*(?:(?:curl|wget)\s+[^\n|;]*\|\s*(?:/(?:usr/)?bin/)?(?:env\s+)?(?:ba|z)?sh\b|(?:iwr|invoke-webrequest)\s+[^\n|;]*\|\s*(?:iex|invoke-expression)\b)
+(?:^|\.)(?:args|command)(?:\[\d+\])?\s*=\s*.*(?:(?:curl|wget)\s+[^\n|;]*\|\s*(?:(?:sudo|command|exec)\s+)*["']?(?:/(?:usr/)?(?:local/)?bin/)?(?:env\s+(?:-\S+\s+|[A-Za-z_]\w*=\S*\s+)*)?(?:ba|z|da|k)?sh\b|(?:[\w.]+\\+)?(?:iwr|irm|invoke-webrequest|invoke-restmethod)\s+[^\n|;]*\|\s*(?:[\w.]+\\+)?(?:iex|invoke-expression)\b)
 ```
 
 </details>
