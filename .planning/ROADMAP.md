@@ -123,15 +123,15 @@ Plans:
   possessive requirement is what keeps PI021 off real manifests. Expect to need a similar
   narrowing rule, and sweep real MCP manifests specifically, not just documentation
 
-**Plans:** 3/7 plans executed
+**Plans:** 5/7 plans executed
 
 Plans:
 
 - [x] 04-01-PLAN.md — Pre-edit GATE-03 baseline, per-category structural corpus collector, GATE-05 range repair
 - [x] 04-02-PLAN.md — 12 threat-model payloads, wrapper-shape projection control, measured pre-pattern baseline (GATE-01)
 - [x] 04-03-PLAN.md — Clean-corpus boundary specimens, vendored registry sample with provenance (D-06)
-- [ ] 04-04-PLAN.md — PI060-PI062 config hygiene, MEDIUM, `scope: frontmatter` (D-03)
-- [ ] 04-05-PLAN.md — PI063-PI065 tool-description poisoning, HIGH, prose (D-01, D-02)
+- [x] 04-04-PLAN.md — PI060-PI062 config hygiene, MEDIUM, `scope: frontmatter` (D-03)
+- [x] 04-05-PLAN.md — PI063-PI065 tool-description poisoning, HIGH, prose (D-01, D-02)
 - [ ] 04-06-PLAN.md — PI066-PI069 shadowing and rug-pull heuristics, MEDIUM, prose (D-04)
 - [ ] 04-07-PLAN.md — Whole-category sweep, number reconciliation, deferral issues, phase close
 
@@ -166,7 +166,7 @@ rename.
 | 1. Structural frontmatter engine | ENG-01 | #32 | **Done** — PR #104 |
 | 2. Recursive decoder | ENG-02 | #30 | **Done** — PR #108 |
 | 3. Tool & permission abuse | CAT-01 | #33 | **Done** — PR #109 |
-| 4. MCP & tool-description poisoning | CAT-02 | #34 | In Progress — 3/7 plans |
+| 4. MCP & tool-description poisoning | CAT-02 | #34 | In Progress|
 | 5. Persistence & lifecycle hijack | CAT-03 | #35 | Not started |
 
 **Library:** 56 patterns today (48 + CAT-01's PI050-PI057) → ~78 at milestone end.
