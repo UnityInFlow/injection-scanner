@@ -2,7 +2,19 @@
 
 <!-- The class this corpus exists for: documents that discuss attacks in order
      to defend against them. A scanner that cannot read defensive documentation
-     is unusable by the people most likely to run it. -->
+     is unusable by the people most likely to run it.
+
+     The "Install scripts" section additionally holds PI028's false-positive
+     control (#122). PI028 was widened to accept an interpreter named by an
+     absolute path (`| /bin/sh`, `| /usr/bin/env sh`); the mutation that
+     widening invites is to let the pipe target be anything at all. Before
+     #122 that mutation left this whole corpus green -- nothing here piped a
+     fetch into a non-shell filter -- so the mutation was caught only by
+     per-pattern negatives, which is the weaker of the two gates. The three
+     `curl ... | jq / sha256sum / tar` lines below now make the corpus itself
+     go red under it (4 strict matches), and the two bare `/usr/bin/env sh` /
+     `#!/bin/bash` mentions do the same for the neighbouring mutation that
+     drops the fetch-and-pipe requirement and keys on the interpreter alone. -->
 
 ## Blocking out-of-band collectors
 
@@ -38,3 +50,19 @@ curl -fsSLO https://example.invalid/install.sh
 less install.sh
 sh ./install.sh
 ```
+
+Piping a fetch into a *non-executing* filter is ordinary and stays allowed —
+verifying a checksum or reading one field out of a release manifest is how the
+download-then-review step above is automated, and neither hands the remote
+bytes to an interpreter:
+
+```bash
+curl -fsSL https://example.invalid/release.json | jq -r '.version'
+curl -fsSL https://example.invalid/install.sh | sha256sum -c ./install.sh.sum
+curl -fsSL https://example.invalid/bundle.tar.gz | tar -tzf -
+```
+
+Naming an interpreter is likewise not the same as feeding one. Our hook wrapper
+is executed with `/usr/bin/env sh` rather than the operator's login shell, and
+the vendored helpers under `tools/` still declare `#!/bin/bash`; both are facts
+about where a *reviewed, local* script runs.
