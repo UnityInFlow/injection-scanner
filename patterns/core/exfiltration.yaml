@@ -170,6 +170,31 @@ patterns:
     #   2. `Invoke-WebRequest`/`Invoke-Expression` in full, not only the
     #      `iwr`/`iex` aliases.
     #
+    # Widened again in #122 review r1, after an adversarial pass found the
+    # launcher token had to be bare and unquoted to match. All of these keep
+    # execution semantics and were one keystroke away:
+    #   3. the launcher may be quoted -- `| "/bin/sh"`, `| '/bin/sh'` -- which
+    #      is the natural spelling inside a JSON manifest value.
+    #   4. an `exec`/`command`/`sudo` prefix -- `| sudo sh`, `| command /bin/sh`.
+    #   5. `env` carrying options or assignments -- `| /usr/bin/env -S sh`,
+    #      `| env FOO=1 sh` -- not only a bare `env`.
+    #   6. `dash`/`ksh`, and a `/usr/local/bin/` install prefix.
+    #   7. `irm`/`Invoke-RestMethod` on the PowerShell fetch side (`irm ... | iex`
+    #      is the canonical one-liner, more common than the `iwr` spelling), and
+    #      a module-qualified cmdlet -- `Microsoft.PowerShell.Utility\\Invoke-Expression`.
+    #
+    # DELIBERATELY STILL OPEN, because each costs more in false positives than
+    # it buys (measured, review r1):
+    #   - a non-shell INTERPRETER: `| python3`, `| perl`, `| node`. Accepting
+    #     them turns `curl -s .../a.json | python3 -m json.tool` -- a mainstream
+    #     benign idiom -- into a CRITICAL finding that blocks the commit.
+    #   - a MULTI-STAGE pipe: `| tee /tmp/x | sh`, `| tr -d '\\r' | bash`. Closing
+    #     it means relaxing `[^\\n|;]*` to `[^\\n;]*` so the run may cross a pipe,
+    #     and that makes any markdown TABLE ROW mentioning both a curl example
+    #     and a shell a CRITICAL finding, since `|` is the column separator.
+    #   - `| /bin/\\sh` (a backslash inside the path). Exotic, and tolerating
+    #     stray backslashes mid-token widens the token shape for every arm.
+    #
     # WHAT KEEPS IT NARROW, since this is CRITICAL and runs over all prose:
     # the fetch verb is still mandatory on the left of the pipe, and the pipe
     # target is still a closed list of shell names terminated by `\b`. Piping
@@ -182,7 +207,7 @@ patterns:
     #
     # T-04-21: PI062 (`patterns/core/mcp-tool-poisoning.yaml`) carries this
     # launcher vocabulary character for character. Change the two together.
-    pattern: "((?:curl|wget)\\s+[^\\n|;]*\\|\\s*(?:/(?:usr/)?bin/)?(?:env\\s+)?(?:ba|z)?sh\\b|(?:iwr|invoke-webrequest)\\s+[^\\n|;]*\\|\\s*(?:iex|invoke-expression)\\b)"
+    pattern: "((?:curl|wget)\\s+[^\\n|;]*\\|\\s*(?:(?:sudo|command|exec)\\s+)*[\"']?(?:/(?:usr/)?(?:local/)?bin/)?(?:env\\s+(?:-\\S+\\s+|[A-Za-z_]\\w*=\\S*\\s+)*)?(?:ba|z|da|k)?sh\\b|(?:[\\w.]+\\\\+)?(?:iwr|irm|invoke-webrequest|invoke-restmethod)\\s+[^\\n|;]*\\|\\s*(?:[\\w.]+\\\\+)?(?:iex|invoke-expression)\\b)"
     description: "Remote script download piped directly to a shell interpreter"
     remediation: "Remove pipe-to-shell one-liners. Download, review, then execute deliberately if needed."
     tags: [exfiltration, shell]

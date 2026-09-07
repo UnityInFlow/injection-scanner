@@ -102,6 +102,13 @@ default_severity: MEDIUM
 # both patterns together. The two forms that #34 locked as PI062 NEGATIVES are
 # now POSITIVES in `tests/pattern_test.rs`, which is exactly the forcing
 # function those assertions were written to be.
+#
+# #122 review r1 widened the shared vocabulary a second time -- quoted
+# launchers, `exec`/`command`/`sudo` prefixes, `env` with options, `dash`/`ksh`,
+# `/usr/local/bin/`, and `irm`/`Invoke-RestMethod` plus module-qualified
+# cmdlets. PI028 carries the identical fragment; the list of forms left
+# deliberately open, and the measured false-positive reason for each, is
+# recorded once at PI028 in `patterns/core/exfiltration.yaml`.
 patterns:
   - id: PI060
     example: |
@@ -243,7 +250,7 @@ patterns:
     # launch command that fetches a remote URL at all, download-only included.
     # The counter_example above downloads and redirects to a file, which is
     # what makes it the specimen that catches a relaxation.
-    relaxed_pattern: "(?:^|\\.)(?:args|command)(?:\\[\\d+\\])?\\s*=\\s*.*(?:curl|wget|iwr|invoke-webrequest)\\s+\\S*\\s*(?:-\\S+\\s+)*https?://"
+    relaxed_pattern: "(?:^|\\.)(?:args|command)(?:\\[\\d+\\])?\\s*=\\s*.*(?:curl|wget|iwr|irm|invoke-webrequest|invoke-restmethod)\\s+\\S*\\s*(?:-\\S+\\s+)*https?://"
     name: remote-script-mcp-launch
     scope: frontmatter
     # The fetch-and-execute vocabulary is PI028 pipe-to-shell's, character for
@@ -255,7 +262,7 @@ patterns:
     # maintenance trap (T-04-21). What differs is only the leaf anchoring in
     # front of it, and the `command`-as-array tolerance opencode's manifests
     # need.
-    pattern: "(?:^|\\.)(?:args|command)(?:\\[\\d+\\])?\\s*=\\s*.*(?:(?:curl|wget)\\s+[^\\n|;]*\\|\\s*(?:/(?:usr/)?bin/)?(?:env\\s+)?(?:ba|z)?sh\\b|(?:iwr|invoke-webrequest)\\s+[^\\n|;]*\\|\\s*(?:iex|invoke-expression)\\b)"
+    pattern: "(?:^|\\.)(?:args|command)(?:\\[\\d+\\])?\\s*=\\s*.*(?:(?:curl|wget)\\s+[^\\n|;]*\\|\\s*(?:(?:sudo|command|exec)\\s+)*[\"']?(?:/(?:usr/)?(?:local/)?bin/)?(?:env\\s+(?:-\\S+\\s+|[A-Za-z_]\\w*=\\S*\\s+)*)?(?:ba|z|da|k)?sh\\b|(?:[\\w.]+\\\\+)?(?:iwr|irm|invoke-webrequest|invoke-restmethod)\\s+[^\\n|;]*\\|\\s*(?:[\\w.]+\\\\+)?(?:iex|invoke-expression)\\b)"
     description: "An MCP server's launch command downloads a remote script and pipes it straight into an interpreter, so the code the agent runs is whatever that URL serves at launch time"
     remediation: "Download the installer, review it, and commit or vendor it; then launch the server from the reviewed copy rather than from a live URL."
     tags: [mcp-tool-poisoning, supply-chain, shell]
