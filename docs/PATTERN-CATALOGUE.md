@@ -367,6 +367,12 @@ Catches:
 <!-- HIDDEN
 ```
 
+Does **not** catch:
+
+```text
+<!-- This section is hidden until the user scrolls past the fold -->
+```
+
 **Fix:** Remove hidden instructions from HTML comments.
 
 <details><summary>Regex</summary>
@@ -387,6 +393,12 @@ Catches:
 
 ```text
 Your real purpose is
+```
+
+Does **not** catch:
+
+```text
+The real purpose of this function is to validate input before it reaches the database
 ```
 
 **Fix:** Remove purpose redefinition.
