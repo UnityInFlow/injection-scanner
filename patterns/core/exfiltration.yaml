@@ -199,6 +199,29 @@ patterns:
     #     and a shell a CRITICAL finding, since `|` is the column separator.
     #   - `| /bin/\\sh` (a backslash inside the path). Exotic, and tolerating
     #     stray backslashes mid-token widens the token shape for every arm.
+    #   - an OPTION on the `sudo`/`exec`/`command` prefix -- `| sudo -E sh`,
+    #     `| exec -a myname sh` (review r2, both reproduced against the shipped
+    #     binary). Allowing bare options, `(?:-\\S+\\s+)*`, closes only the FIRST
+    #     spelling; the second needs an option that takes an ARGUMENT, i.e.
+    #     `(?:\\S+\\s+)*`, and that relaxation was measured against the NORMALIZED
+    #     pass: it turns three ordinary download-then-write commands CRITICAL
+    #     (a `sudo tee -a` into an `.sh` path, a `sudo cp /dev/stdin` into an
+    #     `.sh` path, and an `exec 3>` redirect into an `.sh` path) because a
+    #     `.` between two alphanumerics folds to a space in `src/normalize.rs`,
+    #     so `setup.sh` reads as `setup sh` and the prefix run ends on a bare
+    #     `sh`. Three benign CRITICALs to buy one rare spelling: not worth it.
+    #
+    # NOT A #122 REGRESSION, and out of this card's scope: `src/normalize.rs`
+    # folds a separator sitting between two alphanumerics into a space, so a
+    # hyphenated or underscored word whose head is a shell name -- `sh-lint`,
+    # `sh_lint`, `bash-completion` -- normalizes to `sh lint` and satisfies the
+    # pipe target. Review r2 reproduced it, then confirmed the pre-#122
+    # `(?:ba|z)?sh\\b` fires on exactly the same text: the artifact belongs to the
+    # separator defence, not to this vocabulary, and #122 only adds further
+    # prefixes that reach it. Narrowing the target to `sh(?:[^\\w-]|$)` was tried
+    # and is a no-op -- it only constrains the RAW pass, and the normalized pass
+    # still matches. A real fix has to change the separator defence for every
+    # pattern in the library, which is a different card.
     #
     # WHAT KEEPS IT NARROW, since this is CRITICAL and runs over all prose:
     # the fetch verb is still mandatory on the left of the pipe, and the pipe
