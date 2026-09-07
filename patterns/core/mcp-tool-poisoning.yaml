@@ -612,8 +612,18 @@ patterns:
     # "instead" -- see the re-narrowing note above for why the bare form
     # had to go.
     # Arm C: "always call/use/invoke/run TOOL2 ... instead of TOOL" -- the
-    # reordered substitution.
-    pattern: "(?:instead\\s+of\\s+using\\s+(?:`[A-Za-z_][\\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\\(\\))[^.\\n]{0,40}?(?:,\\s+|;\\s+|:\\s+|\\band\\s+|\\bthen\\s+)always\\s+(?:call|use|invoke|run)\\s+(?:`[A-Za-z_][\\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\\(\\)))|(?:\\bnever\\s+(?:use|call|invoke|run)\\s+(?:`[A-Za-z_][\\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\\(\\))[^.\\n]{0,60}?\\balways\\s+(?:call|use|invoke|run)\\s+(?:`[A-Za-z_][\\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\\(\\)))|(?:\\balways\\s+(?:call|use|invoke|run)\\s+(?:`[A-Za-z_][\\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\\(\\))[^.\\n]{0,40}?\\binstead\\s+of\\s+(?:`[A-Za-z_][\\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\\(\\)))"
+    # reordered substitution. WR-01 (04-REVIEW.md): "always" used to float
+    # anywhere in the sentence with no clause-boundary/negator guard the
+    # way PI063/PI064/PI066 all have -- "Do not always call `X` instead of
+    # `Y` -- check the query type first." (a straightforward PROHIBITION of
+    # the override behaviour this arm exists to catch) fired, because the
+    # unguarded gap in front of "always" was wide enough to admit "Do not "
+    # before it. "always" is now required to sit at a clause boundary
+    # (string/line start, or directly after `,`/`;`/`:` or a coordinating
+    # "and"/"then"), the same D-02 technique PI066's own boundary already
+    # uses, so "Do not always call..." cannot bridge past "Do not" to reach
+    # the anchored "always".
+    pattern: "(?:instead\\s+of\\s+using\\s+(?:`[A-Za-z_][\\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\\(\\))[^.\\n]{0,40}?(?:,\\s+|;\\s+|:\\s+|\\band\\s+|\\bthen\\s+)always\\s+(?:call|use|invoke|run)\\s+(?:`[A-Za-z_][\\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\\(\\)))|(?:\\bnever\\s+(?:use|call|invoke|run)\\s+(?:`[A-Za-z_][\\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\\(\\))[^.\\n]{0,60}?\\balways\\s+(?:call|use|invoke|run)\\s+(?:`[A-Za-z_][\\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\\(\\)))|(?:(?:^|\\n|,\\s+|;\\s+|:\\s+|\\band\\s+|\\bthen\\s+)always\\s+(?:call|use|invoke|run)\\s+(?:`[A-Za-z_][\\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\\(\\))[^.\\n]{0,40}?\\binstead\\s+of\\s+(?:`[A-Za-z_][\\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\\(\\)))"
     description: "A tool description instructs that one tool be used in place of another, or that another tool never be used -- removing the reader's choice rather than describing when each tool fits"
     remediation: "Remove the substitution directive. A tool description may explain when it is a better fit than a sibling tool, but must never instruct that the sibling always be avoided or always be replaced."
     tags: [mcp-tool-poisoning, description-poisoning, tool-override]

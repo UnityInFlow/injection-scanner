@@ -2097,6 +2097,12 @@ fn test_pi067_tool_override_directive() {
             // using", and its recommendation is conditioned on "when you
             // already know...", preserving the reader's choice.
             "Prefer `search_code` over `search_docs` when you already know the symbol name you are looking for -- it returns precise locations instead of prose paragraphs, and is faster for that narrower job.",
+            // WR-01 (04-REVIEW.md): a straightforward prohibition of the
+            // override behaviour itself, exercising the D-02 negation
+            // guard on Arm C -- "Do not " sits between the sentence start
+            // and "always", so the clause-boundary anchor cannot land
+            // immediately before it.
+            "Do not always call `fetch_raw_dump` instead of `search_docs` -- check the query type first.",
         ],
     );
 }
