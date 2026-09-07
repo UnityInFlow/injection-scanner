@@ -23,8 +23,22 @@ use injection_scanner::frontmatter::{self, ConfigBlock, ConfigSyntax};
 use injection_scanner::pattern::PatternCategory;
 use injection_scanner::patterns::load_external_patterns;
 
+/// Cheap per-call uniqueness so a second, concurrently running process of
+/// this same test binary (a worktree's `cargo test`, a Stop hook, another CI
+/// job on a shared runner) never resolves to the same directory and deletes
+/// a fixture out from under it (issue #124).
+fn unique_suffix() -> u64 {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+    COUNTER.fetch_add(1, Ordering::Relaxed)
+}
+
 fn temp_dir(name: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("injscan-yaml-swap-{name}"));
+    let dir = std::env::temp_dir().join(format!(
+        "injscan-yaml-swap-{}-{}-{name}",
+        std::process::id(),
+        unique_suffix()
+    ));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("temp dir must be creatable");
     dir

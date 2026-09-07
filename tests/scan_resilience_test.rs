@@ -14,8 +14,27 @@ fn binary_path() -> &'static str {
     env!("CARGO_BIN_EXE_injection-scanner")
 }
 
+/// Cheap per-call uniqueness so parallel tests in this file — and, more
+/// importantly, a *second, concurrently running process* of this same test
+/// binary (a worktree's `cargo test`, a Stop hook, another CI job on a
+/// shared runner) — never collide on the same directory. Before this, the
+/// path was `injscan-test-{name}` alone: fixed and shared by every process,
+/// so one run's `remove_dir_all` could delete a fixture the other run had
+/// mid-flight (issue #124).
+fn unique_suffix() -> u64 {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+    COUNTER.fetch_add(1, Ordering::Relaxed)
+}
+
 fn temp_dir(name: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("injscan-test-{name}"));
+    let dir = std::env::temp_dir().join(format!(
+        "injscan-test-{}-{}-{name}",
+        std::process::id(),
+        unique_suffix()
+    ));
+    // Safe to unconditionally clear: the path above is unique to this
+    // process and this call, so nothing else can own it.
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("temp dir must be creatable");
     dir
