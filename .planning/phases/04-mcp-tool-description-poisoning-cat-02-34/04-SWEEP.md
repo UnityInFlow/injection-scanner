@@ -537,3 +537,192 @@ shape: a backslash-escaped launcher inside a JSON string is an attack spelling, 
 install documentation writes. No separate artifact directory is committed for it, because it would
 duplicate `sweep-r2-122-2026-09-07/` row for row and sum for sum. The eleven benign near-miss texts
 closest to the new arm were re-run under `--strict` after it landed; none fired.
+
+---
+
+# Phase 4 Plan 05 — GATE-03 delta for the description-poisoning half (2026-09-07)
+
+**Verdict: zero additions, zero removals across 23,770 real third-party files, after one
+re-narrowing.** `PI063` tool-description-directive, `PI064` tool-description-file-smuggle and
+`PI065` tool-description-emphasis-block — the three HIGH prose arms this category is named for —
+report nothing on this machine's real corpus, in either direction, against a binary built without
+them.
+
+## Why a fresh pre-edit run rather than `sweep-mainbase-04-04-2026-09-06`
+
+Per the carried-forward note above, `sweep-mainbase-04-04-2026-09-06` (`0d50e92`) is now stale for
+this plan: `main` moved through issue #122's two launcher-vocabulary widenings, #125 (unique test
+temp dirs), #126 (`PI028`/`PI062` widened further, `security-runbook.md` grew) and #127
+(`PI012`/`PI013` counter_examples, catalogue/baseline regenerated) since 04-04 shipped. Comparing
+straight to either `sweep-baseline-2026-09-03` (04-01) or `sweep-mainbase-04-04-2026-09-06` would
+attribute that intervening history to this plan. A release binary was therefore built from
+`66bf53c` — the commit this branch forked from — in a separate `git worktree` (no `git stash`
+used), and swept fresh over the same 32-directory list. This run, `sweep-mainbase-04-05-2026-09-07/`,
+is both this plan's pre-edit baseline AND the correct "post-structural, pre-prose" reference point
+Task 3 asked for: it carries the identical `PI060`-`PI062` structural arms the candidate does,
+differing only in the three prose arms this plan adds.
+
+## Runs
+
+| Run | Binary tree | Pattern set | Files | Findings | Output |
+|---|---|---|---:|---:|---|
+| mainbase-04-05 (fresh pre-edit) | `66bf53c` (this branch's fork point, `git worktree`, no stash) | 64 patterns, zero `PI063`-`PI065` | 23,770 | 519 | `sweep-mainbase-04-05-2026-09-07/` |
+| after-04-05 (candidate, re-narrowed) | this branch after Task 2, `PI063` fixed for the case-fold false positive below | 67 patterns, `PI063`-`PI065` shipped | 23,770 | 519 | `sweep-after-04-05-2026-09-07/` |
+
+Both runs used the **same 32-directory list**, reproduced from `sweep-baseline-2026-09-03/manifest.tsv`
+rather than re-derived: 32 rows in each manifest, `swept` in every row, zero `skipped-missing`,
+byte-identical file counts row for row (`diff` on the directory-name column empty). The two
+binaries were confirmed genuinely different before the sweep: scanning a `PI063`-shaped probe
+sentence reports `['PI029']` under the mainbase binary and `['PI029', 'PI063', 'PI064']` under the
+candidate.
+
+`$SCRATCH/cursor-safe` and `$SCRATCH/vscode-safe` were re-created fresh from the live `~/.cursor`
+and `~/.vscode` trees under the same narrowing `sweep-baseline-2026-09-03` documents (excluding
+`extensions/`, which reproduces the `src/frontmatter.rs:219` char-boundary panic) — 776 and 2
+files respectively, close to but not identical to the 04-04 snapshot's 755/2, which is the same
+drift `04-SWEEP.md` already names for `~/.claude/plugins/cache`.
+
+## Direction 1 — ADDITIONS (mainbase-04-05 → after-04-05 candidate)
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-mainbase-04-05-2026-09-07 \
+    .planning/local/sweep-after-04-05-2026-09-07
+exit=0
+```
+
+**Empty. Zero new true positives and zero new false positives.** For three new HIGH arms — the
+severity `install-hook` blocks commits at — this is the result the category's own risk profile
+demands: `04-RESEARCH.md` names CAT-02 the highest false-positive risk in the milestone precisely
+because these arms' vocabulary overlaps ordinary agent documentation, and zero findings across
+plugin caches, editor state, marketplace manifests, Codex backups and nine sibling repos means
+none of that overlap actually fired here. `summary.tsv` for both runs confirms it directly: neither
+lists `PI063`, `PI064` or `PI065` at any count.
+
+## Direction 2 — REMOVALS (arguments swapped: after-04-05 candidate → mainbase-04-05)
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-after-04-05-2026-09-07 \
+    .planning/local/sweep-mainbase-04-05-2026-09-07
+exit=0
+```
+
+**Empty.** Nothing that the pre-edit binary reported disappeared, and per-directory finding counts
+are identical row for row (519 = 519, both runs, both directions).
+
+## Continuity comparison against the 04-01 baseline (`sweep-baseline-2026-09-03`), both directions
+
+Recorded for continuity with 04-01, per the plan's own `<verify>` block, but **not** the pair this
+plan's verdict rests on — the mainbase-04-05 pair above isolates this plan's delta; this pair does
+not, because three pattern-set generations of unrelated history sit between them.
+
+**Direction 1 (04-01 baseline → after-04-05 candidate), 2 entries:**
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-baseline-2026-09-03 \
+    .planning/local/sweep-after-04-05-2026-09-07
+exit=1
+```
+
+| File | Pattern | Adjudication |
+|---|---|---|
+| `$HOME/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/serena/.mcp.json:4` | `PI060` | **Not this plan's.** Already adjudicated a true positive in plan 04-04's own GATE-03 section (a real `uvx --from git+https://…` install). Predates this plan; PI060 is unmodified here. |
+| `$SCRATCH/cursor-safe/gsd-core/bin/lib/security.cjs:331` | `PI011` | **Path-churn artifact, not a real addition.** This is the same finding the removals direction below reports as "gone" from the OLD session-scratch path (`72362a33-…`) — the file is identical; only the session-scratch UUID in the absolute path changed between when the 04-01 baseline was captured and this run. Cancels out with its counterpart below; net effect zero. |
+
+**Direction 2 (after-04-05 candidate → 04-01 baseline), 67 entries:**
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-after-04-05-2026-09-07 \
+    .planning/local/sweep-baseline-2026-09-03
+exit=1
+```
+
+| Pattern | Count | Adjudication |
+|---|---:|---|
+| `PI026` | 39 | **Not this plan's.** PR #110 made it badge-safe, already adjudicated in plan 04-04's GATE-03 section. |
+| `PI017` | 27 | **Not this plan's.** PR #110 retired it into `MatchContext::HiddenHtml`, already adjudicated in plan 04-04's GATE-03 section. |
+| `PI011` | 1 | **Path-churn artifact.** The counterpart of the addition above — same file, same pattern, old scratch-session path. Net zero once paired with its Direction-1 counterpart. |
+
+Every entry in both directions is accounted for: 66 of the 69 total lines are the pre-existing PR
+#110 delta plan 04-04 already adjudicated and is not this plan's to re-litigate; the remaining 2
+are one true positive that predates this plan (`PI060` on the serena manifest) and one harmless
+scratch-path artifact that appears once in each direction and cancels to zero. **Nothing in either
+direction is attributable to `PI063`, `PI064` or `PI065`.**
+
+## The false-positive control was mutation-tested, not merely asserted (PI063's GATE-05 proof)
+
+The plan's acceptance criteria require reproducing `04-RESEARCH.md` §Q3's measurement against the
+shipped pattern: removing the external-object half of `PI063`'s regex must make `corpus_test` FAIL
+naming the clean MCP manifest specimen, restored afterward. Performed directly (not merely via
+`relaxed_pattern`/`pattern_relaxed_control_test`, which already proves the narrower two-sided
+property): `PI063`'s shipped `pattern` field was temporarily replaced, byte for byte, with its own
+`relaxed_pattern` value (`\byou(?:'re| are|r)?\b` — the bare second-person probe from the Q3
+research session), and `cargo test --test corpus_test` was run:
+
+```
+thread 'the_clean_corpus_reports_nothing' panicked at tests/corpus_test.rs:93:5:
+documents in tests/corpus/clean must produce zero findings. Each one is modelled on a real false
+positive; a hit here means a pattern regressed onto ordinary documentation:
+  agent-spec.md: 4 finding(s)
+  hard-wrapped-prose.md: 2 finding(s)
+  html-escaping.md: 1 finding(s)
+  jailbreak-writeup.md: 2 finding(s)
+  mcp-companion-tools.md: 4 finding(s)
+  mcp-manifest.json: 1 finding(s)
+  mcp-server-catalogue.json: 6 finding(s)
+  mcp-setup-guide.md: 5 finding(s)
+  narrow-allowed-tools-skill.md: 1 finding(s)
+  prompt-tooling-docs.md: 3 finding(s)
+  real-world-agent-docs.md: 2 finding(s)
+  rendered-web-page.html: 2 finding(s)
+  settings-permissions-reference.md: 1 finding(s)
+```
+
+`mcp-manifest.json` — the clean MCP manifest specimen the plan names explicitly — is in the list,
+alongside twelve other clean-corpus files including `mcp-server-catalogue.json` (plan 04-03's own
+D-01 boundary manifest, 6 findings) and the corpus's `--strict` sibling test, which failed
+identically. The file was restored byte-for-byte (`diff` confirmed identical to the pre-mutation
+backup) and `cargo test --test corpus_test` was re-run green (5/5) before continuing.
+
+## A real false positive found by the sweep, fixed, and re-swept
+
+The first candidate sweep (before the run recorded above) found one addition the mainbase pair did
+NOT report empty: `PI063` fired on a real, vendored Hugging Face `SKILL.md` file at
+`$HOME/.codex/.tmp/plugins*/repo/plugins/hugging-face/skills/jobs/SKILL.md:74`, three times (one
+per backup copy of the same plugin on this machine). The matched text was
+`"you MUST pass the real token via \`get_token"` — a Python function call, `get_token()`, inside
+ordinary API documentation, not an attack.
+
+**Root cause:** `PI063`'s credential-suffix branch, `\b[A-Z][A-Z0-9_]*(?:_KEY|_TOKEN|…)\b`, was
+written assuming `[A-Z]` requires an uppercase letter. Every pattern in this file compiles
+case-insensitively by default (no `case_sensitive: true` field was set), and under Rust's `regex`
+crate a case-insensitive `[A-Z]` character class folds and matches lowercase too. `get_token` ends
+in `_token`, so the whole branch matched it: `g` satisfied `[A-Z]` (case-folded), `et` satisfied
+`[A-Z0-9_]*`, and `_TOKEN` matched `_token` case-insensitively. The literal `$HF_TOKEN` reference
+later in the same sentence — the thing the branch was actually meant to catch — sat 63 characters
+past the verb, outside the pattern's 50-character object window, so it played no part in the match.
+
+**Fix:** the two ALL-CAPS object branches were wrapped in an inline `(?-i:...)` case-sensitive
+group — the same technique `PI011` (patterns/core/instruction-injection.yaml) and `PI065`'s own
+wrapper already use in this same file — leaving the verb list and the literal "environment
+variable" phrase case-insensitive as intended. Re-tested against the exact failing sentence: zero
+matches. A regression negative using the real sentence verbatim was added to
+`tests/pattern_test.rs`. The catalogue and code-scanning baseline were regenerated, and the full
+sweep (mainbase and candidate) was re-run from scratch with the corrected binary — the runs and
+numbers recorded above are the POST-fix runs; the pre-fix candidate run that found this is not
+committed, since the file's own real content is the artifact worth keeping, not a since-superseded
+report.
+
+## No re-narrowing beyond the fix above was needed
+
+Both patterns' `relaxed_pattern` mutation controls (GATE-05) and the corpus gate stayed green
+throughout. No second re-narrowing cycle was triggered — the corrected binary's sweep came back
+byte-for-byte empty in both directions on the first re-run.
+
+## `Cargo.toml`/`Cargo.lock` (T-04-SC)
+
+`git diff --stat Cargo.toml Cargo.lock` is empty at every commit in this plan. No package was
+installed or upgraded.
