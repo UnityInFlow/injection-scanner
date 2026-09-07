@@ -332,6 +332,15 @@ contribute one.
 > description that merely points the reader at a sibling tool, on one that explains when to
 > prefer one tool over another, and on a prohibition against the shadowing behaviour itself. The
 > full narrowing is recorded in the header of `patterns/core/mcp-tool-poisoning.yaml`.
+>
+> **The cost this closure introduces (WR-06, 04-REVIEW.md).** `PI066` is a THIRD-PERSON heuristic
+> on sentence shape, so it cannot distinguish a live tool description from third-person prose that
+> merely *describes or cites* one — a blog post, a security advisory, or a GitHub issue quoting a
+> real tool-poisoning payload will trigger this MEDIUM finding for reasons that have nothing to do
+> with an actual attack in that document. Measured directly:
+> `tests/corpus/documentation/mcp-tool-poisoning-writeup.md`, which cites a well-known, publicly
+> published Elastic tool-poisoning write-up, fires `PI066` when the quotation sits in an ordinary
+> `>` blockquote (a ubiquitous way to cite a source) rather than a code fence.
 
 > **Behaviour change (2026-09-07): two more MEDIUM findings — a tool description that instructs
 > substituting one tool for another, and one whose behaviour is gated on a version comparison.**
