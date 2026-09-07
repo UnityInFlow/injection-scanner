@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-09-06T00:00:00.000Z"
-state_head: caa67ce
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-09-07T14:13:37.864Z"
+state_head: 8e0f077b08634a137c2d15d4b69602f090836c33
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 16
-  completed_plans: 13
-  percent: 81
+  completed_plans: 14
+  percent: 88
 ---
 
 # State: injection-scanner
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md`
 
 ## Current Phase
 
-**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **in progress (4/7 plans — 04-01, 04-02, 04-03, 04-04 done)**
+**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **in progress (5/7 plans — 04-01, 04-02, 04-03, 04-04, 04-05 done)**
 
 Phase 3 shipped 2026-09-02 as **PR #109** (rebase-merged, issue #33 auto-closed): `PI050`-`PI057`,
 the `relaxed_pattern` schema field, and ADR-004. Its code review found one critical false positive
@@ -97,6 +97,33 @@ with the PR #110 merge and is **not** 04-04's. It is the exact "the scanner flag
 documentation" failure the pattern-library skill warns about and the 2026-08 audit listed. Needs its
 own issue or quick task; fixing it inside a pattern PR would confound that PR's GATE-03 delta.
 
+**04-05 shipped 2026-09-07 (3 commits, same branch `feat/34-mcp-tool-poisoning-pi063`).** The
+three HIGH prose arms this category is named for are live: `PI063` tool-description-directive
+(D-01's discriminator — second-person address AND an external-object directive, from the first
+committed draft), `PI064` tool-description-file-smuggle (the MCP-specific smuggling-channel
+signal), `PI065` tool-description-emphasis-block (a tag-delimited/bracketed emphasis wrapper
+enclosing a directive). 67 patterns, **402 tests**, recall **101/109 (92.7%)** with the CAT-02
+combined row at 8/12.
+
+Two things worth not rediscovering.
+
+**(1) A real GATE-03 false positive, caused by case-folding, not by the discriminator being
+wrong.** `PI063`'s credential-suffix branch (`\b[A-Z][A-Z0-9_]*_TOKEN\b`) matched `get_token` — an
+ordinary Python function call — in a real vendored Hugging Face skill file, because every pattern
+in this file compiles case-insensitively by default and a case-insensitive `[A-Z]` class folds and
+matches lowercase too. Fixed with an inline `(?-i:...)` case-sensitive group around just the two
+ALL-CAPS branches — `PI011` already uses this exact technique in the same file. **Any future
+pattern using `[A-Z]` to mean "genuinely uppercase" must wrap it explicitly**, or the engine's
+default case-insensitivity silently defeats the intent; unit tests alone did not catch this, only
+the real-file sweep did.
+
+**(2) `main` moved again under the phase.** `sweep-mainbase-04-04-2026-09-06` is now stale too:
+#122 (two launcher widenings), #125, #126 and #127 landed after 04-04 shipped. 04-05 built a
+*fresh* pre-edit binary from `66bf53c` (this branch's own fork point) in a separate `git worktree`
+(no `git stash`) rather than reusing either prior baseline. **Plans 04-06/04-07 must compare
+against `sweep-mainbase-04-05-2026-09-07/`** or build their own fresh pre-edit capture — not
+against `sweep-baseline-2026-09-03` or `sweep-mainbase-04-04-2026-09-06`.
+
 ## The milestone in one paragraph
 
 v0.1.0 made the scanner detect the attacks its README already claimed — recall **10/60 -> 56/60**.
@@ -113,7 +140,7 @@ lifecycle hook that reinstalls the attacker's instructions after the file is cle
 | 1 | ENG-01 structural frontmatter engine | #32 | **Done** — PR #104 |
 | 2 | ENG-02 recursive decoder | #30 | **Done** — PR #108, also closed #6 and #7 |
 | 3 | CAT-01 tool & permission abuse `PI050-059` | #33 | **Done** — PR #109 |
-| 4 | CAT-02 MCP & tool-description poisoning `PI060-069` | #34 | In progress — 4/7 plans (04-04 shipped `PI060`-`PI062`) |
+| 4 | CAT-02 MCP & tool-description poisoning `PI060-069` | #34 | In progress — 5/7 plans (04-05 shipped `PI063`-`PI065`) |
 | 5 | CAT-03 persistence & lifecycle hijack `PI070-079` | #35 | Not started |
 
 Engines first, and the dependency is real rather than tidiness: #32 states it is the prerequisite
@@ -152,8 +179,8 @@ that array wins.
 | Role Override | 11/12 | 92% |
 | Encoding/Obfuscation | 11/12 | 91.7% |
 | Multilingual (Czech; German misses) | 8/10 | 80% |
-| MCP & Tool-Description Poisoning | 7/12 | 58.3% (config-hygiene band shipped; prose + rug-pull arms pending) |
-| **Total** | **100/109** | **91.7%** |
+| MCP & Tool-Description Poisoning | 8/12 | 66.7% (config-hygiene + description-poisoning bands shipped; rug-pull arms pending) |
+| **Total** | **101/109** | **92.7%** |
 
 Reached **58/60** on 2026-08-30 when ENG-02 landed.
 
@@ -257,8 +284,8 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
 
 ## Session Continuity
 
-Last session: 2026-09-06T00:00:00.000Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-09-07T14:13:37.847Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None
 
 ---
@@ -269,8 +296,11 @@ Resume file: None
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 04 P01 | ~15min (commit span) | 3 tasks | 44 files |
+| Phase 04 P05 | 69min | 3 tasks | 16 files |
 
 ## Decisions
 
 - [Phase 04]: GATE-03 sweep excludes ~/.cursor/extensions and ~/.vscode/extensions (vendored bundle noise, direct cause of a reproduced src/frontmatter.rs:219 panic); their config-relevant subdirectories are swept instead
 - [Phase 04]: relaxed_pattern's PI050+ GATE-05 requirement is now an open-ended predicate (id >= 50), fixing a closed 50-59 range that would have exempted every CAT-02/PI060+ pattern
+- [Phase ?]: PI063's external-object set is closed and enumerated (filesystem path, environment variable, concealment framing), chained onto the subject with no gap the verb could be reached across -- keeps all four measured Q3 near-misses silent without special-casing any of them
+- [Phase ?]: GATE-03 comparisons target a fresh binary built from the branch's own fork point in a separate git worktree (never git stash) once main has moved multiple generations past the last committed baseline
