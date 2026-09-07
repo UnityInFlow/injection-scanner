@@ -34,6 +34,7 @@ patterns:
     tags: [injection]
   - id: PI012
     example: "<!-- HIDDEN"
+    counter_example: "<!-- This section is hidden until the user scrolls past the fold -->"
     name: hidden-html-instruction
     # Word boundaries are load-bearing. Without them, the case-insensitive
     # "INJECT" matched the "inject" inside this tool's OWN suppression syntax --
@@ -46,6 +47,7 @@ patterns:
     tags: [injection, html]
   - id: PI013
     example: "Your real purpose is"
+    counter_example: "The real purpose of this function is to validate input before it reaches the database"
     name: real-purpose
     pattern: "your\\s+real\\s+purpose\\s+is"
     description: "Purpose redefinition attempt"
