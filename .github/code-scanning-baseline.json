@@ -910,14 +910,14 @@
       "pattern_id": "PI029",
       "digest": "sha256:1d9045662c68c134349706fcc32f685448c4a375b0c8972484517fe0a9c63587",
       "count": 1,
-      "first_seen_line": 229
+      "first_seen_line": 252
     },
     {
       "file": "patterns/core/exfiltration.yaml",
       "pattern_id": "PI029",
       "digest": "sha256:ee9c96aacc742e84410161882745d3a087bf030c890d2abb5cffb0794a96d128",
       "count": 1,
-      "first_seen_line": 220
+      "first_seen_line": 243
     },
     {
       "file": "patterns/core/instruction-injection.yaml",
