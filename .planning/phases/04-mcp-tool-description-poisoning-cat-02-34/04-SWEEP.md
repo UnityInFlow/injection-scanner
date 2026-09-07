@@ -1100,3 +1100,70 @@ this PR's own clean GATE-03 delta).
 
 `git diff --stat 66bf53c..HEAD -- Cargo.toml Cargo.lock` is empty. No package was installed
 or upgraded by this task.
+
+# 04 review fixes — GATE-03 delta (2026-09-07)
+
+## Why `sweep-after-04-06-2026-09-07` is this pass's pre-fix baseline
+
+`gsd-code-fixer`'s own instruction for the `/gsd-code-review --fix` pass over `04-REVIEW.md`:
+reuse `sweep-after-04-06-2026-09-07/` rather than capturing a fresh pre-fix baseline, since it
+is the last sweep captured on this branch before any review-fix commit landed. This isolates
+the delta to exactly this pass's six pattern edits (CR-01, WR-01, WR-02, WR-03 narrow regexes;
+CR-02, WR-04 documented-only, no regex change) from everything plans 04-01 through 04-07 already
+measured and reconciled.
+
+## Runs
+
+| Run | Binary tree | Pattern set | Files | Findings | Output |
+|---|---|---|---:|---:|---|
+| after-04-06 (reused pre-fix baseline) | this branch before the review-fix pass | 71 patterns, pre-fix `PI063`/`PI065`/`PI066`/`PI067`/`PI068`/`PI069` | 23,770 | 519 | `sweep-after-04-06-2026-09-07/` (already committed) |
+| after-04-review-fixes (candidate) | this branch after every CR-*/WR-* finding applied | 71 patterns, `PI065` before-using/calling narrowed, `PI066` Arm B/C tool-shaped, `PI067` Arm C clause-anchored, `PI068`/`PI069` enumerated `automatically <verb>` | 23,774 | 519 | `sweep-after-04-review-fixes-2026-09-07/` |
+
+Same 32-directory list as `sweep-after-04-06-2026-09-07`'s own `manifest.tsv` (reproduced
+directly from it, row for row). `$SCRATCH/cursor-safe` and `$SCRATCH/vscode-safe` were
+re-created fresh for this session under the same `extensions/`-excluding narrowing
+`sweep-baseline-2026-09-03` documents — 757 and 2 files respectively, within the drift band
+`04-SWEEP.md` already names for this directory pair. `~/.claude/plugins/cache` also drifted
+by ordinary machine churn (984 → 986 files) between capture dates. Every other directory's
+file count is byte-for-byte identical between the two runs.
+
+## Direction 1 — ADDITIONS (after-04-06 → after-04-review-fixes candidate)
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-after-04-06-2026-09-07 \
+    .planning/local/sweep-after-04-review-fixes-2026-09-07
+```
+
+**Empty. Exit 0.** Zero new findings introduced by this pass's six pattern edits.
+
+## Direction 2 — REMOVALS (after-04-review-fixes candidate → after-04-06)
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-after-04-review-fixes-2026-09-07 \
+    .planning/local/sweep-after-04-06-2026-09-07
+```
+
+**Empty. Exit 0.** Zero findings lost — no true positive in this real-world corpus regressed.
+
+## Adjudication
+
+519 findings in both runs, byte-for-byte identical file/line/pattern-id triples in both
+directions. This is the expected, ideal outcome for a review-fix pass whose findings were all
+constructed near-miss sentences the reviewer wrote to demonstrate a regex gap (an `<IMPORTANT>`
+setup reminder, a factual "automatically caches" sentence, a "Do not always call..."
+prohibition, an unrelated-noun cross-tool-shadowing sentence): none of those six shapes
+happened to occur naturally anywhere in this 32-directory, 23,774-file sweep, so narrowing them
+neither gained nor lost a single real-world finding here. The two documented-only findings
+(CR-02, WR-04) made no regex change and are correctly absent from both diffs.
+
+This does **not** mean the six narrowed patterns were unnecessary — `04-REVIEW.md` reproduced
+every one of them against the shipped binary with a constructed sentence before this pass began,
+and this repository's own `pattern-library` skill is explicit that a green corpus (real or
+constructed) is the weakest evidence a pattern is correct on its own; the fix report at
+`04-REVIEW-FIX.md` records each fix's own before/after regex and pinned negative test as the
+primary evidence, with this GATE-03 delta as the required real-world non-regression check.
+
+See `.planning/phases/04-mcp-tool-description-poisoning-cat-02-34/sweep-after-04-review-fixes-2026-09-07/RAW-REPORTS.md`
+for the redaction convention and the full manifest/checksum record.
