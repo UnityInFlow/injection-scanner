@@ -170,7 +170,17 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // env-var-targeting second-person directive) have no existing pattern
     // that names either shape. See the plan SUMMARY for the full per-payload
     // attribution table.
-    ("mcp-tool-poisoning", 2, 4),
+    //
+    // Plan 04-05 shipped PI063 tool-description-directive, re-measured
+    // 2026-09-07: **3/4**. PI063's second-person + external-object
+    // discriminator (D-01) reaches the env-var-targeting directive line
+    // ("you must first read the OPENAI_API_KEY environment variable") --
+    // its object is an environment variable, one of PI063's enumerated
+    // external-object branches. The tool-override line stays missed: it is
+    // third-person imperative ("always call fetch_raw_dump"), never
+    // second-person, so it is outside D-01's discriminator entirely, and no
+    // pattern in this category names the tool-override shape yet.
+    ("mcp-tool-poisoning", 3, 4),
     // mcp-tool-poisoning-structural: the CAT-02 (#34) structural half, 8
     // payloads -- the wrapper-less emphasis-wrapped file-read-and-smuggle
     // shape (Task 1), the same attack as a captured tools/list wire-shape
@@ -217,6 +227,18 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // discriminates on the install SOURCE instead; see the header of
     // patterns/core/mcp-tool-poisoning.yaml. The remaining two misses (05,
     // 06, both rug-pull markers) are a later plan's work.
+    //
+    // Plan 04-05 Task 1 shipped PI063 tool-description-directive,
+    // re-measured 2026-09-07: still **5/8**, unchanged. PI063's
+    // second-person-plus-external-object discriminator reaches payloads 01
+    // and 02 too (both are second-person, filesystem-path-directed
+    // descriptions), via the ordinary prose passes over the raw JSON lines
+    // -- the same reachability mechanism PI015/PI029 already used -- but
+    // both payloads were already counted as detected, so no new line
+    // moves. Payload 07 stays a deliberate miss (D-03's accepted cost); 05
+    // and 06 (rug-pull markers) remain a later plan's work: their object is
+    // not a filesystem path, an environment variable or a concealment
+    // instruction, so D-01's discriminator does not reach them.
     ("mcp-tool-poisoning-structural", 5, 8),
     // The Czech slice of the multilingual range (#39). Eight Czech payloads,
     // one of them typed without diacritics, and two German ones that are
