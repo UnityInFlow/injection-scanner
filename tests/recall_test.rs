@@ -180,7 +180,14 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // third-person imperative ("always call fetch_raw_dump"), never
     // second-person, so it is outside D-01's discriminator entirely, and no
     // pattern in this category names the tool-override shape yet.
-    ("mcp-tool-poisoning", 3, 4),
+    //
+    // Plan 04-06 Task 2 shipped PI067 tool-override-directive, re-measured:
+    // **4/4, 100%**. PI067's substitution discriminator (instead-of-using
+    // / never-use / always-instead) reaches the corpus's own tool-override
+    // line directly -- it is the exact "instead of using X, always..."
+    // shape D-04 locks. Every prose payload in this corpus is now
+    // detected.
+    ("mcp-tool-poisoning", 4, 4),
     // mcp-tool-poisoning-structural: the CAT-02 (#34) structural half, 8
     // payloads -- the wrapper-less emphasis-wrapped file-read-and-smuggle
     // shape (Task 1), the same attack as a captured tools/list wire-shape
