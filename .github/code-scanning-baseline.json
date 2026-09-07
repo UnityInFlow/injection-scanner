@@ -1111,6 +1111,13 @@
     {
       "file": "patterns/core/mcp-tool-poisoning.yaml",
       "pattern_id": "PI015",
+      "digest": "sha256:4ce03fe5ac122ffe7f4bb43832e7f49899865639ea2b4639c8239b9b8b85e89e",
+      "count": 1,
+      "first_seen_line": 505
+    },
+    {
+      "file": "patterns/core/mcp-tool-poisoning.yaml",
+      "pattern_id": "PI015",
       "digest": "sha256:fcad0f01e62827e5ed4910942640abafae304bc8a64297468f3ce009b85f695b",
       "count": 1,
       "first_seen_line": 445
@@ -1170,6 +1177,13 @@
       "digest": "sha256:10d010b210f84ccda14c57cea4da89c54c65e44b441decd40e1f6d3c6c01d678",
       "count": 1,
       "first_seen_line": 422
+    },
+    {
+      "file": "patterns/core/mcp-tool-poisoning.yaml",
+      "pattern_id": "PI066",
+      "digest": "sha256:de38fa317e425d4afb30f576141c194fab98234b2835f6d6ac81f7eeb0048719",
+      "count": 1,
+      "first_seen_line": 505
     },
     {
       "file": "patterns/core/multilingual.yaml",
@@ -1905,6 +1919,13 @@
       "digest": "sha256:5dc1ce6c8c6e85bdf8f80a95250a1447f6f5a9e11de37fbbce4604e078398d2b",
       "count": 1,
       "first_seen_line": 26
+    },
+    {
+      "file": "tests/corpus/attack/mcp-tool-poisoning.md",
+      "pattern_id": "PI066",
+      "digest": "sha256:de38fa317e425d4afb30f576141c194fab98234b2835f6d6ac81f7eeb0048719",
+      "count": 1,
+      "first_seen_line": 23
     },
     {
       "file": "tests/corpus/attack/multilingual.md",
