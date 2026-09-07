@@ -526,6 +526,26 @@ patterns:
   # possible to stay person-agnostic without also becoming "any sentence
   # naming two tools."
   #
+  # WR-06 (04-REVIEW.md), THE COST OF BEING PERSON-AGNOSTIC, NAMED HERE.
+  # Because PI066 is a THIRD-PERSON heuristic on sentence shape, it cannot
+  # distinguish a live tool description from third-person prose that merely
+  # DESCRIBES OR CITES one -- a blog post, a security advisory, or a GitHub
+  # issue quoting a real tool-poisoning payload will trigger this MEDIUM
+  # finding for reasons that have nothing to do with an actual attack in
+  # that document. Measured directly: a plain, third-person, block-quoted
+  # CITATION of the well-known, publicly published Elastic finding this
+  # pattern's own example is modelled on
+  # (tests/corpus/documentation/mcp-tool-poisoning-writeup.md) fires PI066
+  # when the quotation sits in an ordinary `>` blockquote (a ubiquitous way
+  # to cite a source) rather than a code fence. That file's own container
+  # was moved to a fenced code block to restore its corpus tier's own
+  # two-sided contract (zero findings at default confidence, at least one
+  # recoverable under --strict) -- a legitimate move for THAT file, but it
+  # does nothing for anyone else's citation of the same public research.
+  # No regex-only fix exists (a syntactic proxy cannot make a semantic
+  # provenance distinction); see the README's PI066 behaviour-change
+  # callout for the consumer-facing statement of this cost.
+  #
   # D-02 (CR-01 negation rule), applied here as a STRUCTURAL rather than a
   # vocabulary choice (T-04-32). There is no free-form gap directly in
   # front of the directive verb: the trigger clause is followed by a
