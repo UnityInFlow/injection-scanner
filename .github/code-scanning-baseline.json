@@ -1113,14 +1113,14 @@
       "pattern_id": "PI015",
       "digest": "sha256:4ce03fe5ac122ffe7f4bb43832e7f49899865639ea2b4639c8239b9b8b85e89e",
       "count": 1,
-      "first_seen_line": 588
+      "first_seen_line": 612
     },
     {
       "file": "patterns/core/mcp-tool-poisoning.yaml",
       "pattern_id": "PI015",
       "digest": "sha256:fcad0f01e62827e5ed4910942640abafae304bc8a64297468f3ce009b85f695b",
       "count": 1,
-      "first_seen_line": 496
+      "first_seen_line": 520
     },
     {
       "file": "patterns/core/mcp-tool-poisoning.yaml",
@@ -1167,16 +1167,9 @@
     {
       "file": "patterns/core/mcp-tool-poisoning.yaml",
       "pattern_id": "PI064",
-      "digest": "sha256:09a0aac007f98925facf19828b2d06ea50e520c327a5e16bdcd3cb29e12fb229",
-      "count": 1,
-      "first_seen_line": 454
-    },
-    {
-      "file": "patterns/core/mcp-tool-poisoning.yaml",
-      "pattern_id": "PI064",
       "digest": "sha256:a5bc065afe54f161e0a62e713b976f546afaeab92f6b62ed22da6af846dc4da4",
       "count": 1,
-      "first_seen_line": 473
+      "first_seen_line": 497
     },
     {
       "file": "patterns/core/mcp-tool-poisoning.yaml",
@@ -1184,13 +1177,6 @@
       "digest": "sha256:d66b6017424607abf853d7cc81fc3e987d1a7234e6050f8158bff64824697e47",
       "count": 1,
       "first_seen_line": 421
-    },
-    {
-      "file": "patterns/core/mcp-tool-poisoning.yaml",
-      "pattern_id": "PI064",
-      "digest": "sha256:e742d6c9e9dbec7209ca82dfd6ccf28123e2b2ed8c0d800beb8d239ca1de2200",
-      "count": 1,
-      "first_seen_line": 458
     },
     {
       "file": "patterns/core/mcp-tool-poisoning.yaml",
@@ -1204,35 +1190,35 @@
       "pattern_id": "PI065",
       "digest": "sha256:7808a2b1d7a2b09bdc26c1c0e79aba8056249d49ef600cb52a020217610d290b",
       "count": 1,
-      "first_seen_line": 473
+      "first_seen_line": 497
     },
     {
       "file": "patterns/core/mcp-tool-poisoning.yaml",
       "pattern_id": "PI066",
       "digest": "sha256:de38fa317e425d4afb30f576141c194fab98234b2835f6d6ac81f7eeb0048719",
       "count": 1,
-      "first_seen_line": 588
+      "first_seen_line": 612
     },
     {
       "file": "patterns/core/mcp-tool-poisoning.yaml",
       "pattern_id": "PI067",
       "digest": "sha256:b4f08e160a6744a1997a53f38e4a42c687327d4a87b3dc3bc02bd8585fefd571",
       "count": 1,
-      "first_seen_line": 647
+      "first_seen_line": 671
     },
     {
       "file": "patterns/core/mcp-tool-poisoning.yaml",
       "pattern_id": "PI068",
       "digest": "sha256:d89ff7e50dc9ed4bf22f33b49f0375a98b42e337989c54fa2c584c92a0bc8a5c",
       "count": 1,
-      "first_seen_line": 744
+      "first_seen_line": 768
     },
     {
       "file": "patterns/core/mcp-tool-poisoning.yaml",
       "pattern_id": "PI069",
       "digest": "sha256:a65c65b5ce9d656b287a8c98a1ae4b1095faba3ef3aa4c9806b64762f7c90c6f",
       "count": 1,
-      "first_seen_line": 781
+      "first_seen_line": 805
     },
     {
       "file": "patterns/core/multilingual.yaml",

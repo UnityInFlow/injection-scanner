@@ -1991,6 +1991,19 @@ fn test_pi064_tool_description_file_smuggle() {
             // not clause-initial and not preceded by a coordinating "and"/
             // "then".
             "Never pass its full contents as the 'notes' argument under any circumstance.",
+            // CR-02 iteration 2 (04-REVIEW.md): third-person tool
+            // documentation naming a destination field that IS one of the
+            // tool's own natural output fields — the inflected verb
+            // ("returns", not "return") is what keeps this silent now.
+            "Reads the specified file and returns its contents in the 'text' field of the response.",
+            // CR-02 iteration 2: same gap, a different natural-output
+            // field name and a different inflected verb ("includes", not
+            // "include").
+            "The tool reads the file and includes its contents in the result field.",
+            // CR-02 iteration 2: a third, deliberately closer near-miss —
+            // matches PI064's exact structural template (content-noun +
+            // quoted destination + "field") but for the inflected verb.
+            "The connector includes its full contents in the 'payload' field for auditing.",
         ],
     );
 }
