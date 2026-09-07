@@ -10,7 +10,7 @@ renumbering the close-out's own list.
 
 ## Newly filed issues (from the 04-REVIEW.md code-review-fix pass)
 
-### CR-02 — PI064's destination check cannot exclude a tool's own output field — [issue #134](https://github.com/UnityInFlow/injection-scanner/issues/134)
+### CR-02 — PI064's destination check cannot exclude a tool's own output field — [issue #134](https://github.com/UnityInFlow/injection-scanner/issues/134) — **partially fixed in iteration 2, issue stays open for the residual**
 
 **What:** PI064's destination clause treats `field` the same as `argument`/`parameter`/`param`,
 but a named field in a tool's own response is exactly where returned file content is supposed to
@@ -18,18 +18,29 @@ go. Measured false positives, HIGH severity (commit-blocking): "Reads the specif
 returns its contents in the 'text' field of the response." and "The tool reads the file and
 includes its contents in the result field."
 
-**Why deferred:** No `regex`-crate-compatible fix exists that keeps the existing true-positive
-test (`tests/pattern_test.rs`'s "...in the 'debug' field before returning.") while excluding the
-two false positives above — the crate has no lookaround, so "not one of the tool's own declared
-output-field names" cannot be expressed without an exhaustive, unmaintainable exclusion list.
-Dropping `field` outright was rejected because it breaks the existing positive pin; per the
-review's own guidance ("if a fix would lose a true positive, say so... rather than weakening the
-pin"), the cost is documented in the pattern's header comment instead of a regex change that
-would trade one false-positive class for a false negative.
+**Iteration 1 (superseded):** Assumed no `regex`-crate-compatible fix existed that kept the
+existing true-positive test (`tests/pattern_test.rs`'s "...in the 'debug' field before
+returning.") while excluding the two false positives above, and documented the cost instead of
+changing the regex. This over-read the review's "if a fix would lose a true positive, say so...
+rather than weakening the pin" guidance as "no fix exists" rather than continuing to search for a
+discriminator that does not touch the pin at all.
+
+**Iteration 2 (fixed, commit `6c5eddb`):** The actual discriminator is imperative vs. inflected
+verb form — a smuggling directive is phrased as a base-form imperative ("pass its full contents
+as..."), while ordinary third-person tool documentation inflects the verb ("returns", "includes").
+Both measured false positives above are third-person; the true-positive pin is imperative and
+untouched. The verb alternation in both `pattern` and `relaxed_pattern` is now base-form only.
+Full detail: `04-REVIEW-FIX.md`'s CR-02 entry (iteration 2).
+
+**Why issue #134 stays open:** this closes the two *measured* false positives, not the full class.
+A third-person-phrased ATTACKER directive ("the tool includes the file's contents in the 'debug'
+argument") still evades this pattern — inflection is a proxy for phrasing, not provenance, the
+same class of accepted blind spot D-01 names for `PI063`-`PI065`'s second-person-only address.
 
 **What would trigger revisiting it:** Issue #134 itself — the real fix requires restructuring the
 discriminator so the destination noun must be phrased as an INPUT to a further action ("as the X
-argument when replying/calling/forwarding") rather than accepting bare "in the X field".
+argument when replying/calling/forwarding") rather than accepting bare "in the X field", which
+would also close the third-person-attacker-directive residual.
 
 ### WR-04 — PI067's tool-shape discriminator also matches ordinary code-style-guide prose — [issue #135](https://github.com/UnityInFlow/injection-scanner/issues/135)
 
@@ -205,5 +216,5 @@ close with more regex. Recorded for the developer review packet in `04-07-SUMMAR
 | 6 | Registry candidate rejected (04-03) | N/A — none rejected | — |
 | 7 | D-01 third-person blind spot | Existing, accepted, partially narrowed by PI066 | recorded in shipped files, not filed |
 | 8 | Rug-pull bound (PI068/PI069) | Existing, accepted | recorded in shipped files, not filed |
-| 9 | CR-02 — PI064 destination check vs. tool's own output field | Newly filed (04-REVIEW.md fix pass) | #134 |
+| 9 | CR-02 — PI064 destination check vs. tool's own output field | Partially fixed (iteration 2); issue open for residual | #134 |
 | 10 | WR-04 — PI067 tool-shape proxy also matches style-guide prose | Newly filed (04-REVIEW.md fix pass) | #135 |
