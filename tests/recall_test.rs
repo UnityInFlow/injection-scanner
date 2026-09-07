@@ -228,13 +228,12 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // patterns/core/mcp-tool-poisoning.yaml. The remaining two misses (05,
     // 06, both rug-pull markers) are a later plan's work.
     //
-    // Plan 04-05 Task 1 shipped PI063 tool-description-directive,
-    // re-measured 2026-09-07: still **5/8**, unchanged. PI063's
-    // second-person-plus-external-object discriminator reaches payloads 01
-    // and 02 too (both are second-person, filesystem-path-directed
-    // descriptions), via the ordinary prose passes over the raw JSON lines
-    // -- the same reachability mechanism PI015/PI029 already used -- but
-    // both payloads were already counted as detected, so no new line
+    // Plan 04-05 shipped PI063/PI064/PI065, re-measured 2026-09-07: still
+    // **5/8**, unchanged. PI063 (external-object directive), PI064
+    // (file-smuggle channel) and PI065 (emphasis wrapper) all reach
+    // payloads 01 and 02 via the ordinary prose passes over the raw JSON
+    // lines -- the same reachability mechanism PI015/PI029 already used --
+    // but both payloads were already counted as detected, so no new line
     // moves. Payload 07 stays a deliberate miss (D-03's accepted cost); 05
     // and 06 (rug-pull markers) remain a later plan's work: their object is
     // not a filesystem path, an environment variable or a concealment

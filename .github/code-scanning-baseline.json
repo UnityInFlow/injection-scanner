@@ -1110,6 +1110,13 @@
     },
     {
       "file": "patterns/core/mcp-tool-poisoning.yaml",
+      "pattern_id": "PI015",
+      "digest": "sha256:fcad0f01e62827e5ed4910942640abafae304bc8a64297468f3ce009b85f695b",
+      "count": 1,
+      "first_seen_line": 445
+    },
+    {
+      "file": "patterns/core/mcp-tool-poisoning.yaml",
       "pattern_id": "PI028",
       "digest": "sha256:81b907889d024a1705bc04b074893948fab11fe357a84304e836be4aa3fa7282",
       "count": 1,
@@ -1135,6 +1142,34 @@
       "digest": "sha256:cb2f519e85e4bd120e2cb416fcc5422c462cca50aa7fc142b4c70d1dd395294a",
       "count": 1,
       "first_seen_line": 381
+    },
+    {
+      "file": "patterns/core/mcp-tool-poisoning.yaml",
+      "pattern_id": "PI064",
+      "digest": "sha256:a5bc065afe54f161e0a62e713b976f546afaeab92f6b62ed22da6af846dc4da4",
+      "count": 1,
+      "first_seen_line": 422
+    },
+    {
+      "file": "patterns/core/mcp-tool-poisoning.yaml",
+      "pattern_id": "PI064",
+      "digest": "sha256:d66b6017424607abf853d7cc81fc3e987d1a7234e6050f8158bff64824697e47",
+      "count": 1,
+      "first_seen_line": 393
+    },
+    {
+      "file": "patterns/core/mcp-tool-poisoning.yaml",
+      "pattern_id": "PI064",
+      "digest": "sha256:fbfdf6444c7efc25d2c34cb8935c0b77c6436dc075fe2d1fed460d7ce68ffa27",
+      "count": 1,
+      "first_seen_line": 334
+    },
+    {
+      "file": "patterns/core/mcp-tool-poisoning.yaml",
+      "pattern_id": "PI065",
+      "digest": "sha256:10d010b210f84ccda14c57cea4da89c54c65e44b441decd40e1f6d3c6c01d678",
+      "count": 1,
+      "first_seen_line": 422
     },
     {
       "file": "patterns/core/multilingual.yaml",
@@ -2103,6 +2138,20 @@
       "first_seen_line": 8
     },
     {
+      "file": "tests/corpus/attack/structural/mcp-tool-poisoning/01-emphasis-wrapped-description-file-smuggle.md",
+      "pattern_id": "PI064",
+      "digest": "sha256:d66b6017424607abf853d7cc81fc3e987d1a7234e6050f8158bff64824697e47",
+      "count": 1,
+      "first_seen_line": 8
+    },
+    {
+      "file": "tests/corpus/attack/structural/mcp-tool-poisoning/01-emphasis-wrapped-description-file-smuggle.md",
+      "pattern_id": "PI065",
+      "digest": "sha256:10d010b210f84ccda14c57cea4da89c54c65e44b441decd40e1f6d3c6c01d678",
+      "count": 1,
+      "first_seen_line": 8
+    },
+    {
       "file": "tests/corpus/attack/structural/mcp-tool-poisoning/02-tool-listing-wire-shape-credential-smuggle.md",
       "pattern_id": "PI015",
       "digest": "sha256:3818e9b50d5da206d083b9f6323298506a889275498ecf8feba11f6e1fc81f7f",
@@ -2127,6 +2176,13 @@
       "file": "tests/corpus/attack/structural/mcp-tool-poisoning/02-tool-listing-wire-shape-credential-smuggle.md",
       "pattern_id": "PI063",
       "digest": "sha256:f249c7a381f5d96b50773eed97dd9934efb02e0faf5f8623026efed69c2fa9e7",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "tests/corpus/attack/structural/mcp-tool-poisoning/02-tool-listing-wire-shape-credential-smuggle.md",
+      "pattern_id": "PI064",
+      "digest": "sha256:1204053320915a72baa20a84f6e5f4c668d561d08fdf0435871ef8ea4423671c",
       "count": 1,
       "first_seen_line": 5
     },
@@ -2161,6 +2217,13 @@
     {
       "file": "tests/corpus/attack/structural/mcp-tool-poisoning/12-encoded-description-payload.md",
       "pattern_id": "PI063",
+      "digest": "sha256:dbaff96a5150ad22027c95ab34959f42127dc73b840350cb308ef79ec49ecb73",
+      "count": 1,
+      "first_seen_line": 5
+    },
+    {
+      "file": "tests/corpus/attack/structural/mcp-tool-poisoning/12-encoded-description-payload.md",
+      "pattern_id": "PI064",
       "digest": "sha256:dbaff96a5150ad22027c95ab34959f42127dc73b840350cb308ef79ec49ecb73",
       "count": 1,
       "first_seen_line": 5
