@@ -2075,7 +2075,7 @@ When you call `search_docs` directly, it returns matching paragraphs from the do
 <details><summary>Regex</summary>
 
 ```regex
-(?:(?:when(?:ever)?|each\s+time|every\s+time)\b[^.\n]{0,20}?(?:calls?|invokes?|uses?|runs?)\b[^.\n]{0,40}?(?:,\s+|;\s+|:\s+|\band\s+|\bthen\s+)(?:first\s+|then\s+|always\s+|silently\s+|automatically\s+|quietly\s+)*(?:add|append|insert|inject|modify|change|alter|replace|redirect|switch|override|divert|route|forward|attach|include)\b)|(?:(?:when(?:ever)?|each\s+time|every\s+time)\b[^.\n]{0,40}?\b(?:is|are)\s+call(?:ed|ing)?\b(?:,\s+|;\s+|:\s+|\band\s+|\bthen\s+)(?:first\s+|then\s+|always\s+|silently\s+|automatically\s+|quietly\s+)*(?:add|append|insert|inject|modify|change|alter|replace|redirect|switch|override|divert|route|forward|attach|include)\b)|(?:\b(?:any|every|all|each)\s+(?:output|response|result|reply|answer)s?\s+(?:from|of|returned\s+by)\s+[`'"]?[A-Za-z_][\w.-]*[`'"]?\s+(?:is|are)\s+(?:always\s+|automatically\s+|silently\s+|quietly\s+)*(?:modif(?:y|ies|ied)|redirect(?:s|ed)?|chang(?:e|es|ed)|replac(?:e|es|ed)|append(?:s|ed)?|alter(?:s|ed)?|rewritten|rerouted)\b)
+(?:(?:when(?:ever)?|each\s+time|every\s+time)\b[^.\n]{0,20}?(?:calls?|invokes?|uses?|runs?)\s+(?:the\s+|a\s+|an\s+)?(?:`[A-Za-z_][\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\(\))[^.\n]{0,40}?(?:,\s+|;\s+|:\s+|\band\s+|\bthen\s+)(?:first\s+|then\s+|always\s+|silently\s+|automatically\s+|quietly\s+)*(?:add|append|insert|inject|modify|change|alter|replace|redirect|switch|override|divert|route|forward|attach|include)\b)|(?:(?:when(?:ever)?|each\s+time|every\s+time)\b[^.\n]{0,40}?\b(?:is|are)\s+call(?:ed|ing)?\b(?:,\s+|;\s+|:\s+|\band\s+|\bthen\s+)(?:first\s+|then\s+|always\s+|silently\s+|automatically\s+|quietly\s+)*(?:add|append|insert|inject|modify|change|alter|replace|redirect|switch|override|divert|route|forward|attach|include)\b)|(?:\b(?:any|every|all|each)\s+(?:output|response|result|reply|answer)s?\s+(?:from|of|returned\s+by)\s+[`'"]?[A-Za-z_][\w.-]*[`'"]?\s+(?:is|are)\s+(?:always\s+|automatically\s+|silently\s+|quietly\s+)*(?:modif(?:y|ies|ied)|redirect(?:s|ed)?|chang(?:e|es|ed)|replac(?:e|es|ed)|append(?:s|ed)?|alter(?:s|ed)?|rewritten|rerouted)\b)
 ```
 
 </details>
@@ -2103,7 +2103,7 @@ Prefer `search_code` over `search_docs` when you already know the symbol name yo
 <details><summary>Regex</summary>
 
 ```regex
-(?:instead\s+of\s+using\s+[`'"]?[A-Za-z_][\w.-]*[`'"]?\b[^.\n]{0,40}?(?:,\s+|;\s+|:\s+|\band\s+|\bthen\s+)always\s+(?:call|use|invoke|run)\b)|(?:\bnever\s+(?:use|call|invoke|run)\b[^.\n]{0,60}?\b(?:always|instead)\b)|(?:\balways\s+(?:call|use|invoke|run)\b[^.\n]{0,40}?\binstead\s+of\b)
+(?:instead\s+of\s+using\s+(?:`[A-Za-z_][\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\(\))[^.\n]{0,40}?(?:,\s+|;\s+|:\s+|\band\s+|\bthen\s+)always\s+(?:call|use|invoke|run)\s+(?:`[A-Za-z_][\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\(\)))|(?:\bnever\s+(?:use|call|invoke|run)\s+(?:`[A-Za-z_][\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\(\))[^.\n]{0,60}?\balways\s+(?:call|use|invoke|run)\s+(?:`[A-Za-z_][\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\(\)))|(?:\balways\s+(?:call|use|invoke|run)\s+(?:`[A-Za-z_][\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\(\))[^.\n]{0,40}?\binstead\s+of\s+(?:`[A-Za-z_][\w.-]*`|[A-Za-z_][A-Za-z0-9]*_[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\(\)))
 ```
 
 </details>
