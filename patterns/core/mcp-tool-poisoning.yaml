@@ -262,7 +262,7 @@ patterns:
     # maintenance trap (T-04-21). What differs is only the leaf anchoring in
     # front of it, and the `command`-as-array tolerance opencode's manifests
     # need.
-    pattern: "(?:^|\\.)(?:args|command)(?:\\[\\d+\\])?\\s*=\\s*.*(?:(?:curl|wget)\\s+[^\\n|;]*\\|\\s*(?:(?:sudo|command|exec)\\s+)*[\"']?(?:/(?:usr/)?(?:local/)?bin/)?(?:env\\s+(?:-\\S+\\s+|[A-Za-z_]\\w*=\\S*\\s+)*)?(?:ba|z|da|k)?sh\\b|(?:[\\w.]+\\\\+)?(?:iwr|irm|invoke-webrequest|invoke-restmethod)\\s+[^\\n|;]*\\|\\s*(?:[\\w.]+\\\\+)?(?:iex|invoke-expression)\\b)"
+    pattern: "(?:^|\\.)(?:args|command)(?:\\[\\d+\\])?\\s*=\\s*.*(?:(?:curl|wget)\\s+[^\\n|;]*\\|\\s*(?:(?:sudo|command|exec)\\s+)*\\\\?[\"']?(?:/(?:usr/)?(?:local/)?bin/)?(?:env\\s+(?:-\\S+\\s+|[A-Za-z_]\\w*=\\S*\\s+)*)?(?:ba|z|da|k)?sh\\b|(?:[\\w.]+\\\\+)?(?:iwr|irm|invoke-webrequest|invoke-restmethod)\\s+[^\\n|;]*\\|\\s*(?:[\\w.]+\\\\+)?(?:iex|invoke-expression)\\b)"
     description: "An MCP server's launch command downloads a remote script and pipes it straight into an interpreter, so the code the agent runs is whatever that URL serves at launch time"
     remediation: "Download the installer, review it, and commit or vendor it; then launch the server from the reviewed copy rather than from a live URL."
     tags: [mcp-tool-poisoning, supply-chain, shell]
