@@ -132,7 +132,7 @@ Plans:
 - [x] 04-03-PLAN.md — Clean-corpus boundary specimens, vendored registry sample with provenance (D-06)
 - [x] 04-04-PLAN.md — PI060-PI062 config hygiene, MEDIUM, `scope: frontmatter` (D-03)
 - [x] 04-05-PLAN.md — PI063-PI065 tool-description poisoning, HIGH, prose (D-01, D-02)
-- [ ] 04-06-PLAN.md — PI066-PI069 shadowing and rug-pull heuristics, MEDIUM, prose (D-04)
+- [x] 04-06-PLAN.md — PI066-PI069 shadowing and rug-pull heuristics, MEDIUM, prose (D-04)
 - [ ] 04-07-PLAN.md — Whole-category sweep, number reconciliation, deferral issues, phase close
 
 ### Phase 5: Persistence & lifecycle hijack — CAT-03 (#35)
