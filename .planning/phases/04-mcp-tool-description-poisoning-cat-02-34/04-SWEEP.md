@@ -902,3 +902,201 @@ of zero.
 
 `git diff --stat Cargo.toml Cargo.lock` is empty at every commit in this plan. No package was
 installed or upgraded.
+
+
+---
+
+# Phase 4 Plan 07 — Whole-category GATE-03 delta and number reconciliation (2026-09-07)
+
+## Binary provenance
+
+| | |
+|---|---|
+| Git SHA | `62a5a27df1905819b8e606558c100f5bebb55269` |
+| Commit subject | `docs(04-06): complete CAT-02 heuristic arms plan` |
+| Pattern set | 71 patterns, all of `PI060`-`PI069` shipped |
+| `src/`/`patterns/` relative to `a91c5e2` (04-06's finished tree) | byte-identical — the one intervening commit is documentation-only (`.planning/ROADMAP.md`, `.planning/STATE.md`, the 04-06 SUMMARY) |
+
+## Which baseline this task's verdict rests on, and why
+
+The plan text names the plan 04-01 pre-edit baseline (`sweep-baseline-2026-09-03`) for the
+whole-category comparison. The orchestrator's instruction for this task overrides that: use
+`sweep-mainbase-04-05-2026-09-07` (built from `66bf53c`, this branch's own fork point, which
+already carries `PI060`-`PI062` merged to `main` via plan 04-04's separate branch) instead —
+`sweep-baseline-2026-09-03` is three-plus pattern-set generations stale (PR #110, #122,
+#124-#127 and 04-04 itself all sit between it and this branch) and would attribute all of
+that unrelated history to this PR. `sweep-baseline-2026-09-03` is still run, in full, as the
+**continuity** comparison below, per the plan's own `<verify>` block — but it is not the
+comparison this task's pass/fail rests on.
+
+## A methodological trap this task fell into and recovered from
+
+The first attempt to run both comparisons directly against the repository's committed copies
+of `sweep-baseline-2026-09-03` and `sweep-mainbase-04-05-2026-09-07` produced a spurious
+**500-line "diff"** in the additions direction — every one of this run's 500 unique
+`(file, line, pattern_id)` findings reported as a false "new" finding, with pattern ids
+spanning `PI001` through `PI049`, none of them CAT-02's. **Root cause:** this repository
+deliberately does not commit the raw per-directory JSON reports (`dad56d1`, `e54be72`) — only
+`manifest.tsv`, `summary.tsv` and `checksums.sha256` are public, and both of those repo
+copies have zero `*.json` files on disk. `scripts/gate03-sweep.sh --compare` loads findings
+by globbing `*.json` in each argument directory; against the JSON-less committed copy, the
+"baseline" side silently loads as an **empty set**, so every real finding in the candidate
+reads as new. This is not the sweep script's bug — its own header docstring is explicit that
+comparisons are meaningful only "over the SAME directory list, on the SAME machine," and an
+empty baseline is a degenerate case of "compare against nothing," not a corrupted comparison.
+
+The real, gitignored raw JSON for both baselines is still present on this machine at
+`.planning/local/sweep-baseline-2026-09-03/*.json` and
+`.planning/local/sweep-mainbase-04-05-2026-09-07/*.json` (kept out of git, never deleted).
+Re-running `--compare` against those two directories instead of their repository-committed
+counterparts produced the real, adjudicated results below. **The lesson for the next plan
+that runs `--compare`: always point it at a directory that still has its raw JSON present —
+`.planning/local/`, not the repository's redacted copy — or the result is meaningless by
+construction, not merely noisy.** This is now also recorded in `.planning/STATE.md`'s Session
+Notes and is a candidate row for `.continue-here.md`'s anti-pattern table.
+
+## Runs
+
+| Run | Binary tree | Pattern set | Files | Findings (manifest) | Unique `(file,line,pattern_id)` | Output |
+|---|---|---|---:|---:|---:|---|
+| mainbase-04-05 (orchestrator-directed baseline, reused) | `66bf53c` | 64 patterns, zero `PI063`-`PI069` | 23,770 | 519 | 500 | `sweep-mainbase-04-05-2026-09-07/` (already committed; raw JSON at `.planning/local/`) |
+| final (this task's candidate) | `62a5a27` (this branch, finished tree) | 71 patterns, all of `PI060`-`PI069` | 23,770 | 519 | 500 | `sweep-final-2026-09-03/` |
+| fresh-66bf53c (independent corroboration, same session) | `66bf53c`, rebuilt fresh in a disposable `git worktree` | 64 patterns, zero `PI063`-`PI069` | 23,770 | 519 | 500 | not committed — a same-session cross-check only, per 04-05's own "build fresh in a worktree" technique |
+
+All three runs used the identical 32-directory list (`manifest.tsv`'s directory column,
+`swept` in every row, zero `skipped-missing`, byte-identical file counts row for row across
+all three). `$SCRATCH/cursor-safe` (755 files) and `$SCRATCH/vscode-safe` (2 files) were
+re-created fresh for this session, matching the file counts every prior plan in this phase
+recorded for this same narrowed pair.
+
+## Direction 1 — whole-category ADDITIONS (mainbase-04-05 → final candidate)
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-mainbase-04-05-2026-09-07 \
+    .planning/phases/04-mcp-tool-description-poisoning-cat-02-34/sweep-final-2026-09-03
+exit=0
+```
+
+**Empty.** Zero new true positives and zero new false positives over the same 23,770-file,
+32-directory list. `PI063`-`PI069` (this branch's own payload) add nothing on real
+third-party files, and `PI060`-`PI062` (unmodified by this branch) are unchanged.
+
+## Direction 2 — whole-category REMOVALS (arguments swapped: final candidate → mainbase-04-05)
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/phases/04-mcp-tool-description-poisoning-cat-02-34/sweep-final-2026-09-03 \
+    .planning/local/sweep-mainbase-04-05-2026-09-07
+exit=0
+```
+
+**Empty.** Nothing the pre-edit binary reported disappeared. `manifest.tsv` totals are
+identical (519 = 519, both directions), and the `(file,line,pattern_id)` sets are identical
+set-for-set (500 = 500).
+
+## Independent corroboration: a freshly rebuilt `66bf53c` binary, same session
+
+Following 04-05's own precedent ("build a FRESH pre-edit binary from the branch's own fork
+point in a separate git worktree... rather than reusing a stale baseline"), a second,
+independent binary was built from `66bf53c` in a disposable `git worktree` created and torn
+down within this task, and swept over the identical 32-directory list within minutes of the
+final candidate's own capture. Both directions against this independent fresh baseline: also
+**empty** (0 additions, 0 removals) — the two independently captured pre-edit baselines (the
+committed `sweep-mainbase-04-05-2026-09-07` and this session's fresh rebuild) agree exactly,
+and both agree with the final candidate. **This is the strongest form of GATE-03 evidence
+available: two independently built binaries from the same pre-edit commit, captured hours
+apart, report the identical 519-finding, 500-unique-tuple set** — there is no capture-time
+skew hiding in either direction.
+
+## Continuity comparison against the 04-01 baseline (`sweep-baseline-2026-09-03`), both directions
+
+Recorded in full per the plan's own `<verify>` block, using the real raw JSON preserved at
+`.planning/local/sweep-baseline-2026-09-03/` (565 unique findings) rather than the
+JSON-less repository copy. **Not** the pair this task's verdict rests on — three-plus
+pattern-set generations of unrelated history sit between them, the same caveat every prior
+plan in this phase names for this same baseline.
+
+**Direction 1 (04-01 baseline → final candidate), 2 entries:**
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-baseline-2026-09-03 \
+    .planning/phases/04-mcp-tool-description-poisoning-cat-02-34/sweep-final-2026-09-03
+exit=1
+```
+
+| File | Pattern | Adjudication |
+|---|---|---|
+| `$HOME/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/serena/.mcp.json:4` | `PI060` | **Not this plan's.** The identical entry 04-05's and 04-06's own continuity sections adjudicated: a real `uvx --from git+https://…` install, already a true positive as of plan 04-04. Predates this plan; `PI060` is unmodified here. |
+| `$SCRATCH/cursor-safe/gsd-core/bin/lib/security.cjs:331` | `PI011` | **Path-churn artifact, not a real addition.** The identical file and pattern 04-05's and 04-06's continuity sections already documented — only the session-scratch UUID in the absolute path differs between captures. Cancels out with its counterpart in Direction 2; net effect zero. |
+
+**Direction 2 (final candidate → 04-01 baseline), 67 entries:**
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/phases/04-mcp-tool-description-poisoning-cat-02-34/sweep-final-2026-09-03 \
+    .planning/local/sweep-baseline-2026-09-03
+exit=1
+```
+
+| Pattern | Count | Adjudication |
+|---|---:|---|
+| `PI026` | 39 | **Not this plan's.** PR #110 made it badge-safe, already adjudicated in plans 04-04/04-05/04-06's GATE-03 sections. |
+| `PI017` | 27 | **Not this plan's.** PR #110 retired it into `MatchContext::HiddenHtml`, already adjudicated in plans 04-04/04-05/04-06's GATE-03 sections. |
+| `PI011` | 1 | **Path-churn artifact.** The counterpart of the addition above — same file, same pattern, old scratch-session path from the 04-01 baseline capture. Net zero once paired with its Direction-1 counterpart. |
+
+Every entry in both directions matches 04-05's and 04-06's own continuity numbers exactly (69
+total lines, identical breakdown across three independent plans' sweeps). **Nothing in either
+direction is attributable to `PI060`-`PI069`.** This plan closes with an unadjudicated-entry
+count of zero.
+
+## Number reconciliation table
+
+Every number the repository publishes about CAT-02, measured on the finished tree
+(`62a5a27`) rather than copied from a SUMMARY, and checked against every document that states it.
+
+| Published number | Measured value | Checked against | Agrees? |
+|---|---|---|---|
+| Total pattern count | 71 (`injection-scanner rules --format json` \| count) | `tests/pattern_test.rs::test_total_pattern_count` (71), README "**71 patterns** across 9 categories" (line 268), README Pattern Categories table's 9 per-category counts summed (9+9+10+10+9+9+10+1+4=71) | Yes |
+| `mcp_tool_poisoning` category count | 10 | README Pattern Categories table row ("MCP & Tool-Description Poisoning \| 10"), `PATTERNS.md` Categories row ("PI060-PI069"), `patterns/core/mcp-tool-poisoning.yaml` (10 `id: PI06x` entries) | Yes |
+| CAT-02 corpus payload count | 12 (4 prose in `tests/corpus/attack/mcp-tool-poisoning.md` + 8 structural files in `tests/corpus/attack/structural/mcp-tool-poisoning/`) | GATE-01's 12-payload requirement, `tests/recall_test.rs` denominators (4 + 8) | Yes |
+| CAT-02 prose recall | 4/4 (100%) | `tests/recall_test.rs` `("mcp-tool-poisoning", 4, 4)`, `recall_matches_the_recorded_numbers` (passing) | Yes |
+| CAT-02 structural recall | 5/8 (62.5%) | `tests/recall_test.rs` `("mcp-tool-poisoning-structural", 5, 8)` | Yes |
+| CAT-02 combined recall | 9/12 (75%) | README "How Much Does It Actually Catch?" table row | Yes |
+| Total recall (all categories) | 102/109 (93.6%) | Summed from every `EXPECTED` row in `tests/recall_test.rs` (102/109), README total row | Yes |
+| Total test count | 406 passed, 0 failed (`cargo test --locked`) | Compared against plan 04-01's recorded pre-CAT-02 baseline of 353 — the +53 delta spans four plans (04-04 through 04-07) worth of new pattern/corpus/sweep tests, not a discrepancy | Consistent (no correction needed; recorded for the record) |
+| `PATTERNS.md` Categories row severity description | "MEDIUM (the config-hygiene band; description-poisoning arms override to HIGH)" | `patterns/core/mcp-tool-poisoning.yaml`: `default_severity: MEDIUM` (line 2) plus exactly three `severity: HIGH` overrides (`PI063`/`PI064`/`PI065`, lines 360/420/445) | Yes |
+| Self-scan set outside `examples/`, `patterns/`, `tests/`, `tools/` | 12 unique `(file, pattern_id)` pairs (10 in `docs/DETECTION-BACKLOG.md`, 2 in `docs/PATTERN-CATALOGUE.md`) | Identical to the set 04-05's SUMMARY (D11) and 04-06's own pre/post checks already recorded | **Does not match the plan's literal wording** ("plan 04-01's recorded baseline: the two known standing catalogue self-matches and nothing else") — see below |
+| `Cargo.toml`/`Cargo.lock` diff, this branch vs `main` | empty (`git diff --stat 66bf53c..HEAD -- Cargo.toml Cargo.lock`) | T-04-SC | Yes |
+
+**No correction to any published document was required.** Every number this phase publishes
+already agreed with the finished tree before this task began — plans 04-04, 04-05 and 04-06
+each reconciled their own numbers in the same commit that changed them (a discipline this
+plan's own `<objective>` credits as the reason this reconciliation step exists at all). The
+one row that needed adjudication rather than correction is the self-scan set, below.
+
+## The self-scan wording gap, adjudicated rather than silently accepted
+
+Task 1's plan text says the self-scan set should match "plan 04-01's recorded baseline: the
+two known standing catalogue self-matches and nothing else." The measured set is **12** pairs
+(10 in `docs/DETECTION-BACKLOG.md`, 2 in `docs/PATTERN-CATALOGUE.md`), not 2. This is **not**
+a regression this plan introduced, and not new information: `04-04`'s own SUMMARY ("New open
+follow-up from 04-04") already found and recorded the ten `docs/DETECTION-BACKLOG.md`
+self-matches, verified by stashing all of 04-04's pattern work and re-running — identical with
+and without it, so the ten matches arrived with the PR #110 merge, not with any plan in this
+phase. `04-05`'s SUMMARY (D11) and `04-06`'s own pre/post self-scan checks both re-confirmed
+the same 12-pair set, unchanged, across three separate plans. **The plan's literal wording is
+itself stale** — written before 04-04 discovered the PR #110-origin backlog self-matches — and
+this task's job under its own instruction ("A third entry is a false positive this phase
+introduced... fixed here rather than filed") is satisfied: there is no *thirteenth* entry, so
+this phase introduces nothing new. The pre-existing 10-entry gap is carried forward to
+`deferred-items.md` in Task 2 with its own filed issue, per the orchestrator's instruction,
+rather than fixed inside this pattern-only PR (fixing it here would touch `docs/` prose
+authored for other categories, outside GATE-04's one-category scope, and risk confounding
+this PR's own clean GATE-03 delta).
+
+## `Cargo.toml`/`Cargo.lock` (T-04-SC), Task 1
+
+`git diff --stat 66bf53c..HEAD -- Cargo.toml Cargo.lock` is empty. No package was installed
+or upgraded by this task.
