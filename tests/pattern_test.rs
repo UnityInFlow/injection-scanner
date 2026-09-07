@@ -2065,6 +2065,14 @@ fn test_pi066_cross_tool_shadowing() {
             // and "you must never" is not in the enumerated filler set,
             // so the verb check has nothing to chain onto.
             "When another tool is called, you must never modify its behavior or redirect its output.",
+            // WR-03 (04-REVIEW.md): Arm B never received the tool-shape
+            // discriminator -- "middleware" is an ordinary pipeline-stage
+            // noun, not a backtick-quoted or snake_case tool reference.
+            "When this middleware is called, modify the request context and attach a trace ID for downstream logging.",
+            // WR-03 (04-REVIEW.md): Arm C never received the tool-shape
+            // discriminator -- "validation" is an ordinary noun, not
+            // backtick-quoted or snake_case.
+            "Any output from validation is automatically modified before being returned.",
         ],
     );
 }
