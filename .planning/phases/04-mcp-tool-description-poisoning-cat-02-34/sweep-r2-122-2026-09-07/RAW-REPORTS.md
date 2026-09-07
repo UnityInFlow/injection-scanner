@@ -12,6 +12,9 @@ public history.
   widening. Its baseline is the unchanged `sweep-mainbase-122-2026-09-07/`; `sweep-after-122-2026-09-07/`
   is the first-review candidate that sits between them. See the "#122 review r1" section of
   `../04-SWEEP.md` for the two-directional adjudication.
+- A third run (`sweep-r3-122-2026-09-07`, local only) was captured after the escaped-quote arm was
+  added. Its 32 raw reports are **byte-identical** to this directory's, so it is not committed
+  separately; see the "Third widening" subsection of `../04-SWEEP.md`.
 
 ## Paths in this directory are redacted (review #34-r1 finding 5)
 

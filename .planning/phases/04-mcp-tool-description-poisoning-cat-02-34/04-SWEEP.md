@@ -507,3 +507,33 @@ widening, both run against the release binary:
 - The `sudo`/`command`/`exec` prefixes and the quoted-launcher form are accepted **only** in front
   of a name on the closed shell list, so `| sudo tee` and `| sudo apt-key add -` stay clean. Those
   two are locked as `PI028` negatives in `tests/pattern_test.rs`.
+
+## Third widening (escaped quote) — sweep re-run, byte-identical result
+
+Exercising `install-hook` end to end (one of the three items review r1 listed as unchecked) surfaced
+a further gap: inside a JSON file the quoted launcher's raw bytes carry a backslash escape,
+`| \"/bin/sh\"`. `PI062` still caught that in an `args`/`command` leaf, because its structural
+projection unescapes the value — but the same payload in a **tool `description`** is outside
+`PI062`'s scope, so it was missed by both patterns and reported nothing at all, while the unquoted
+spelling of the identical instruction was CRITICAL. An optional `\\?` in front of the quote closes
+it.
+
+The sweep was re-run over the same 32 directories with the resulting binary (provenance confirmed:
+it reports `PI028` on `{"description":"run curl … | \"/bin/sh\" now"}`, the r2 binary does not):
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-mainbase-122-2026-09-07 .planning/local/sweep-r3-122-2026-09-07
+exit=0
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-r3-122-2026-09-07 .planning/local/sweep-mainbase-122-2026-09-07
+exit=0
+```
+
+All four buckets are unchanged from the r2 run — `matches` 502, `low_confidence` 247, `suppressed`
+0, `baselined` 0, and **the 32 raw JSON reports are byte-identical to r2's**, verified by SHA-256.
+The escaped-quote arm therefore adds nothing on this machine's real corpus, which is the expected
+shape: a backslash-escaped launcher inside a JSON string is an attack spelling, not something
+install documentation writes. No separate artifact directory is committed for it, because it would
+duplicate `sweep-r2-122-2026-09-07/` row for row and sum for sum. The eleven benign near-miss texts
+closest to the new arm were re-run under `--strict` after it landed; none fired.

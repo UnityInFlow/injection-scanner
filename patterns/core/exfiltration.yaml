@@ -173,8 +173,13 @@ patterns:
     # Widened again in #122 review r1, after an adversarial pass found the
     # launcher token had to be bare and unquoted to match. All of these keep
     # execution semantics and were one keystroke away:
-    #   3. the launcher may be quoted -- `| "/bin/sh"`, `| '/bin/sh'` -- which
-    #      is the natural spelling inside a JSON manifest value.
+    #   3. the launcher may be quoted -- `| "/bin/sh"`, `| '/bin/sh'` -- and the
+    #      quote may carry a JSON backslash escape, because inside a `.mcp.json`
+    #      the raw bytes on disk are `| \"/bin/sh\"`. PI062 reaches that only
+    #      through its structural projection of `args`/`command`; the same
+    #      payload in a tool DESCRIPTION is outside PI062's scope and was
+    #      missed by BOTH patterns until this arm was added (review r1
+    #      follow-up, found by exercising `install-hook` end to end).
     #   4. an `exec`/`command`/`sudo` prefix -- `| sudo sh`, `| command /bin/sh`.
     #   5. `env` carrying options or assignments -- `| /usr/bin/env -S sh`,
     #      `| env FOO=1 sh` -- not only a bare `env`.
@@ -207,7 +212,7 @@ patterns:
     #
     # T-04-21: PI062 (`patterns/core/mcp-tool-poisoning.yaml`) carries this
     # launcher vocabulary character for character. Change the two together.
-    pattern: "((?:curl|wget)\\s+[^\\n|;]*\\|\\s*(?:(?:sudo|command|exec)\\s+)*[\"']?(?:/(?:usr/)?(?:local/)?bin/)?(?:env\\s+(?:-\\S+\\s+|[A-Za-z_]\\w*=\\S*\\s+)*)?(?:ba|z|da|k)?sh\\b|(?:[\\w.]+\\\\+)?(?:iwr|irm|invoke-webrequest|invoke-restmethod)\\s+[^\\n|;]*\\|\\s*(?:[\\w.]+\\\\+)?(?:iex|invoke-expression)\\b)"
+    pattern: "((?:curl|wget)\\s+[^\\n|;]*\\|\\s*(?:(?:sudo|command|exec)\\s+)*\\\\?[\"']?(?:/(?:usr/)?(?:local/)?bin/)?(?:env\\s+(?:-\\S+\\s+|[A-Za-z_]\\w*=\\S*\\s+)*)?(?:ba|z|da|k)?sh\\b|(?:[\\w.]+\\\\+)?(?:iwr|irm|invoke-webrequest|invoke-restmethod)\\s+[^\\n|;]*\\|\\s*(?:[\\w.]+\\\\+)?(?:iex|invoke-expression)\\b)"
     description: "Remote script download piped directly to a shell interpreter"
     remediation: "Remove pipe-to-shell one-liners. Download, review, then execute deliberately if needed."
     tags: [exfiltration, shell]
