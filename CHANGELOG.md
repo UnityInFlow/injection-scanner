@@ -20,6 +20,33 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   threat-model payloads went from the pre-pattern 0/12 baseline to **12/12 (100%)**; measured
   library-wide recall moved from 63/72 to **70/72 (97.2%)**.
 
+- **MCP & Tool-Description Poisoning** category (`PI060`-`PI069`, #34): detects the attack the
+  user never sees — instructions hidden in a tool's own `description`, read by the model on
+  every call and never surfaced in a host UI — plus the supply-chain hygiene signals that
+  describe how such a tool arrives in the first place. Ten patterns across two severity bands:
+
+  | ID | Name | Severity | Detects |
+  |---|---|---|---|
+  | `PI060` | unvetted-mcp-server-source | MEDIUM | An MCP server entry installed from a git reference, repository shorthand or archive URL (`git+https://…`, `github:owner/repo`, `.tgz`/`.zip`/`.git`) rather than a package registry |
+  | `PI061` | plaintext-mcp-endpoint | MEDIUM | A server entry pointing at a plaintext `http://` endpoint rather than TLS, excluding loopback |
+  | `PI062` | remote-script-mcp-launch | MEDIUM | A launch command that pipes a downloaded script into a shell (`curl … \| sh`) |
+  | `PI063` | tool-description-directive | HIGH | A tool `description` that addresses the model in the second person and directs it at something outside its own declared arguments — a filesystem path, an environment variable, or a concealment instruction |
+  | `PI064` | tool-description-file-smuggle | HIGH | A description that smuggles a file's contents through an argument the tool's own schema does not describe as carrying file contents |
+  | `PI065` | tool-description-emphasis-block | HIGH | A `<IMPORTANT>...</IMPORTANT>`-style tag-delimited or bracketed emphasis wrapper enclosing a directive |
+  | `PI066` | cross-tool-shadowing | MEDIUM | A description that names a *different* tool's invocation (or output) as the trigger for a directive, in the third person, without requiring second-person address |
+  | `PI067` | tool-override-directive | MEDIUM | A description that removes the reader's choice between two named tools (`instead of using X, always Y`), distinct from an ordinary recommendation |
+  | `PI068` | version-conditional-directive | MEDIUM | A directive whose consequent is gated on a version comparison |
+  | `PI069` | deferred-activation-directive | MEDIUM | A directive whose consequent is gated on a date, an approval, or a call count |
+
+  `PI063`-`PI065` are HIGH — the severity `install-hook` blocks a commit at by default — because
+  this is the attack shape the category is named for. `PI060`-`PI062` and `PI066`-`PI069` are
+  MEDIUM by category-default inheritance: real, worth surfacing in `check`, JSON, SARIF and code
+  scanning, but below the commit-blocking line. Recall on this category's 12 threat-model
+  payloads went from the pre-pattern 6/12 baseline to **9/12 (75%)**; measured library-wide
+  recall moved from 76/84 (90.5%, the pre-pattern baseline measured immediately after this
+  category's corpus landed) to **102/109 (93.6%)** as the corpus grew alongside the patterns,
+  both here and in categories outside this phase.
+
 ### Changed
 
 - **Behaviour change: a wildcard tool grant in a scanned file's own frontmatter is now a
@@ -32,6 +59,51 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   regression — see the README's "Behaviour change" note for the full justification and the
   `--baseline` migration path (shipped in v0.1.0) for consumers that need to accept their current
   state before narrowing it.
+
+- **Behaviour change: an MCP server entry with an off-registry install source, a plaintext
+  endpoint, or a remote-script launch is now a MEDIUM finding (D-03).** On upgrade, a consumer's
+  CI will newly see a finding on any `.mcp.json`, `mcp.json`, `claude_desktop_config.json` or
+  settings-shaped file matching one of these three shapes. These sit below the severity
+  `install-hook` blocks commits at, so an existing pre-commit hook keeps passing; `--baseline`
+  remains the migration path. Deliberately **not** reported: the ordinary unpinned registry
+  install (`npx -y @scope/pkg`) — measured to be the ecosystem default (8 of 24 real manifests
+  with a launch command use it), so reporting it would mean reporting almost every real MCP
+  setup. See the README's "Behaviour change" note and the header of
+  `patterns/core/mcp-tool-poisoning.yaml` for the full measurement.
+
+- **Behaviour change: a tool `description` addressing the model in the second person and
+  directing it at something outside its own declared arguments is now a HIGH finding (D-01).**
+  `PI063`-`PI065` fire on this shape from their first committed draft — a filesystem path, a
+  credential file, an environment variable, or a file's contents smuggled through an unrelated
+  argument. These are HIGH because this category exists for exactly this shape: instructions
+  hidden in a tool's own description, read by the model on every call and never surfaced in a
+  host UI. On upgrade, a consumer's CI will newly see a finding on any vendored MCP tool
+  definition whose description carries this shape.
+
+- **Behaviour change: a tool description that shadows a different tool, overrides a tool
+  choice, or gates a directive on a version/date/approval/call-count is now a MEDIUM finding
+  (D-04).** `PI066` closes the third-person blind spot `PI063`-`PI065`'s second-person
+  discriminator deliberately accepts; `PI067` detects substitution rather than mere
+  recommendation; `PI068`/`PI069` detect the rug-pull class's conditional LANGUAGE, not the
+  class itself. See the Security note below and the README's four behaviour-change callouts for
+  the full narrowing and every accepted cost.
+
+### Security
+
+- **CAT-02's discriminators trade recall for false-positive safety in two named, accepted ways.**
+  (1) `PI063`-`PI065` require second-person address; a bare third-person payload aimed directly
+  at the model, with no other tool referenced, is outside their reach by design — the accepted
+  cost is stated in `patterns/core/mcp-tool-poisoning.yaml`'s header comment, and `PI066`
+  narrows but does not close it (it closes only the cross-tool-shadowing shape specifically).
+  (2) `PI068`/`PI069` detect version-, date-, approval- and call-count-conditional directive
+  LANGUAGE only — they cannot and do not mitigate the rug-pull class itself, since a single
+  static scan cannot prove a server will not silently republish a different, poisoned
+  description once a gating condition is met. Both limitations are measured and recorded, not
+  discovered in review; see `.planning/phases/04-mcp-tool-description-poisoning-cat-02-34/deferred-items.md`
+  for the full accounting, including two engine-capability gaps found during this work and filed
+  as follow-up issues: a JSONC-commented `mcp.json` silently skips the structural pass with no
+  diagnostic (#129), and the decoded-layer pass does not re-run structural (`scope: frontmatter`)
+  patterns against a decoded value (#130).
 
 ## [0.1.0] - 2026-08-29
 

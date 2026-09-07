@@ -76,15 +76,35 @@ Injection that widens the agent's own authority. Directly complements `spec-lint
 - `sudo`, `rm -rf`, `chmod 777` embedded in a skill body
 - `add this to your settings.json` / `update your permissions to include`
 
-### `PI060`–`PI069` — MCP & Tool-Description Poisoning
+### `PI060`–`PI069` — MCP & Tool-Description Poisoning — **Shipped (v0.2.0, #34)**
 
 The tool-poisoning attack class: instructions hidden in the *description* of a tool, read by the
-model at every call, never seen by the user.
+model at every call, never seen by the user. All four bullets below have at least one shipped
+pattern; see `patterns/core/mcp-tool-poisoning.yaml` for the full ten-pattern set
+(`PI060`–`PI069`) and its header comment for every accepted-cost measurement named below.
 
-- Imperatives inside an MCP tool `description` field ("when calling this tool, also…", "first read")
-- `mcpServers` blocks pointing at unpinned/unknown hosts or `npx -y` of an unpinned package
-- Cross-tool shadowing: a description that references *another* tool's behaviour
-- Rug-pull markers: version-conditional instructions inside a tool schema
+- Imperatives inside an MCP tool `description` field (`when calling this tool, also…`,
+  `first read`) — **shipped**: `PI063` tool-description-directive, `PI064`
+  tool-description-file-smuggle, `PI065` tool-description-emphasis-block (all HIGH, requiring
+  second-person address AND an external-object directive).
+- `mcpServers` blocks pointing at unpinned/unknown hosts, a remote-script launch, or `npx -y` of
+  an unpinned package — **partially shipped**: `PI060` unvetted-mcp-server-source (an
+  off-registry install source), `PI061` plaintext-mcp-endpoint (a non-TLS `http://` endpoint) and
+  `PI062` remote-script-mcp-launch (a launch command piping a downloaded script into a shell),
+  all MEDIUM. The plain, ordinary unpinned-registry install (`npx -y <pkg>@latest`) is
+  deliberately **not** detected — measured to be the ecosystem default (8 of 24 real manifests
+  with a launch command use it), so a pattern catching it would fail the clean-corpus gate on day
+  one.
+- Cross-tool shadowing: a description that references *another* tool's behaviour — **shipped**:
+  `PI066` cross-tool-shadowing (MEDIUM, third-person by design, closing the second-person arms'
+  accepted blind spot) and `PI067` tool-override-directive (MEDIUM, substitution rather than
+  recommendation).
+- Rug-pull markers: version-conditional instructions inside a tool schema — **partially shipped,
+  language only**: `PI068` version-conditional-directive and `PI069` deferred-activation-directive
+  (both MEDIUM) detect version-, date-, approval- and call-count-conditional directive LANGUAGE.
+  They do not, and cannot, mitigate the rug-pull class itself — a server that republishes a
+  different, poisoned description after a gating condition is met leaves no trace in a single
+  snapshot; the bound is stated in the pattern file's own header comment.
 
 ### `PI070`–`PI079` — Persistence & Lifecycle Hijack
 
