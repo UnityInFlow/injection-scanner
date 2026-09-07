@@ -2132,6 +2132,11 @@ fn test_pi068_version_conditional_directive() {
             // consequent documents the software rather than instructing
             // the model.
             "Deprecated since version 1.5 -- this endpoint will be removed in a future release. Migrate to `new_search` when convenient.",
+            // WR-02 (04-REVIEW.md): the "automatically <verb>" branch used
+            // to accept any word (`\w+`) -- an ordinary factual statement
+            // about automated housekeeping, sharing the version-comparison
+            // antecedent but with a factual, non-directive consequent.
+            "Since version 2.0, automatically caches results for faster response times.",
         ],
     );
 }
@@ -2166,6 +2171,11 @@ fn test_pi069_deferred_activation_directive() {
             // relaxed_pattern mutation control (GATE-05) is measured
             // against.
             "After 100 calls, the response cache is cleared and the server logs the query volume for that period.",
+            // WR-02 (04-REVIEW.md): shares PI068's fix -- the
+            // "automatically <verb>" branch used to accept any word, so
+            // an ordinary factual description of automated housekeeping
+            // (approval-gated antecedent, factual consequent) fired.
+            "Once approved by the security team, automatically archives the ticket.",
         ],
     );
 }
