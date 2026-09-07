@@ -4,8 +4,8 @@ milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
 stopped_at: Completed 04-06-PLAN.md
-last_updated: "2026-09-07T19:35:00.000Z"
-state_head: a91c5e2
+last_updated: "2026-09-07T18:27:59.931Z"
+state_head: e74f7a6faf2f1bdcb9e9762b7def82e287778600
 progress:
   total_phases: 5
   completed_phases: 3
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md`
 
 ## Current Phase
 
-**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **in progress (6/7 plans — 04-01, 04-02, 04-03, 04-04, 04-05, 04-06 done)**
+**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **all 7 plans complete (04-01 through 04-07)** — phase-complete marker and the PR are the orchestrator's to set after its own verification runs
 
 Phase 3 shipped 2026-09-02 as **PR #109** (rebase-merged, issue #33 auto-closed): `PI050`-`PI057`,
 the `relaxed_pattern` schema field, and ADR-004. Its code review found one critical false positive
@@ -153,6 +153,68 @@ against it came back empty after the re-narrowing fix. **Plan 04-07 should reuse
 `sweep-baseline-2026-09-03` or either of the two prior `sweep-mainbase-*` directories, all now
 stale.
 
+**04-07 shipped 2026-09-07 (same branch `feat/34-mcp-tool-poisoning-pi063`).** CAT-02 close-out:
+the whole-branch GATE-03 delta against `sweep-mainbase-04-05-2026-09-07` is clean in both
+directions (0 additions, 0 removals), independently corroborated with a freshly rebuilt
+`66bf53c` binary in the same session. Every published number (71 patterns, 102/109 recall,
+12-payload CAT-02 corpus, 406 tests) was measured against the finished tree and already agreed
+with the README/`PATTERNS.md`/`tests/recall_test.rs` — plans 04-04/04-05/04-06 had each already
+reconciled their own numbers in the commit that changed them, so this close-out needed zero
+corrections, only verification. Four measured limitations were filed as issues: the JSONC parse
+gap (#129), the decoded-layer pass's inability to reach a structural pattern (#130), D-05's
+structural cross-reference (#131), and the `docs/DETECTION-BACKLOG.md` self-match arriving with
+the PR #110 merge (#132, not attributable to any Phase 4 plan). WR-02 (the `tool-permission-abuse/`
+corpus README gap) is filed as #133 and its `.planning/WINDOWS.md` ledger entry waived; the
+`src/frontmatter.rs:219` char-boundary panic window is marked fixed (already resolved by quick
+task 260903-fast / `d28dfd0`).
+
+Four things worth not rediscovering.
+
+**(1) `scripts/gate03-sweep.sh --compare` is meaningless against this repository's own
+committed sweep directories — always point it at `.planning/local/`.** This repo deliberately
+does not commit the raw per-directory JSON reports (`dad56d1`, `e54be72`); only `manifest.tsv`,
+`summary.tsv` and `checksums.sha256` are public. `--compare` loads findings by globbing `*.json`
+in each argument directory, so comparing against a repository-committed (JSON-less) sweep
+directory silently loads an **empty baseline**, and every real finding in the candidate reads
+as a false "new" one — this produced a spurious 500-line "diff" on the first attempt in this
+plan. The real, gitignored JSON is still on disk at `.planning/local/<sweep-dir>/*.json`;
+re-pointing `--compare` there produced the correct, adjudicated result (0/0 whole-branch delta).
+**Candidate for `.continue-here.md`'s anti-pattern table** — this is a variant of "the fixture
+was green while the real thing was untested," except here the fixture (an empty baseline) was
+silently substituted for the real one by a missing file, not an intentional shortcut.
+
+**(2) The `relaxed_pattern` ratchet's id range did not cover this phase's ids despite an
+adjacent comment claiming it did — already found and fixed in 04-01, re-confirmed here.**
+`tests/pattern_policy_test.rs`'s `requires_relaxed_pattern` is `id >= 50` (open-ended), not the
+originally-shipped closed `50..=59` range a comment nearby once claimed was sufficient — a
+closed range would have silently exempted every `PI060`+ pattern in this phase from GATE-05's
+mutation-tested false-positive control. Carried forward for Phase 5 (`PI070`+): the open-ended
+predicate already covers it; no further repair needed, but the failure mode (inheriting a
+documented range without checking it against the next category's ids) is exactly
+`.continue-here.md`'s existing "inheriting a documented reason without measuring it" anti-pattern.
+
+**(3) The structural corpus collector and both clean-corpus enumerations are non-recursive.**
+`tests/recall_test.rs`'s `categories()` (`p.is_file()` filter) and `tests/corpus_test.rs`'s
+clean-corpus enumeration both use `fs::read_dir` one level deep — a subdirectory is invisible to
+either. This is why `structural_categories()` exists as a dedicated second collector walking one
+level further into `tests/corpus/attack/structural/`. Phase 5 (CAT-03): if any future corpus
+needs a third level of nesting, neither collector reaches it without a third dedicated walker.
+
+**(4) The decoded-layer pass runs only prose-scoped patterns — a `scope: frontmatter` pattern
+never sees a decoded value, even inside a document the structural pass otherwise projects.**
+Measured, not assumed: `PI063`/`PI064` (prose-scoped) reach the base64-encoded description
+payload via the ordinary decoded-layer pass over the raw JSON text; no CAT-02 *structural*
+pattern needs to decode a projected value today, so this has not yet produced a measured miss.
+Filed as #130. Phase 5: any future structural pattern whose target value could plausibly be
+attacker-encoded inherits this same gap.
+
+**What Phase 5 inherits, explicitly:** the `relaxed_pattern` obligation (`id >= 50`, already
+covers `PI070`+), the CR-01 negation rule (fix negation where the negator sits — clause-initial
+anchoring before the span, an enumerated filler set inside it), the per-category structural
+corpus layout (`tests/corpus/attack/structural/<category>/`, one level of nesting, non-recursive
+collectors), and the open follow-ups in `deferred-items.md` (#129-#133, D-01's accepted
+third-person blind spot, the rug-pull bound).
+
 ## The milestone in one paragraph
 
 v0.1.0 made the scanner detect the attacks its README already claimed — recall **10/60 -> 56/60**.
@@ -169,7 +231,7 @@ lifecycle hook that reinstalls the attacker's instructions after the file is cle
 | 1 | ENG-01 structural frontmatter engine | #32 | **Done** — PR #104 |
 | 2 | ENG-02 recursive decoder | #30 | **Done** — PR #108, also closed #6 and #7 |
 | 3 | CAT-01 tool & permission abuse `PI050-059` | #33 | **Done** — PR #109 |
-| 4 | CAT-02 MCP & tool-description poisoning `PI060-069` | #34 | In progress — 6/7 plans (04-06 shipped `PI066`-`PI069`, category complete) |
+| 4 | CAT-02 MCP & tool-description poisoning `PI060-069` | #34 | 7/7 plans complete (04-07 closed out the category) — phase-complete marker pending the orchestrator's own verification and PR |
 | 5 | CAT-03 persistence & lifecycle hijack `PI070-079` | #35 | Not started |
 
 Engines first, and the dependency is real rather than tidiness: #32 states it is the prerequisite
@@ -208,7 +270,7 @@ that array wins.
 | Role Override | 11/12 | 92% |
 | Encoding/Obfuscation | 11/12 | 91.7% |
 | Multilingual (Czech; German misses) | 8/10 | 80% |
-| MCP & Tool-Description Poisoning | 9/12 | 75% (all ten CAT-02 patterns shipped; the remaining structural rug-pull misses need D-05's deferred structural cross-reference work) |
+| MCP & Tool-Description Poisoning | 9/12 | 75% (all ten CAT-02 patterns shipped; the remaining structural rug-pull misses need D-05's deferred structural cross-reference work, issue #131) |
 | **Total** | **102/109** | **93.6%** |
 
 Reached **58/60** on 2026-08-30 when ENG-02 landed.
@@ -227,6 +289,20 @@ the pattern set rather than the input. Two misses therefore remain, both for sta
 
 - **Deferred:** the `v0.3.0` milestone holds 10 issues — pattern categories #36-#40 plus #31, #41,
   #10, #11, #4
+
+- **Filed at Phase 4 close-out (04-07, #34):** #129 (JSONC parse gap, silent), #130 (decoded-layer
+  pass skips structural patterns), #131 (D-05 structural cross-reference for tool shadowing),
+  #132 (`docs/DETECTION-BACKLOG.md` self-match, PR #110-origin), #133 (WR-02, structural corpus
+  README backfill). Full accounting in
+  `.planning/phases/04-mcp-tool-description-poisoning-cat-02-34/deferred-items.md`.
+
+- **Already tracked, not duplicated:** #115 (Phase 3 planning artifacts — restored to `main` at
+  this close-out from commit `752ac98`/`db2a575` rather than left referenced-only; re-verify #115
+  is still needed for anything beyond that), #116 (stale planning counters — this close-out
+  reconciled ROADMAP/STATE's library and recall projections but did not audit every counter in
+  every file), #117 (GATE-04 contradiction between STATE.md and REQUIREMENTS.md — this phase's
+  own GATE-04 diff check passed cleanly, but the requirement-text contradiction #117 names is
+  unresolved by that; still open).
 
 ## Quick Tasks Completed
 
@@ -311,6 +387,18 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
   **(3)** `cargo build --locked` cannot refresh `Cargo.lock` after a version bump; `--locked` exists
   to refuse exactly that. Run `cargo check --offline` first, then the locked build to verify.
 
+- 2026-09-07 (Phase 4 close-out, 04-07): **CAT-02 closed — see the "Current Phase" section above
+  for the full detail (kept there, alongside 04-04/04-05/04-06's own entries, rather than
+  duplicated here).** Four measurements Phase 5 inherits: (1) the `relaxed_pattern` ratchet's
+  `id >= 50` predicate already covers `PI070`+, already fixed in 04-01; (2) the structural corpus
+  collector and both clean-corpus enumerations are non-recursive (`fs::read_dir` one level deep);
+  (3) the decoded-layer pass runs only prose-scoped patterns, so a `scope: frontmatter` pattern
+  never sees a decoded value (#130); (4) `scripts/gate03-sweep.sh --compare` silently loads an
+  empty baseline against this repository's own committed (JSON-less) sweep directories — always
+  point it at `.planning/local/`. Four issues filed (#129-#132) plus one for a carried-over Phase
+  3 gap (#133, WR-02, waived in `.planning/WINDOWS.md`). The Phase 3 planning directory, lost to
+  the rebase-merge that closed #33, was restored to `main` from `752ac98`/`db2a575`.
+
 ## Session Continuity
 
 Last session: 2026-09-07T19:35:00.000Z
@@ -327,6 +415,7 @@ Resume file: None
 | Phase 04 P01 | ~15min (commit span) | 3 tasks | 44 files |
 | Phase 04 P05 | 69min | 3 tasks | 16 files |
 | Phase 04 P06 | 6h 40min (includes ~50min of judged predecessor draft) | 3 tasks | 9 files |
+| Phase 04 P07 | TBD | 3 tasks | 15 files |
 
 ## Decisions
 
@@ -336,3 +425,5 @@ Resume file: None
 - [Phase ?]: GATE-03 comparisons target a fresh binary built from the branch's own fork point in a separate git worktree (never git stash) once main has moved multiple generations past the last committed baseline
 - [Phase 04]: PI066/PI067's heuristic discriminators require a tool-shaped object (backtick code span, snake_case identifier, or identifier+`()`) on both sides of the trigger grammar, not trigger words alone -- vocabulary-only heuristics on common English contrasts (never/always, when/if) produce real false positives at scale (26 hits across ~23,900 files before the fix)
 - [Phase 04]: PI068/PI069's rug-pull bound is stated in the pattern file's own header comment, not only in plan/state records -- a catalogue or README claiming these arms mitigate the rug-pull class would be a false security claim in the repo's own voice
+- [Phase 04]: `scripts/gate03-sweep.sh --compare` must be pointed at `.planning/local/<sweep-dir>/` (the gitignored raw JSON), never at this repository's own committed sweep directories -- the committed copies have zero `*.json` files by design (`dad56d1`/`e54be72`), so `--compare` silently loads an empty baseline and reports every real finding as a false addition
+- [Phase 04]: the Phase 3 planning directory (`.planning/phases/03-tool-permission-abuse-cat-01-33/`) and the CR-01 quick-task directory (`.planning/quick/260902-jhy-.../`), both lost to the rebase-merge that closed #33, are restored to `main` at 04-07's close-out from commits `752ac98`/`db2a575` on the still-live `feat/cat-01-tool-permission-abuse` branch -- future phase-closing rebase-merges must not repeat this loss
