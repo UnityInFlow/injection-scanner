@@ -123,7 +123,7 @@ Plans:
   possessive requirement is what keeps PI021 off real manifests. Expect to need a similar
   narrowing rule, and sweep real MCP manifests specifically, not just documentation
 
-**Plans:** 5/7 plans executed
+**Plans:** 7/7 plans executed
 
 Plans:
 
@@ -133,7 +133,7 @@ Plans:
 - [x] 04-04-PLAN.md — PI060-PI062 config hygiene, MEDIUM, `scope: frontmatter` (D-03)
 - [x] 04-05-PLAN.md — PI063-PI065 tool-description poisoning, HIGH, prose (D-01, D-02)
 - [x] 04-06-PLAN.md — PI066-PI069 shadowing and rug-pull heuristics, MEDIUM, prose (D-04)
-- [ ] 04-07-PLAN.md — Whole-category sweep, number reconciliation, deferral issues, phase close
+- [x] 04-07-PLAN.md — Whole-category sweep, number reconciliation, deferral issues, phase close
 
 ### Phase 5: Persistence & lifecycle hijack — CAT-03 (#35)
 
@@ -169,8 +169,17 @@ rename.
 | 4. MCP & tool-description poisoning | CAT-02 | #34 | In Progress|
 | 5. Persistence & lifecycle hijack | CAT-03 | #35 | Not started |
 
-**Library:** 56 patterns today (48 + CAT-01's PI050-PI057) → ~78 at milestone end.
-**Recall:** 76/84 (90.5%) as of 04-02. The denominator grows as each category's 12
-threat-model payloads land: 60 at milestone open → 72 after CAT-01 → 84 after CAT-02's
-corpus. CAT-02 currently sits at its measured **pre-pattern baseline of 6/12** — no
-`PI060`+ pattern exists yet, by GATE-01's ordering rule.
+**Library:** **71 patterns** as of Phase 4's close (04-07), measured directly from the loader —
+corrected from the ~78 projected when the milestone opened. CAT-02 (`PI060`-`PI069`) added
+exactly its planned 10; the difference from the projection is other, un-milestoned pattern work
+that landed on `main` during the same window (PR #110's `PI058`/`PI070`/`PI110`-`PI113`, plus
+subsequent widenings), independent of this phase's own count. CAT-03 (`PI070`-`PI079`, Phase 5)
+is already partially seeded by `PI070` from that same PR.
+**Recall:** **102/109 (93.6%)** as of Phase 4's close (04-07), corrected from the 76/84 (90.5%)
+projection recorded as of 04-02. The denominator grew to 109, not the originally projected 84 —
+25 payloads beyond CAT-02's own 12 landed from other PRs during the same window (#110's
+multilingual range, #122's widenings, and independent corpus growth in encoding/role-override).
+CAT-02's own row is now **9/12 (75%)**, up from its measured pre-pattern baseline of 6/12 — the
+remaining three misses are the two rug-pull structural payloads (D-05's deferred structural
+cross-reference; see `deferred-items.md`) and one deliberately-undetected unpinned-registry-install
+payload (D-03's accepted cost).

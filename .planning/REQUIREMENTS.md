@@ -47,7 +47,7 @@ Ordered by dependency. Each is one PR, with its own false-positive sweep.
       directives, instructions to edit `settings.json` or disable a hook. The agentic equivalent of
       privilege escalation. Depends on **ENG-01** for the frontmatter half.
 
-- [ ] **CAT-02** (#34): `PI060`–`PI069` — MCP & tool-description poisoning. Instructions hidden in
+- [x] **CAT-02** (#34): `PI060`–`PI069` — MCP & tool-description poisoning. Instructions hidden in
       a tool `description`, read by the model on every call and never shown to the user; unpinned
       `npx -y` servers and `http://` endpoints; cross-tool shadowing; rug-pull markers that are
       version- or date-conditional. Depends on **ENG-01** for the `mcpServers` half.
@@ -105,10 +105,10 @@ Tracked, not in this roadmap.
 
 | Requirement | Issue | Phase | Status |
 |---|---|---|---|
-| ENG-01 | #32 | Phase 1 | Pending |
-| ENG-02 | #30 | Phase 2 | Pending |
-| CAT-01 | #33 | Phase 3 | Pending |
-| CAT-02 | #34 | Phase 4 | Pending |
+| ENG-01 | #32 | Phase 1 | Complete |
+| ENG-02 | #30 | Phase 2 | Complete |
+| CAT-01 | #33 | Phase 3 | Complete |
+| CAT-02 | #34 | Phase 4 | Complete |
 | CAT-03 | #35 | Phase 5 | Pending |
 | GATE-01..05 | — | All phases | Pending |
 
