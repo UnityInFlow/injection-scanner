@@ -267,7 +267,13 @@ impl Baseline {
             let file = std::mem::take(&mut report.file);
             let suppressed = std::mem::take(&mut report.suppressed);
             let low_confidence = std::mem::take(&mut report.low_confidence);
-            *report = ScanReport::with_baselined(file, kept, suppressed, low_confidence, baselined);
+            // `with_baselined` builds a fresh `ScanReport`, so any field not
+            // explicitly carried across is a field `--baseline` silently
+            // drops (#129) — take it off the old report and restore it onto
+            // the new one rather than let it default to `None`.
+            let config_parse_error = report.config_parse_error.take();
+            *report = ScanReport::with_baselined(file, kept, suppressed, low_confidence, baselined)
+                .with_config_parse_error(config_parse_error);
         }
 
         self.entries

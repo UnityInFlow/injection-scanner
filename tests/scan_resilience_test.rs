@@ -274,3 +274,170 @@ fn a_genuine_hidden_instruction_comment_is_still_detected() {
         );
     }
 }
+
+// -------------------------------------------------------------------------
+// Issue #129: a config block that cannot be parsed must be visible, not
+// silent — the structural pass being skipped must not look like a clean
+// file. See src/scanner.rs (the fourth pass) and src/main.rs (the print).
+// -------------------------------------------------------------------------
+
+/// Genuinely unparseable under any tolerance: a missing value after `:`, not
+/// a comment or a trailing comma. Must still fail to parse after Task 2's
+/// JSONC relaxation lands — this is what keeps that task honest.
+const GENUINELY_BROKEN_JSON: &str = "{ \"servers\": { \"x\": } }\n";
+
+#[test]
+fn a_broken_config_block_prints_a_warning_on_stderr_not_stdout() {
+    let dir = temp_dir("broken-config-stderr");
+    fs::write(dir.join("broken.json"), GENUINELY_BROKEN_JSON).unwrap();
+
+    let output = Command::new(binary_path())
+        .args(["check", dir.to_str().unwrap()])
+        .output()
+        .expect("Failed to execute binary");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    assert!(
+        stderr.contains("structural config pass skipped"),
+        "stderr must name the skipped pass; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("broken.json"),
+        "stderr must name the file; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("invalid JSON document"),
+        "stderr must carry text from the parse error; got: {stderr}"
+    );
+    assert!(
+        !stdout.contains("structural config pass skipped"),
+        "the warning must be on stderr only, not stdout; stdout: {stdout}"
+    );
+}
+
+#[test]
+fn a_broken_config_block_does_not_change_the_exit_code() {
+    let dir = temp_dir("broken-config-exit");
+    fs::write(dir.join("broken.json"), GENUINELY_BROKEN_JSON).unwrap();
+
+    let output = Command::new(binary_path())
+        .args(["check", dir.to_str().unwrap()])
+        .output()
+        .expect("Failed to execute binary");
+
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "a parse failure is not a finding and must not move the exit code; stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn the_config_parse_warning_is_not_silenceable_by_quiet() {
+    let dir = temp_dir("broken-config-quiet");
+    fs::write(dir.join("broken.json"), GENUINELY_BROKEN_JSON).unwrap();
+
+    let output = Command::new(binary_path())
+        .args(["check", dir.to_str().unwrap(), "--quiet"])
+        .output()
+        .expect("Failed to execute binary");
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("structural config pass skipped"),
+        "--quiet silences stdout formatting, never a coverage gap; got: {stderr}"
+    );
+}
+
+#[test]
+fn a_line_delimited_json_stream_produces_no_config_parse_warning() {
+    let dir = temp_dir("jsonl-stream");
+    fs::write(
+        dir.join("stream.jsonl"),
+        "{\"event\":\"a\"}\n{\"event\":\"b\"}\n",
+    )
+    .unwrap();
+
+    let output = Command::new(binary_path())
+        .args(["check", dir.to_str().unwrap()])
+        .output()
+        .expect("Failed to execute binary");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        !stderr.contains("structural config pass skipped"),
+        "a .jsonl stream is a sequence of documents, never one config file; stderr: {stderr}"
+    );
+    assert!(
+        !stdout.contains("structural config pass skipped"),
+        "stdout: {stdout}"
+    );
+}
+
+#[test]
+fn baseline_does_not_erase_the_config_parse_warning() {
+    let dir = temp_dir("broken-config-baseline");
+    fs::write(dir.join("broken.json"), GENUINELY_BROKEN_JSON).unwrap();
+    let baseline_path = dir.join("baseline.json");
+
+    let write = Command::new(binary_path())
+        .args([
+            "check",
+            dir.to_str().unwrap(),
+            "--quiet",
+            "--write-baseline",
+            baseline_path.to_str().unwrap(),
+        ])
+        .output()
+        .expect("Failed to execute binary");
+    assert!(
+        write.status.success(),
+        "--write-baseline always exits 0; stderr: {}",
+        String::from_utf8_lossy(&write.stderr)
+    );
+    assert!(
+        baseline_path.exists(),
+        "the baseline file must have been written"
+    );
+
+    let scanned = Command::new(binary_path())
+        .args([
+            "check",
+            dir.to_str().unwrap(),
+            "--baseline",
+            baseline_path.to_str().unwrap(),
+        ])
+        .output()
+        .expect("Failed to execute binary");
+
+    let stderr = String::from_utf8_lossy(&scanned.stderr);
+    assert!(
+        stderr.contains("structural config pass skipped"),
+        "--baseline rebuilds the report and must not drop the parse-error field; got: {stderr}"
+    );
+}
+
+#[test]
+fn a_clean_well_formed_config_prints_no_parse_warning() {
+    let dir = temp_dir("clean-mcp-json");
+    fs::write(
+        dir.join(".mcp.json"),
+        "{\n  \"mcpServers\": {\n    \"docs\": {\n      \"command\": \"docs-server\"\n    }\n  }\n}\n",
+    )
+    .unwrap();
+
+    let output = Command::new(binary_path())
+        .args(["check", dir.to_str().unwrap()])
+        .output()
+        .expect("Failed to execute binary");
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        !stderr.contains("structural config pass skipped"),
+        "a config block that parsed cleanly must print no warning; stderr: {stderr}"
+    );
+}

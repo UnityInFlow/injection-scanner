@@ -171,3 +171,57 @@ fn rules_format_json_key_set_is_exactly_pinned() {
         );
     }
 }
+
+// -------------------------------------------------------------------------
+// Issue #129: `config_parse_error` is additive and conditional — present
+// only on a report whose config block could not be parsed, absent
+// everywhere else, so the pinned key set above stays exact for every
+// consumer on every report that parsed cleanly.
+// -------------------------------------------------------------------------
+
+/// New CLI fixtures never live under `tests/fixtures/` (a committed fixture
+/// carrying a live payload would add a finding to this repo's own self-scan);
+/// a fresh temp dir per call, matching `tests/scan_resilience_test.rs`.
+fn broken_config_dir() -> PathBuf {
+    let dir = std::env::temp_dir().join(format!(
+        "injscan-json-contract-test-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0)
+    ));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("temp dir must be creatable");
+    std::fs::write(dir.join("broken.json"), "{ \"servers\": { \"x\": } }\n")
+        .expect("fixture must be writable");
+    dir
+}
+
+#[test]
+fn format_json_carries_config_parse_error_on_a_broken_config_report() {
+    let dir = broken_config_dir();
+    let (_, stdout, stderr) = run(&[
+        "check",
+        dir.to_str().expect("utf-8 path"),
+        "--format",
+        "json",
+    ]);
+    let doc: Value = serde_json::from_str(&stdout)
+        .unwrap_or_else(|e| panic!("stdout must be JSON: {e}\nstdout: {stdout}\nstderr: {stderr}"));
+
+    assert!(
+        doc.is_array(),
+        "top level must still be an array with the new field present: {doc}"
+    );
+    let reports = doc.as_array().expect("top level must be an array");
+    assert_eq!(reports.len(), 1, "one file scanned, one report: {doc}");
+    let report = &reports[0];
+    let error = report.get("config_parse_error").unwrap_or_else(|| {
+        panic!("report for a broken config block must carry config_parse_error: {report}")
+    });
+    assert!(
+        error.is_string(),
+        "config_parse_error must be a string, not null or absent: {report}"
+    );
+}

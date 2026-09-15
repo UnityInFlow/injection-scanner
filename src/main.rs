@@ -316,6 +316,27 @@ fn describe_read_error(e: &std::io::Error) -> String {
     }
 }
 
+/// Whether `path`'s extension marks it a line-delimited JSON stream —
+/// `.jsonl` / `.ndjson` — rather than a single configuration document.
+///
+/// Both extensions are in `DEFAULT_EXTENSIONS` (the walker scans them), but a
+/// stream of independent JSON values was never a candidate for the
+/// structural pass in the first place: it is a sequence of documents, never
+/// one config file. Printing the `structural config pass skipped` warning
+/// (#129) on every such file would be pure noise, and would train users to
+/// filter the one line this warning exists to add. The error is still
+/// recorded on the report either way — the library records facts, the CLI
+/// decides what to print.
+fn is_line_delimited_stream(path: &str) -> bool {
+    match std::path::Path::new(path)
+        .extension()
+        .and_then(|ext| ext.to_str())
+    {
+        Some(ext) => ext.eq_ignore_ascii_case("jsonl") || ext.eq_ignore_ascii_case("ndjson"),
+        None => false,
+    }
+}
+
 fn scan_file(
     path: &str,
     content: &str,
@@ -514,6 +535,26 @@ fn main() -> Result<()> {
                     }
                 } else {
                     anyhow::bail!("Path does not exist: {}", path);
+                }
+            }
+
+            // A skipped structural config pass is a coverage gap, not a clean
+            // result (#129) — silence here is indistinguishable from "this
+            // file has no dangerous configuration". Printed before
+            // `--write-baseline` so both output paths carry it, and
+            // unconditionally, NOT inside `if !quiet`: matching the existing
+            // unconditional coverage-gap warning below, and for the same
+            // reason — a formatting flag is not a sound reason to make a real
+            // gap in what was scanned unreportable.
+            for report in &reports {
+                if let Some(error) = &report.config_parse_error {
+                    if is_line_delimited_stream(&report.file) {
+                        continue;
+                    }
+                    eprintln!(
+                        "warning: structural config pass skipped for {} — {error}",
+                        report.file
+                    );
                 }
             }
 

@@ -211,3 +211,70 @@ fn a_baselined_finding_and_the_same_finding_reported_are_the_identical_record() 
         "a baselined finding must not be counted in the severity tallies"
     );
 }
+
+/// `config_parse_error` (#129) is additive in the same way `baselined` was:
+/// present and round-tripping when set, and a report written before it
+/// existed — the exact shape every prior report on disk has — must still
+/// load.
+#[test]
+fn a_report_carrying_a_config_parse_error_survives_the_round_trip() {
+    let report = ScanReport::with_baselined(
+        "mcp.json".to_string(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+    )
+    .with_config_parse_error(Some(
+        "invalid JSON document: EOF while parsing a value".to_string(),
+    ));
+
+    let json = serde_json::to_string(&report).expect("report must serialize");
+    assert!(
+        json.contains("config_parse_error"),
+        "the key must be present when the field is Some: {json}"
+    );
+    let restored: ScanReport = serde_json::from_str(&json).expect("report must deserialize");
+    assert_eq!(
+        restored.config_parse_error.as_deref(),
+        Some("invalid JSON document: EOF while parsing a value"),
+        "the error text must survive the round trip"
+    );
+}
+
+/// The other half of the additive guarantee: a report with NO parse error
+/// serializes with the key absent entirely (not `null`) — so the pinned key
+/// set in `tests/json_contract_test.rs` never moves for a report that parsed
+/// cleanly.
+#[test]
+fn a_report_with_no_config_parse_error_omits_the_key_entirely() {
+    let report = ScanReport::new("skill.md".to_string(), Vec::new());
+    let json = serde_json::to_string(&report).expect("report must serialize");
+    assert!(
+        !json.contains("config_parse_error"),
+        "the key must be entirely absent, not present as null, when nothing failed: {json}"
+    );
+}
+
+/// A report JSON written before `config_parse_error` existed — every report
+/// on disk today — must still deserialize, exactly the guarantee
+/// `#[serde(default)]` gives the other additive fields above.
+#[test]
+fn a_report_written_before_config_parse_error_existed_still_loads() {
+    let legacy = r#"{
+        "file": "doc.md",
+        "matches": [],
+        "suppressed": [],
+        "low_confidence": [],
+        "baselined": [],
+        "critical_count": 0,
+        "high_count": 0,
+        "medium_count": 0,
+        "low_count": 0
+    }"#;
+
+    let restored: ScanReport = serde_json::from_str(legacy)
+        .expect("a pre-config_parse_error report must still deserialize");
+    assert_eq!(restored.config_parse_error, None);
+    assert_eq!(restored.file, "doc.md");
+}

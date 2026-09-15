@@ -553,50 +553,73 @@ impl Scanner {
         // finding the text passes already produced. An unparseable file is
         // exactly the file an attacker would craft if a parse error could
         // suppress a whole scan.
+        //
+        // Skip-do-not-abort is NOT skip-silently, though (#129). The original
+        // form of this match was `else if let Ok(Some((_, projected))) =
+        // analyze(content)`, which discarded the `Err` arm outright — so a
+        // config block that failed to parse produced an *empty* structural
+        // pass, indistinguishable from a document that never had one. That
+        // silence is what issue #129 reported. The `Err` arm below is
+        // recorded on the report instead, and `main.rs` is what turns it into
+        // the visible `warning:` line; the library itself never writes to
+        // stdout or stderr.
+        let mut config_parse_error: Option<String> = None;
         if !self
             .compiled
             .iter()
             .any(|cp| cp.scope == PatternScope::Frontmatter)
         {
             // No structural patterns loaded — do not pay to parse.
-        } else if let Ok(Some((_, projected))) = analyze(content) {
-            for projected_line in &projected {
-                let rendered = projected_line.render();
-                self.candidates(&rendered, &mut candidates);
-                for (pattern_index, cp) in self.compiled.iter().enumerate() {
-                    if !candidates.contains(pattern_index) {
-                        continue;
+        } else {
+            match analyze(content) {
+                Ok(Some((_, projected))) => {
+                    for projected_line in &projected {
+                        let rendered = projected_line.render();
+                        self.candidates(&rendered, &mut candidates);
+                        for (pattern_index, cp) in self.compiled.iter().enumerate() {
+                            if !candidates.contains(pattern_index) {
+                                continue;
+                            }
+                            if cp.scope != PatternScope::Frontmatter {
+                                continue;
+                            }
+                            for matched in cp
+                                .regex
+                                .find_iter(&rendered)
+                                .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
+                            {
+                                // Confidence is 1.0 by construction here, so a
+                                // structural finding is never filed as low-confidence.
+                                // Suppression still applies: a document disarming the
+                                // scanner is recorded whatever the pass.
+                                let destination =
+                                    if suppressions.is_suppressed(projected_line.line, &cp.id) {
+                                        &mut suppressed
+                                    } else {
+                                        &mut matches
+                                    };
+                                destination.push(cp.record(
+                                    file_path,
+                                    projected_line.line,
+                                    matched.as_str(),
+                                    MatchContext::FrontmatterStructural,
+                                ));
+                            }
+                        }
                     }
-                    if cp.scope != PatternScope::Frontmatter {
-                        continue;
-                    }
-                    for matched in cp
-                        .regex
-                        .find_iter(&rendered)
-                        .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
-                    {
-                        // Confidence is 1.0 by construction here, so a
-                        // structural finding is never filed as low-confidence.
-                        // Suppression still applies: a document disarming the
-                        // scanner is recorded whatever the pass.
-                        let destination = if suppressions.is_suppressed(projected_line.line, &cp.id)
-                        {
-                            &mut suppressed
-                        } else {
-                            &mut matches
-                        };
-                        destination.push(cp.record(
-                            file_path,
-                            projected_line.line,
-                            matched.as_str(),
-                            MatchContext::FrontmatterStructural,
-                        ));
-                    }
+                }
+                Ok(None) => {
+                    // No configuration block in this document — the ordinary
+                    // case, and not a problem.
+                }
+                Err(e) => {
+                    config_parse_error = Some(e);
                 }
             }
         }
 
         ScanReport::with_withheld(file_path.to_string(), matches, suppressed, low_confidence)
+            .with_config_parse_error(config_parse_error)
     }
 }
 

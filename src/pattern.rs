@@ -268,6 +268,24 @@ pub struct ScanReport {
     /// so `spec-ci-plugin`'s `JSON.parse(output) as Array<...>` is unaffected.
     #[serde(default)]
     pub baselined: Vec<ScanMatch>,
+    /// A structural config block was found in this file but could not be
+    /// parsed, so the scanner's fourth (structural) pass was skipped for it —
+    /// the FIX-03 skip-do-not-abort rule applied to a parse failure (#129).
+    ///
+    /// Recorded here, not just printed, because a skipped pass that looks
+    /// identical to a clean result is the exact silence issue #129 reported:
+    /// nothing distinguished "this file has no dangerous configuration" from
+    /// "this file's configuration could not be read at all". `main.rs` prints
+    /// a `warning:` for it; this field is what lets it.
+    ///
+    /// `skip_serializing_if = "Option::is_none"` rather than a bare
+    /// `#[serde(default)]`: `tests/json_contract_test.rs` pins the report key
+    /// set **exactly**, so this field must stay invisible to every consumer
+    /// on every report that parsed cleanly. Only the rare report whose config
+    /// could not be parsed carries the key at all — additive and conditional,
+    /// so `spec-ci-plugin`'s key set is unmoved by this change.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub config_parse_error: Option<String>,
     /// Severity tallies over `matches` **only** — suppressed findings are not
     /// counted here, neither are `low_confidence` ones, nor are `baselined`
     /// ones.
@@ -348,11 +366,24 @@ impl ScanReport {
             suppressed,
             low_confidence,
             baselined,
+            config_parse_error: None,
             critical_count,
             high_count,
             medium_count,
             low_count,
         }
+    }
+
+    /// Attach a structural-config parse failure (#129) to an already-built
+    /// report.
+    ///
+    /// A chainable setter rather than a sixth positional parameter on
+    /// `with_baselined`: that constructor already has five, and every
+    /// existing call site would need updating for a field only the scanner's
+    /// fourth pass — and `Baseline::apply`'s rebuild of it — ever set.
+    pub fn with_config_parse_error(mut self, error: Option<String>) -> Self {
+        self.config_parse_error = error;
+        self
     }
 
     /// Returns `true` if any findings were detected.
