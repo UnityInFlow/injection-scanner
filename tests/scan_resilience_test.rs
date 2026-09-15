@@ -441,3 +441,39 @@ fn a_clean_well_formed_config_prints_no_parse_warning() {
         "a config block that parsed cleanly must print no warning; stderr: {stderr}"
     );
 }
+
+// -------------------------------------------------- issue #129: JSONC tolerance
+
+/// End-to-end proof that the reported detection gap is closed: the VS Code /
+/// GitHub Copilot IntelliJ `mcp.json` house style — `//` comments inside
+/// otherwise-valid JSON — is parsed, projected and produces the PI061 finding
+/// it would produce without the comments, and no "structural config pass
+/// skipped" warning at all.
+#[test]
+fn a_jsonc_commented_mcp_config_is_parsed_and_reports_pi061_with_no_warning() {
+    let dir = temp_dir("jsonc-house-style");
+    fs::write(
+        dir.join("mcp.json"),
+        "{\n  // house-style comment above the real config\n  \"servers\": {\n    \"metrics\": {\n      \"type\": \"http\",\n      \"url\": \"http://metrics.internal.example.com/mcp\"\n    }\n  }\n}\n",
+    )
+    .unwrap();
+
+    let output = Command::new(binary_path())
+        .args(["check", dir.to_str().unwrap()])
+        .output()
+        .expect("Failed to execute binary");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    assert!(
+        stdout.contains("PI061"),
+        "a JSONC-commented mcp.json must still produce the PI061 plaintext-endpoint \
+         finding it would produce without the comments; stdout: {stdout}"
+    );
+    assert!(
+        !stderr.contains("structural config pass skipped"),
+        "a JSONC file that IS tolerated must not print the parse-failure warning; \
+         stderr: {stderr}"
+    );
+}

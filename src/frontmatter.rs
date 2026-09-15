@@ -37,6 +37,20 @@
 //! are all bounded, and a document that exceeds them is skipped loudly rather
 //! than expanded — the FIX-03 rule ("a bad file is skipped, never aborts the
 //! scan") applied to a new input class.
+//!
+//! # JSONC tolerance (issue #129)
+//!
+//! The `ConfigSyntax::Json` path tolerates the VS Code / GitHub Copilot
+//! IntelliJ `mcp.json` house style: `//` and `/* */` comments and trailing
+//! commas inside otherwise-valid JSON. A shipping host's documented config
+//! format being unreadable by this scanner's own parser is a detection gap,
+//! not a formatting nicety — the walker already lists `jsonc` in
+//! `DEFAULT_EXTENSIONS`. Tolerance is implemented as a byte-offset and
+//! line-count preserving preprocessor ([`relax_jsonc`]), not a wider grammar
+//! (no unquoted keys, no single-quoted strings): it is tried only as a
+//! fallback after a strict `serde_json` parse fails, so a well-formed
+//! document pays nothing, and every reported line number stays valid against
+//! the original document because nothing shifts.
 
 use serde_json::Value;
 
@@ -129,7 +143,209 @@ pub fn extract(content: &str) -> Option<ConfigBlock> {
             start_line,
         });
     }
+    // A JSONC document whose first non-whitespace content is a `//` or `/*`
+    // header comment opens with `/`, not `{` — the check above misses it
+    // entirely. That is quieter than issue #129's reported bug: no block is
+    // ever found, so `analyze` returns `Ok(None)` ("no configuration here")
+    // rather than `Err`, and not even the parse-failure warning fires.
+    //
+    // Gated on this single leading `/` byte so the overwhelming majority of
+    // scanned documents — which do not start with a comment — pay one byte
+    // comparison and nothing else.
+    if trimmed.starts_with('/') {
+        let blanked = relax_jsonc(content);
+        let after_comments = blanked.trim_start();
+        if after_comments.starts_with('{') {
+            // `relax_jsonc` preserves byte length and never shifts a
+            // position, so this offset into `blanked` is the SAME offset
+            // into the original `content` — which is what lets `body` below
+            // be sliced from the untouched original text.
+            let brace_offset = blanked.len() - after_comments.len();
+            let start_line = 1 + content[..brace_offset]
+                .bytes()
+                .filter(|&b| b == b'\n')
+                .count();
+            return Some(ConfigBlock {
+                syntax: ConfigSyntax::Json,
+                // The ORIGINAL text from the `{` onward, comments intact —
+                // `locate` searches this raw body for a leaf key, and a
+                // relaxed (space-blanked) body would just make every key
+                // search fail.
+                body: content[brace_offset..].to_string(),
+                start_line,
+            });
+        }
+    }
     None
+}
+
+/// Relax JSONC syntax — `//` and `/* */` comments, and trailing commas
+/// before `}` or `]` — into a document `serde_json` accepts.
+///
+/// Returns a string of the SAME byte length and the SAME number of line
+/// breaks as `body`, with comment bytes and trailing-comma bytes overwritten
+/// by ASCII spaces, and nothing inside a string literal touched. That
+/// invariant is what lets [`locate`]'s `block.body.lines()` arithmetic,
+/// `block.start_line`, and every reported line number stay valid against the
+/// ORIGINAL document rather than the relaxed one.
+///
+/// A single forward pass over `body.as_bytes()`, tracking whether the cursor
+/// is outside any construct, inside a string literal (honouring backslash
+/// escapes), or inside a line or block comment. Blanking never touches `\n`
+/// — blanking a newline would shrink the line count and shift every
+/// subsequent reported line — so a multi-line block comment collapses to
+/// blank lines, not to nothing. A second, equally string-aware pass then
+/// blanks a `,` that precedes only whitespace and a closing `}` or `]`.
+pub fn relax_jsonc(body: &str) -> String {
+    let comments_blanked = blank_comments(body);
+    blank_trailing_commas(&comments_blanked)
+}
+
+/// The comment-blanking half of [`relax_jsonc`]. A `//` or `/*` sequence
+/// inside a string literal is not a comment — blanking it there would
+/// silently delete a payload (a URL's `//`, a glob's `/*`), which is exactly
+/// the failure this function exists to avoid.
+fn blank_comments(body: &str) -> String {
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum State {
+        Outside,
+        InString,
+        StringEscape,
+        LineComment,
+        BlockComment,
+        /// Inside a block comment, just after a `*` that might close it.
+        BlockCommentStar,
+    }
+
+    let bytes = body.as_bytes();
+    let len = bytes.len();
+    let mut out = vec![0u8; len];
+    let mut state = State::Outside;
+    let mut i = 0;
+    while i < len {
+        let b = bytes[i];
+        match state {
+            State::Outside => {
+                if b == b'"' {
+                    out[i] = b;
+                    state = State::InString;
+                    i += 1;
+                } else if b == b'/' && i + 1 < len && bytes[i + 1] == b'/' {
+                    out[i] = b' ';
+                    out[i + 1] = b' ';
+                    i += 2;
+                    state = State::LineComment;
+                } else if b == b'/' && i + 1 < len && bytes[i + 1] == b'*' {
+                    out[i] = b' ';
+                    out[i + 1] = b' ';
+                    i += 2;
+                    state = State::BlockComment;
+                } else {
+                    out[i] = b;
+                    i += 1;
+                }
+            }
+            State::InString => {
+                out[i] = b;
+                state = if b == b'\\' {
+                    State::StringEscape
+                } else if b == b'"' {
+                    State::Outside
+                } else {
+                    State::InString
+                };
+                i += 1;
+            }
+            State::StringEscape => {
+                // Whatever follows a backslash is literal — including a
+                // quote, which must not close the string.
+                out[i] = b;
+                state = State::InString;
+                i += 1;
+            }
+            State::LineComment => {
+                if b == b'\n' {
+                    out[i] = b'\n';
+                    state = State::Outside;
+                } else {
+                    out[i] = b' ';
+                }
+                i += 1;
+            }
+            State::BlockComment => {
+                if b == b'\n' {
+                    out[i] = b'\n';
+                } else if b == b'*' {
+                    out[i] = b' ';
+                    state = State::BlockCommentStar;
+                } else {
+                    out[i] = b' ';
+                }
+                i += 1;
+            }
+            State::BlockCommentStar => {
+                if b == b'/' {
+                    out[i] = b' ';
+                    state = State::Outside;
+                } else if b == b'\n' {
+                    out[i] = b'\n';
+                    state = State::BlockComment;
+                } else if b == b'*' {
+                    // Another `*` — stay ready for a `/` to close on the
+                    // next byte.
+                    out[i] = b' ';
+                } else {
+                    out[i] = b' ';
+                    state = State::BlockComment;
+                }
+                i += 1;
+            }
+        }
+    }
+    // `unwrap()` is denied crate-wide, and the input is untrusted by
+    // definition. This arm is unreachable in practice — every byte written
+    // above is either copied verbatim from valid UTF-8 `body` or is the
+    // single ASCII byte `b' '`/`b'\n'`, both of which are valid standalone
+    // UTF-8 — but falling back to the original text rather than panicking
+    // costs nothing and removes the possibility entirely.
+    String::from_utf8(out).unwrap_or_else(|_| body.to_string())
+}
+
+/// The trailing-comma half of [`relax_jsonc`]: a `,` outside a string whose
+/// next non-whitespace byte is `}` or `]` is overwritten with a space.
+/// String-aware in the same way [`blank_comments`] is, so a comma inside a
+/// string value is never touched.
+fn blank_trailing_commas(body: &str) -> String {
+    let bytes = body.as_bytes();
+    let len = bytes.len();
+    let mut out = bytes.to_vec();
+    let mut in_string = false;
+    let mut escaped = false;
+    let mut i = 0;
+    while i < len {
+        let b = bytes[i];
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if b == b'\\' {
+                escaped = true;
+            } else if b == b'"' {
+                in_string = false;
+            }
+        } else if b == b'"' {
+            in_string = true;
+        } else if b == b',' {
+            let mut j = i + 1;
+            while j < len && bytes[j].is_ascii_whitespace() {
+                j += 1;
+            }
+            if j < len && (bytes[j] == b'}' || bytes[j] == b']') {
+                out[i] = b' ';
+            }
+        }
+        i += 1;
+    }
+    String::from_utf8(out).unwrap_or_else(|_| body.to_string())
 }
 
 /// Frontmatter counts only at the very top of a file — a `---` further down is
@@ -162,12 +378,28 @@ fn extract_delimited(content: &str, fence: &str, syntax: ConfigSyntax) -> Option
 ///
 /// Returns `Err` with a human-readable reason; callers skip the document's
 /// structural pass and continue, never abort.
+///
+/// The `Json` arm tries a strict `serde_json` parse first — a well-formed
+/// document pays nothing for JSONC tolerance — and only on failure relaxes
+/// via [`relax_jsonc`] and retries. YAML and TOML are untouched: both
+/// syntaxes have native comments and their parsers already accept them.
 pub fn parse(block: &ConfigBlock) -> Result<Value, String> {
     match block.syntax {
         ConfigSyntax::Yaml => serde_yaml::from_str::<Value>(&block.body)
             .map_err(|e| format!("invalid YAML frontmatter: {e}")),
-        ConfigSyntax::Json => serde_json::from_str::<Value>(&block.body)
-            .map_err(|e| format!("invalid JSON document: {e}")),
+        ConfigSyntax::Json => match serde_json::from_str::<Value>(&block.body) {
+            Ok(value) => Ok(value),
+            Err(_) => {
+                // The RELAXED parser's error is reported, not the strict
+                // one: because relaxation preserves byte offsets and line
+                // breaks, its line/column still point at the right place in
+                // the original file, whereas the strict error would point at
+                // the comment.
+                let relaxed = relax_jsonc(&block.body);
+                serde_json::from_str::<Value>(&relaxed)
+                    .map_err(|e| format!("invalid JSON document: {e}"))
+            }
+        },
         ConfigSyntax::Toml => toml::from_str::<Value>(&block.body)
             .map_err(|e| format!("invalid TOML frontmatter: {e}")),
     }

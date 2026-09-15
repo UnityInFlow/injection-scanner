@@ -5,7 +5,7 @@
 //! **shape**, so a rule written against it cannot fire on prose that merely
 //! mentions the same words.
 
-use injection_scanner::frontmatter::{analyze, extract, parse, project, ConfigSyntax};
+use injection_scanner::frontmatter::{analyze, extract, parse, project, relax_jsonc, ConfigSyntax};
 
 fn rendered(content: &str) -> Vec<String> {
     let (_, lines) = analyze(content)
@@ -443,5 +443,172 @@ fn an_oversized_ascii_scalar_still_projects_and_truncates() {
     assert!(
         lines.iter().any(|l| l.starts_with("description")),
         "an oversized ASCII scalar must still project: {lines:?}"
+    );
+}
+
+// =============================================================================
+// Issue #129: JSONC tolerance on the ConfigSyntax::Json path — offset-
+// preserving, string-safe. The VS Code / GitHub Copilot IntelliJ `mcp.json`
+// house style ships `//` and `/* */` comments (and trailing commas) inside
+// otherwise-valid JSON; this repo's own parser must tolerate that shape
+// without widening the accepted grammar past comments and trailing commas.
+// =============================================================================
+
+#[test]
+fn a_leading_line_comment_above_a_key_parses_and_projects_identically_to_a_blank_line() {
+    let commented = rendered("{\n  // a note about this key\n  \"servers\": \"ok\"\n}");
+    let plain = rendered("{\n  \n  \"servers\": \"ok\"\n}");
+    assert_eq!(
+        commented, plain,
+        "a leading line comment must project like whitespace"
+    );
+}
+
+#[test]
+fn a_trailing_line_comment_after_a_value_parses() {
+    let lines = rendered("{\n  \"type\": \"stdio\", // a note\n  \"ok\": true\n}");
+    assert!(lines.contains(&"type = stdio".to_string()), "got {lines:?}");
+}
+
+#[test]
+fn a_block_comment_preserves_line_numbers_for_keys_after_it() {
+    // The comment spans exactly 3 source lines (2-4); the blank-line control
+    // replaces it with exactly 3 blank lines, so a key after either document
+    // must land on the identical original line number.
+    let with_comment =
+        "{\n  /* this is\n     a multi-line\n     comment */\n  \"after\": \"value\"\n}";
+    let with_blanks = "{\n\n\n\n  \"after\": \"value\"\n}";
+
+    let (_, comment_lines) = analyze(with_comment).expect("parses").expect("has config");
+    let (_, blank_lines) = analyze(with_blanks).expect("parses").expect("has config");
+
+    let after_comment = comment_lines
+        .iter()
+        .find(|l| l.path == "after")
+        .expect("projected after the block comment");
+    let after_blank = blank_lines
+        .iter()
+        .find(|l| l.path == "after")
+        .expect("projected after the blank lines");
+
+    assert_eq!(
+        after_comment.line, after_blank.line,
+        "a block comment must not shift line numbers for keys after it"
+    );
+}
+
+/// THE CASE A NAIVE IMPLEMENTATION GETS WRONG: a `//` sequence inside a
+/// string literal is not a comment. Blanking it would silently delete a URL
+/// payload — the exact failure this tool exists to prevent.
+#[test]
+fn a_url_value_containing_double_slash_survives_relaxation_verbatim() {
+    let lines =
+        rendered("{\n  // header\n  \"url\": \"http://metrics.internal.example.com/mcp\"\n}");
+    assert!(
+        lines.contains(&"url = http://metrics.internal.example.com/mcp".to_string()),
+        "the // inside the URL must survive intact: got {lines:?}"
+    );
+}
+
+/// The block-comment-marker counterpart: `/*` inside a string is not a
+/// comment opener either.
+#[test]
+fn a_value_containing_a_block_comment_marker_survives_relaxation_verbatim() {
+    let lines = rendered("{\n  /* header note */\n  \"args\": [\"--glob=/*.json\"]\n}");
+    assert!(
+        lines.contains(&"args[0] = --glob=/*.json".to_string()),
+        "the /* inside the argument value must survive intact: got {lines:?}"
+    );
+}
+
+/// Proves the string walker honours backslash escapes rather than closing
+/// the string early on an escaped quote.
+#[test]
+fn an_escaped_quote_does_not_confuse_the_string_walker() {
+    let content = r#"{
+  "note": "he said \"hi\"", // trailing
+  "ok": true
+}"#;
+    let lines = rendered(content);
+    assert!(
+        lines.contains(&"note = he said \"hi\"".to_string()),
+        "got {lines:?}"
+    );
+}
+
+#[test]
+fn trailing_commas_before_closing_brackets_are_tolerated() {
+    let object_form = extract("{\"a\": 1,}").expect("json document");
+    assert!(
+        parse(&object_form).is_ok(),
+        "a trailing comma before }} must be tolerated"
+    );
+
+    let array_and_object_form = extract("{\"a\": [1, 2,],}").expect("json document");
+    assert!(
+        parse(&array_and_object_form).is_ok(),
+        "trailing commas before ] and }} must both be tolerated"
+    );
+}
+
+#[test]
+fn a_leading_comment_before_the_opening_brace_is_still_recognised_as_config() {
+    let content = "// header\n{\n  \"model\": \"opus\"\n}\n";
+    let block = extract(content).expect("a leading-comment JSONC document must still be found");
+    assert_eq!(block.syntax, ConfigSyntax::Json);
+    assert_eq!(block.start_line, 2, "the opening brace is on line 2");
+
+    let result = analyze(content);
+    assert!(
+        matches!(result, Ok(Some(_))),
+        "must be Ok(Some(..)), not Ok(None) — a leading-comment header must not vanish as \
+         \"no config here\", which is even quieter than #129's reported bug"
+    );
+}
+
+#[test]
+fn relax_jsonc_preserves_byte_length_and_line_count_for_every_fixture() {
+    let fixtures = [
+        "{\n  // a note about this key\n  \"servers\": \"ok\"\n}",
+        "{\n  \"type\": \"stdio\", // a note\n  \"ok\": true\n}",
+        "{\n  /* this is\n     a multi-line\n     comment */\n  \"after\": \"value\"\n}",
+        "{\n  // header\n  \"url\": \"http://metrics.internal.example.com/mcp\"\n}",
+        "{\n  /* header note */\n  \"args\": [\"--glob=/*.json\"]\n}",
+        "{\"a\": 1,}",
+        "{\"a\": [1, 2,],}",
+        "// header\n{\n  \"model\": \"opus\"\n}\n",
+        "{ \"a\": }",
+        "/usr/local/bin/foo\n",
+        "{\n  \"note\": \"he said \\\"hi\\\"\", // trailing\n  \"ok\": true\n}",
+    ];
+
+    for fixture in fixtures {
+        let relaxed = relax_jsonc(fixture);
+        assert_eq!(
+            relaxed.len(),
+            fixture.len(),
+            "byte length must be preserved for {fixture:?}"
+        );
+        assert_eq!(
+            relaxed.lines().count(),
+            fixture.lines().count(),
+            "line count must be preserved for {fixture:?}"
+        );
+    }
+}
+
+#[test]
+fn a_genuinely_broken_document_is_still_an_error_after_relaxation() {
+    let err = analyze("{ \"a\": }").expect_err("a missing value must still fail to parse");
+    assert!(!err.is_empty(), "the error text must not be empty");
+}
+
+#[test]
+fn a_document_starting_with_slash_that_is_not_jsonc_is_still_ok_none() {
+    assert!(
+        analyze("/usr/local/bin/foo\n")
+            .expect("must not be treated as an error")
+            .is_none(),
+        "a document that starts with / but is not a JSONC header must stay Ok(None)"
     );
 }
