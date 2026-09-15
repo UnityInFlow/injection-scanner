@@ -153,6 +153,13 @@ Use `--all-files` for a corpus whose extensions tell you nothing. It still
 honours the deny-list, `.gitignore` and the size cap, and skips anything with a
 NUL byte in its first block — so `--all-files` does not mean "feed me a JPEG".
 
+JSON config files (`mcp.json`, `.mcp.json`, `claude_desktop_config.json`, ...)
+tolerate `//` and `/* */` comments and trailing commas — the VS Code / GitHub
+Copilot IntelliJ house style — so a commented config is parsed, projected and
+scanned exactly as its uncommented form would be. A config block that still
+cannot be parsed after that is reported on stderr rather than skipped
+silently: `warning: structural config pass skipped for <file> — <reason>`.
+
 ### Controlling what gets walked
 
 `check .` honours `.gitignore` and never descends into build output — `.git`,
@@ -529,6 +536,13 @@ withheld rather than reported: `suppressed` (an in-file directive disarmed it),
 [Adopting On An Existing Repository](#adopting-on-an-existing-repository)). All
 three are additive with `#[serde(default)]`, so older reports still deserialize,
 and none of them affect `critical_count` and friends.
+
+A `config_parse_error` string can also appear on a report, when a config block
+(frontmatter, `.mcp.json`, etc.) was found but could not be parsed — the same
+skipped-pass diagnostic printed on stderr (see
+[What gets scanned](#what-gets-scanned)). It is additive and present only on
+that report, never `null`, so it does not affect `critical_count` and friends
+or the exit code: a parse failure is not a finding.
 
 ### SARIF output
 
