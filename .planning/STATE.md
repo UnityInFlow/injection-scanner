@@ -311,6 +311,7 @@ the pattern set rather than the input. Two misses therefore remain, both for sta
 | 260902-jhy | Fix CR-01 negation blindness in PI053/PI056/PI057; fold in WR-01 `PATTERNS.md` category row | 2026-09-02 | `db2a575` | [260902-jhy-fix-cr-01-negation-blindness-in-pi053-pi](./quick/260902-jhy-fix-cr-01-negation-blindness-in-pi053-pi/) |
 | 260903-fast | Fix char-boundary panic in frontmatter projection (detection bypass via oversized multi-byte scalar) | 2026-09-03 | `d28dfd0` | — |
 | 260915-spt | Fix #129 — JSONC-commented config silently skipped the structural pass; adds the stderr diagnostic *and* offset-preserving JSONC tolerance | 2026-09-15 | `4cddc99` | [260915-spt-fix-129-jsonc-commented-config-silently-](./quick/260915-spt-fix-129-jsonc-commented-config-silently-/) |
+| 260915-u3j | Fix #128 — the manufactured-boundary gate: a match whose edge falls inside a separator-joined compound token (`sh-lint`, `on-call`) is withheld as an artefact, library-wide across all passes | 2026-09-16 | `c47194e` | [260915-u3j-fix-128-separator-normalizer-folds-sh-li](./quick/260915-u3j-fix-128-separator-normalizer-folds-sh-li/) |
 | 260915-u3j | Fix #128 — a pattern-agnostic manufactured-boundary gate stops `sh-lint`/`on-call`/`DAN-mode-switch` from firing PI028/PI030/PI031 as artefacts, across all five scanner passes; adds ADR-006 | 2026-09-16 | `66351c8`..`b31b110` (+ Task 4) | [260915-u3j-fix-128-separator-normalizer-folds-sh-li](./quick/260915-u3j-fix-128-separator-normalizer-folds-sh-li/) |
 
 ## Milestone hygiene done 2026-08-30

