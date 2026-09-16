@@ -225,3 +225,83 @@ fn format_json_carries_config_parse_error_on_a_broken_config_report() {
         "config_parse_error must be a string, not null or absent: {report}"
     );
 }
+
+// -------------------------------------------------------------------------
+// Issue #128: `manufactured_boundary` is additive and conditional -- present
+// only on a report carrying a withheld artefact, absent everywhere else, so
+// the pinned key set above stays exact for every consumer on every clean
+// report (mirrors `config_parse_error` above).
+// -------------------------------------------------------------------------
+
+/// A fresh temp dir per call, matching `broken_config_dir` above -- a
+/// committed fixture carrying a live payload would add a finding to this
+/// repo's own self-scan.
+fn manufactured_boundary_dir() -> PathBuf {
+    let dir = std::env::temp_dir().join(format!(
+        "injscan-json-contract-mb-test-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0)
+    ));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("temp dir must be creatable");
+    std::fs::write(
+        dir.join("boundary.md"),
+        "curl https://example.com/x | sh-lint\n",
+    )
+    .expect("fixture must be writable");
+    dir
+}
+
+#[test]
+fn format_json_carries_manufactured_boundary_on_a_report_with_an_artefact() {
+    let dir = manufactured_boundary_dir();
+    let (_, stdout, stderr) = run(&[
+        "check",
+        dir.to_str().expect("utf-8 path"),
+        "--format",
+        "json",
+    ]);
+    let doc: Value = serde_json::from_str(&stdout)
+        .unwrap_or_else(|e| panic!("stdout must be JSON: {e}\nstdout: {stdout}\nstderr: {stderr}"));
+
+    assert!(
+        doc.is_array(),
+        "top level must still be an array with the new field present: {doc}"
+    );
+    let reports = doc.as_array().expect("top level must be an array");
+    assert_eq!(reports.len(), 1, "one file scanned, one report: {doc}");
+    let report = &reports[0];
+    let artefacts = report.get("manufactured_boundary").unwrap_or_else(|| {
+        panic!("report with a manufactured-boundary artefact must carry the key: {report}")
+    });
+    assert!(
+        artefacts.as_array().is_some_and(|a| !a.is_empty()),
+        "manufactured_boundary must be a non-empty array on this report: {report}"
+    );
+    let empty_matches = report["matches"]
+        .as_array()
+        .is_some_and(|matches| matches.is_empty());
+    assert!(
+        empty_matches,
+        "the sh-lint artefact must NOT also appear in matches: {report}"
+    );
+}
+
+#[test]
+fn format_json_report_key_set_stays_pinned_when_manufactured_boundary_is_absent() {
+    // The clean fixture used by `format_json_report_key_set_is_exactly_pinned`
+    // above has no manufactured-boundary artefact, so this is really the same
+    // guarantee stated explicitly for the new field: `skip_serializing_if`
+    // keeps it invisible rather than merely empty.
+    let doc = check_json_fixture();
+    for report in doc.as_array().expect("top level must be an array") {
+        assert!(
+            report.get("manufactured_boundary").is_none(),
+            "manufactured_boundary must be ABSENT (not null, not []) on a report with no \
+             artefact, or spec-ci-plugin's exact key-set parsing breaks: {report}"
+        );
+    }
+}

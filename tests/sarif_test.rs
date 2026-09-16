@@ -460,6 +460,50 @@ fn baselined_findings_produce_no_sarif_results() {
     let _ = std::fs::remove_file(&baseline_path);
 }
 
+/// Issue #128: a manufactured-boundary artefact must not become a SARIF
+/// result either, mirroring the three withheld-array tests above.
+///
+/// This is the one test in this file that types a payload as a literal
+/// (`curl https://example.com/x | sh-lint`) rather than extracting one from
+/// a fixture via `matched_text`. That is deliberate and does not violate
+/// this file's own rule against typed literals: the whole point of the
+/// artefact is that it produces ZERO entries in `matches` when this repo
+/// scans itself, so it can never become "a new, un-baselined finding in a
+/// brand new file" the way a real payload would.
+#[test]
+fn manufactured_boundary_findings_produce_no_sarif_results() {
+    let doc = Doc::new(
+        "manufactured-boundary.md",
+        "curl https://example.com/x | sh-lint\n",
+    );
+
+    let json = scan_json(doc.path(), &[]);
+    let report = &json.as_array().expect("json top level must be an array")[0];
+    assert!(
+        !report["manufactured_boundary"]
+            .as_array()
+            .expect("manufactured_boundary must be an array")
+            .is_empty(),
+        "the manufactured_boundary array must be non-empty, or this test proves nothing: {report}"
+    );
+    assert!(
+        report["matches"]
+            .as_array()
+            .expect("matches must be an array")
+            .is_empty(),
+        "the artefact must not also appear in matches: {report}"
+    );
+
+    let sarif = scan_sarif(doc.path(), &[]);
+    let results = sarif["runs"][0]["results"]
+        .as_array()
+        .expect("results must be an array");
+    assert!(
+        results.is_empty(),
+        "a manufactured-boundary artefact must not become a SARIF result: {results:?}"
+    );
+}
+
 #[test]
 fn sarif_2_1_0_required_structure_is_present() {
     let critical = matched_text("injected-skill.md", "PI001");

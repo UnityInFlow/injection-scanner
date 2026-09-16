@@ -7,7 +7,7 @@ use crate::context::{ContextMap, MatchContext, DEFAULT_MIN_CONFIDENCE};
 use crate::decode::decode_layers;
 use crate::frontmatter::analyze;
 use crate::multiline::joined_blocks;
-use crate::normalize::{normalize, Normalized};
+use crate::normalize::{normalize, span_edge_is_manufactured, Normalized};
 use crate::pattern::{
     PatternCategory, PatternError, PatternScope, ScanMatch, ScanReport, Severity,
 };
@@ -284,6 +284,28 @@ impl Scanner {
         let mut matches = Vec::new();
         let mut suppressed = Vec::new();
         let mut low_confidence = Vec::new();
+        // Manufactured-boundary artefacts (issue #128): a match whose edge
+        // falls inside a separator-joined compound token (`sh-lint`,
+        // `on-call`), across all five passes below. Filed here rather than
+        // into `matches`, `suppressed` or `low_confidence` because it is not
+        // a finding at all -- see `ScanReport::manufactured_boundary`'s
+        // rustdoc for why it gets no promotion flag. Deliberately NOT added
+        // to either `already` dedup `HashSet` further down: an artefact
+        // filed by an earlier pass must not silence a genuinely different
+        // finding a later pass makes for the same (pattern, line).
+        let mut manufactured_boundary = Vec::new();
+        // A separate, NARROWER dedup than `already`: the separator that
+        // manufactures a boundary is also a member of the general fold set
+        // (`is_separator`), so the same `sh-lint` artefact the raw pass sees
+        // is, after folding, still exactly `sh-lint` mapped back through
+        // `origin` -- the normalized pass rediscovers the identical artefact
+        // rather than a genuinely different finding. This set collapses that
+        // into ONE recorded artefact per (pattern, line), matching `already`'s
+        // own "one payload, one finding" convention -- but it tracks ONLY
+        // artefacts, so it can never suppress a genuine finding the way
+        // adding artefacts to `already` itself would.
+        let mut manufactured_seen: std::collections::HashSet<(String, usize)> =
+            std::collections::HashSet::new();
 
         // Reused across every haystack of every pass (issue #4). The prefilter
         // narrows ~55 regex searches per line down to the handful whose
@@ -327,14 +349,29 @@ impl Scanner {
                     .find_iter(line)
                     .take(MAX_MATCHES_PER_PATTERN_PER_LINE)
                 {
-                    let context = contexts.context_at(line_number, line, matched.start());
-
-                    // Three destinations, and nothing is ever dropped. A
-                    // suppression directive is the document's own act and takes
-                    // precedence in the record, because "this file disarmed the
+                    // Four destinations, and nothing is ever dropped. The
+                    // manufactured-boundary check (#128) goes FIRST: an
+                    // artefact is not a finding at all, so it must not
+                    // inflate the suppressed or low-confidence signal either.
+                    // A suppression directive is the document's own act and
+                    // takes precedence next, because "this file disarmed the
                     // scanner" is the louder signal; below-threshold context is
                     // the scanner's own judgement and is filed separately so it
                     // can be audited or overridden with `--strict`.
+                    if span_edge_is_manufactured(line, matched.start(), matched.end()) {
+                        if manufactured_seen.insert((cp.id.clone(), line_number)) {
+                            let context = contexts.context_at(line_number, line, matched.start());
+                            manufactured_boundary.push(cp.record(
+                                file_path,
+                                line_number,
+                                matched.as_str(),
+                                context,
+                            ));
+                        }
+                        continue;
+                    }
+
+                    let context = contexts.context_at(line_number, line, matched.start());
                     let destination = if suppressed_here {
                         &mut suppressed
                     } else if context.confidence() < min_confidence {
@@ -393,6 +430,18 @@ impl Scanner {
                     let (start_line, offset) = block.line_and_offset(span.start);
                     let line_text = source_lines.get(start_line - 1).copied().unwrap_or("");
                     let context = contexts.context_at(start_line, line_text, offset);
+
+                    if span_edge_is_manufactured(&block.text, span.start, span.end) {
+                        if manufactured_seen.insert((cp.id.clone(), first)) {
+                            manufactured_boundary.push(cp.record(
+                                file_path,
+                                first,
+                                matched.as_str(),
+                                context,
+                            ));
+                        }
+                        continue;
+                    }
 
                     let destination = if suppressed_here {
                         &mut suppressed
@@ -462,6 +511,41 @@ impl Scanner {
                                 .map_or(0, |n| n + 1);
                         let context = contexts.context_at(line_number, line_text, offset);
 
+                        // The manufactured-boundary gate (#128) is evaluated
+                        // against the ORIGINAL text a span maps to, never the
+                        // normalized form -- the fold that created the
+                        // normalized text is exactly what this predicate must
+                        // see through. `original_span` computes the same
+                        // (start, end) pair used to quote the finding below,
+                        // so the gated span and the quoted text can never
+                        // disagree.
+                        let (orig_start, orig_end) =
+                            original_span(content, &normalized, line_start, &matched);
+                        // The ORIGINAL text is quoted, not the normalized form.
+                        // A user told their file contains "ignore all previous
+                        // instructions" when it visibly contains
+                        // "ignore-all-previous-instructions" cannot act on that.
+                        let quoted = quote_span(content, orig_start, orig_end, matched.as_str());
+
+                        if span_edge_is_manufactured(content, orig_start, orig_end) {
+                            // The general fold set includes the compound
+                            // separators, so a raw-pass artefact often maps to
+                            // the identical original span here too -- dedup on
+                            // (pattern, line) via `manufactured_seen`, NOT
+                            // `already`, so this can never suppress a
+                            // genuinely different finding (only a duplicate
+                            // report of the SAME artefact).
+                            if manufactured_seen.insert((cp.id.clone(), line_number)) {
+                                manufactured_boundary.push(cp.record(
+                                    file_path,
+                                    line_number,
+                                    &quoted,
+                                    context,
+                                ));
+                            }
+                            continue;
+                        }
+
                         let destination = if suppressions.is_suppressed(line_number, &cp.id) {
                             &mut suppressed
                         } else if context.confidence() < min_confidence {
@@ -469,11 +553,6 @@ impl Scanner {
                         } else {
                             &mut matches
                         };
-                        // The ORIGINAL text is quoted, not the normalized form.
-                        // A user told their file contains "ignore all previous
-                        // instructions" when it visibly contains
-                        // "ignore-all-previous-instructions" cannot act on that.
-                        let quoted = original_slice(content, &normalized, line_start, &matched);
                         destination.push(cp.record(file_path, line_number, &quoted, context));
                     }
                 }
@@ -520,11 +599,29 @@ impl Scanner {
                         if already.contains(&(cp.id.clone(), line_number)) {
                             continue;
                         }
-                        // One finding per (pattern, layer), so `is_match` rather than
-                        // `find_iter`: the same payload repeated inside one decoded
-                        // blob is one attack, not several, and the quoted text is the
-                        // whole candidate either way.
-                        if cp.regex.is_match(&layer.text) {
+                        // One finding per (pattern, layer), so `find` rather
+                        // than `find_iter`: the same payload repeated inside
+                        // one decoded blob is one attack, not several, and
+                        // the quoted text is the whole candidate either way.
+                        // `find` (not `is_match`) is needed to get a span for
+                        // the manufactured-boundary gate (#128).
+                        if let Some(matched) = cp.regex.find(&layer.text) {
+                            if span_edge_is_manufactured(
+                                &layer.text,
+                                matched.start(),
+                                matched.end(),
+                            ) {
+                                if manufactured_seen.insert((cp.id.clone(), line_number)) {
+                                    manufactured_boundary.push(cp.record_decoded(
+                                        file_path,
+                                        line_number,
+                                        &quoted,
+                                        MatchContext::Prose,
+                                        Some(layer.chain_label()),
+                                    ));
+                                }
+                                continue;
+                            }
                             let destination = if suppressions.is_suppressed(line_number, &cp.id) {
                                 &mut suppressed
                             } else {
@@ -591,7 +688,27 @@ impl Scanner {
                                 // Confidence is 1.0 by construction here, so a
                                 // structural finding is never filed as low-confidence.
                                 // Suppression still applies: a document disarming the
-                                // scanner is recorded whatever the pass.
+                                // scanner is recorded whatever the pass. The
+                                // manufactured-boundary gate (#128) applies here
+                                // too, against the rendered projection: e.g. a
+                                // `command = npx-lint` value.
+                                if span_edge_is_manufactured(
+                                    &rendered,
+                                    matched.start(),
+                                    matched.end(),
+                                ) {
+                                    if manufactured_seen
+                                        .insert((cp.id.clone(), projected_line.line))
+                                    {
+                                        manufactured_boundary.push(cp.record(
+                                            file_path,
+                                            projected_line.line,
+                                            matched.as_str(),
+                                            MatchContext::FrontmatterStructural,
+                                        ));
+                                    }
+                                    continue;
+                                }
                                 let destination =
                                     if suppressions.is_suppressed(projected_line.line, &cp.id) {
                                         &mut suppressed
@@ -620,6 +737,7 @@ impl Scanner {
 
         ScanReport::with_withheld(file_path.to_string(), matches, suppressed, low_confidence)
             .with_config_parse_error(config_parse_error)
+            .with_manufactured_boundary(manufactured_boundary)
     }
 }
 
@@ -629,19 +747,26 @@ impl Scanner {
 /// `ignore all previous instructions` when it visibly contains
 /// `ignore-all-previous-instructions` — a quote they cannot find with a search,
 /// about a file they are being asked to fix.
-fn original_slice(
+///
+/// Factored out of the old `original_slice` (issue #128) so the
+/// manufactured-boundary gate and the quoted text are computed from the
+/// SAME span -- calling this once and handing the result to both
+/// `span_edge_is_manufactured` and [`quote_span`] is what makes them unable
+/// to disagree, rather than two call sites independently reimplementing the
+/// same offset math.
+fn original_span(
     content: &str,
     normalized: &Normalized,
     line_start: usize,
     matched: &regex::Match<'_>,
-) -> String {
+) -> (usize, usize) {
     let start = normalized.original_offset(line_start + matched.start());
     let end = normalized
         .original_offset(line_start + matched.end().saturating_sub(1))
         .saturating_add(1)
         .min(content.len());
     if start >= end {
-        return matched.as_str().to_string();
+        return (start, end);
     }
     // Snap to char boundaries; the map points at the start of the source char,
     // but a multi-byte char at the end would slice mid-sequence.
@@ -653,5 +778,19 @@ fn original_slice(
     while hi < content.len() && !content.is_char_boundary(hi) {
         hi += 1;
     }
-    content[lo..hi].to_string()
+    (lo, hi)
+}
+
+/// The original text a `[start, end)` span names, or `fallback` when the
+/// span is degenerate (`start >= end`).
+///
+/// Reporting the normalized form would tell the user their file contains
+/// `ignore all previous instructions` when it visibly contains
+/// `ignore-all-previous-instructions` — a quote they cannot find with a search,
+/// about a file they are being asked to fix.
+fn quote_span(content: &str, start: usize, end: usize, fallback: &str) -> String {
+    if start >= end {
+        return fallback.to_string();
+    }
+    content[start..end].to_string()
 }
