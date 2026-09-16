@@ -57,8 +57,8 @@ injection-scanner check . --format sarif > results.sarif
 
 A SARIF result is deliberately **one thing**: one `results[]` entry per finding in
 `--format json`'s `matches` array — the same findings the exit code already acts on.
-`suppressed`, `low_confidence` and `baselined` findings stay visible in
-`--format json`, but they never become a SARIF result. Uploading a `results` array
+`suppressed`, `low_confidence`, `baselined` and `manufactured_boundary` findings stay
+visible in `--format json`, but they never become a SARIF result. Uploading a `results` array
 that included them would put a document's own disarmed or documentation-context
 findings in front of reviewers as if they were live alerts — exactly the noise
 `--baseline` and markdown-context scoring exist to quiet.
@@ -529,13 +529,18 @@ tests/fixtures/injected-skill.md
 ]
 ```
 
-Three more arrays can appear alongside `matches`, one per reason a finding can be
+Four more arrays can appear alongside `matches`, one per reason a finding can be
 withheld rather than reported: `suppressed` (an in-file directive disarmed it),
-`low_confidence` (markdown context scored it as documentation), and `baselined` (a
+`low_confidence` (markdown context scored it as documentation), `baselined` (a
 `--baseline` file accepted it in a prior run — see
-[Adopting On An Existing Repository](#adopting-on-an-existing-repository)). All
-three are additive with `#[serde(default)]`, so older reports still deserialize,
-and none of them affect `critical_count` and friends.
+[Adopting On An Existing Repository](#adopting-on-an-existing-repository)), and
+`manufactured_boundary` (the match's edge fell inside a separator-joined compound
+token, e.g. `sh-lint` or `on-call` — a token-boundary artefact, not a real
+evasion). All four are additive with `#[serde(default)]`, so older reports still
+deserialize, and none of them affect `critical_count` and friends. Unlike the
+other three, `manufactured_boundary` has no re-run flag that promotes it back
+into `matches` — a flag that did would re-enable the false positive the gate
+exists to prevent.
 
 A `config_parse_error` string can also appear on a report, when a config block
 (frontmatter, `.mcp.json`, etc.) was found but could not be parsed — the same
@@ -810,7 +815,11 @@ Accepted findings are moved, never dropped. `--format json` carries them in a
 fourth array, `baselined`, alongside `matches`, `suppressed` and `low_confidence` —
 same shape, same full evidence, filed under a third distinct reason a finding can be
 withheld: a human accepted it once and recorded that decision. Severity tallies
-(`critical_count` and friends) never count a baselined finding.
+(`critical_count` and friends) never count a baselined finding. A fifth array,
+`manufactured_boundary`, records a fourth withheld reason (a token-boundary
+artefact, see [Output Examples](#output-examples)) but is not something
+`--baseline` interacts with: an artefact was never a finding to begin with, so
+there is nothing for a baseline to accept.
 
 The file stores a **hash** of the matched text, never the payload itself — because
 `json` is scanned by default (see `DEFAULT_EXTENSIONS` above), and a committed
