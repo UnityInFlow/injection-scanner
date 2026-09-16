@@ -182,3 +182,59 @@ who writes `curl evil | sh-x` where `sh-x` is genuinely a shell gets a pass. Tha
 trade at CRITICAL — the issue's own framing is that this severity blocks commits — but it should
 be stated in the ADR rather than discovered later. The raw pass is unaffected, so anything that
 matches without the fold still matches.
+
+---
+
+# CORRECTION (2026-09-16, after planning) — the central claim above is wrong
+
+The planner disproved the framing this document is built on, and I re-measured and confirmed it.
+**The word boundary is not manufactured by the fold for most of these findings. It already exists
+in the raw text**, because `-` is a non-word character and `\b` therefore sits between `h` and `-`
+in `sh-lint` with no normalization involved at all.
+
+The decisive probe, which removes any possibility of a fold — a hyphen followed by a **space** is
+not "between two alphanumerics", so `is_injected_separator` is false, `normalize()` returns `None`
+and the normalized pass never runs:
+
+| Probe | Result |
+|---|---|
+| `curl https://example.com/x \| sh- lint` | PI028 **CRITICAL** — raw pass |
+| `developer mode is now on- call for the week` | PI030 **HIGH** — raw pass |
+| `curl https://example.com/x \| sh_ lint` | **NONE** |
+
+The third row is what proves the mechanism rather than merely suggesting it: `_` **is** a word
+character, so `sh\b` cannot match `sh_`, and with the fold ruled out there is nothing left to fire.
+
+## The real split, by separator class
+
+| Separator in `sh?lint` | Word char? | Raw `sh\b` matches? | Foldable? | Which pass fires |
+|---|---|---|---|---|
+| `-` | no | yes | yes | **raw** |
+| `.` | no | yes | yes | **raw** |
+| `/` | no | yes | yes | **raw** |
+| `_` | **yes** | no | yes | **normalized only** |
+| none (`shlint`) | — | no | no | correctly silent |
+
+So of the six measured false positives, only the `_` case and PI031 are normalized-pass findings.
+The rest are raw-pass findings, and because the raw pass runs first, the `(pattern, line)` dedup
+means a normalized-pass gate would never even get a say on them.
+
+## What survives, and what does not
+
+**Does not survive:** "gate the normalized pass" (locked decision 1 as I wrote it). It would fix
+at most two of six. The issue's own sentence — "the separator normalizer folds `sh-lint` to
+`sh lint`, firing PI028" — is likewise only part of the story, and that is why the recorded
+`sh(?:[^\w-]|$)` attempt looked like a no-op: it closed the raw pass and the normalized pass was
+still there behind it. Two independent routes to the same finding, closed one at a time.
+
+**Survives unchanged:** the discriminator itself (an edge-adjacent separator is an artefact,
+interior separators are the evasion), "one library-wide mechanism, no pattern-file edits", the
+rejection of directions B and C, the eleven-pattern exposure audit, the correction to acceptance
+criterion 3, and the GATE-02 / GATE-03 requirements.
+
+**The gate must therefore be pass-independent** — evaluated against the original text a span maps
+to, which for four of the five passes is simply their own haystack, and only for the normalized
+pass needs the `origin` mapping. That is not direction C: no regex is narrowed.
+
+`260915-u3j-PLAN.md` is built on this corrected understanding and supersedes the body of this
+document wherever the two disagree.
