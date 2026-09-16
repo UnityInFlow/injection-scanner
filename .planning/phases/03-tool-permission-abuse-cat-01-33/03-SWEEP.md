@@ -43,29 +43,29 @@ total, comfortably more than the seven sibling repositories the historical sweep
 ```bash
 cargo build --release
 bash scripts/gate03-sweep.sh /tmp/gate03-baseline \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/03-injection-scanner/.claude/worktrees/agent-ade5856f6fc048a75 \
-  /Users/jirihermann/.claude/plugins/cache \
-  /Users/jirihermann/.claude/skills \
-  /Users/jirihermann/.claude/gsd-core \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/01-spec-linter \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/02-ai-changelog \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/04-spec-ci-plugin \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/05-budget-breaker \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/06-token-dashboard \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/07-mcp-hub \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/08-kore-runtime \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/09-agent-tracer \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/10-agent-memory \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/11-context-manager \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/12-agent-replayer \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/13-eu-ai-act-toolkit \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/14-agent-sandbox \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/15-llm-diff \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/16-prompt-vc \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/17-skills-registry \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/18-agent-bench \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/19-skill-composer \
-  /Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/20-mcp-test
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/03-injection-scanner/.claude/worktrees/agent-ade5856f6fc048a75 \
+  $HOME/.claude/plugins/cache \
+  $HOME/.claude/skills \
+  $HOME/.claude/gsd-core \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/01-spec-linter \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/02-ai-changelog \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/04-spec-ci-plugin \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/05-budget-breaker \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/06-token-dashboard \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/07-mcp-hub \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/08-kore-runtime \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/09-agent-tracer \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/10-agent-memory \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/11-context-manager \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/12-agent-replayer \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/13-eu-ai-act-toolkit \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/14-agent-sandbox \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/15-llm-diff \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/16-prompt-vc \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/17-skills-registry \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/18-agent-bench \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/19-skill-composer \
+  $HOME/Documents/workspace-1-ideas/unity-in-flow-ai/20-mcp-test
 ```
 
 (Directory names and counts below are specific to this machine on 2026-09-01. Plan 07 re-running

@@ -242,7 +242,7 @@ None — plan executed exactly as written, task order and scope unchanged.
 **1. [Environment constraint] SUMMARY.md was written to the worktree's copy of the path, not the
 primary-checkout path the plan's `<output>` section specified.** The plan asked for the SUMMARY to
 be written to
-`/Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/03-injection-scanner/.planning/quick/260825-tc7-cli-08-implement-baseline-file-for-incre/260825-tc7-SUMMARY.md`
+`$HOME/Documents/workspace-1-ideas/unity-in-flow-ai/03-injection-scanner/.planning/quick/260825-tc7-cli-08-implement-baseline-file-for-incre/260825-tc7-SUMMARY.md`
 in the primary checkout. The `Write` tool refused that path outright with: "This agent is isolated
 in the worktree ...; Edit the worktree copy of this file instead of the shared-checkout path." This
 is a hard sandbox restriction on this execution, not a discretionary choice — every attempt to

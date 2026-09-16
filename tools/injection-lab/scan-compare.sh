@@ -2,7 +2,11 @@
 # Scanner side: what injection-scanner reports, default vs --strict, per document.
 set -euo pipefail
 LAB="$(cd "$(dirname "$0")" && pwd)"
-BIN="${INJECTION_SCANNER:-$LAB/../../../../../../Users/jirihermann/Documents/workspace-1-ideas/unity-in-flow-ai/03-injection-scanner/target/release/injection-scanner}"
+# `$LAB` is `tools/injection-lab`, so `../..` is the repository root — the
+# default resolves on any checkout. It previously hardcoded one developer's
+# absolute home path (#123), which worked on exactly one machine and published
+# that machine's layout in a public repository.
+BIN="${INJECTION_SCANNER:-$LAB/../../target/release/injection-scanner}"
 [ -x "$BIN" ] || { echo "set INJECTION_SCANNER to the binary path"; exit 1; }
 
 printf '%-30s %-14s %8s %8s\n' DOCUMENT CONTEXT DEFAULT STRICT

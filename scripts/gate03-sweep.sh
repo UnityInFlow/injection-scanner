@@ -73,13 +73,34 @@ require_binary() {
 # A directory that is not present on this machine is not an error -- the
 # corpus is machine-local by construction -- so it is recorded as a skip in
 # the manifest rather than aborting the whole run.
+# redact_home <path>
+#
+# Replaces a leading `$HOME` with the literal string `$HOME` so the committed
+# manifest never carries a developer's username or home-directory layout
+# (#123). `manifest.tsv` is deliberately committed while the raw JSON reports
+# are gitignored, so this is the one file that publishes the directory list --
+# and it published one developer's machine inventory twice before this guard
+# existed. Redaction is by construction here rather than by hand afterwards,
+# because "remember to redact" is what failed both previous times.
+#
+# Counts are untouched, so a redacted manifest is still verifiable against a
+# local copy: re-run on the same machine and the rows match after the same
+# substitution.
+redact_home() {
+  case "$1" in
+    "$HOME"/*) printf '$HOME/%s\n' "${1#"$HOME"/}" ;;
+    "$HOME") printf '$HOME\n' ;;
+    *) printf '%s\n' "$1" ;;
+  esac
+}
+
 sweep_one() {
   out_dir="$1"
   dir="$2"
 
   if [ ! -d "$dir" ]; then
     echo "WARNING: skipping '$dir' -- not present on this machine" >&2
-    printf '%s\t%s\t%s\t%s\n' "$dir" "0" "0" "skipped-missing" >>"${out_dir}/manifest.tsv"
+    printf '%s\t%s\t%s\t%s\n' "$(redact_home "$dir")" "0" "0" "skipped-missing" >>"${out_dir}/manifest.tsv"
     return 0
   fi
 
@@ -121,7 +142,7 @@ data = json.load(open(sys.argv[1]))
 print(sum(len(r['matches']) for r in data))
 " "$report")
 
-  printf '%s\t%s\t%s\t%s\n' "$abs_dir" "$files_scanned" "$findings" "swept" >>"${out_dir}/manifest.tsv"
+  printf '%s\t%s\t%s\t%s\n' "$(redact_home "$abs_dir")" "$files_scanned" "$findings" "swept" >>"${out_dir}/manifest.tsv"
 }
 
 # build_summary <output-dir>
