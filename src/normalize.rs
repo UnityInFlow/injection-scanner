@@ -78,8 +78,25 @@ fn is_invisible(c: char) -> bool {
 ///
 /// `ignore-all-previous-instructions` reads identically to a human and matches
 /// nothing. Folded to a space so the library's `\s+` does the rest.
-fn is_separator(c: char) -> bool {
+///
+/// Public so callers reasoning about the *subset* relationship with
+/// [`is_compound_separator`] (the manufactured-boundary gate, issue #128) can
+/// verify it directly rather than duplicating this list -- a test that
+/// hardcodes its own copy of this set would not notice if this one drifted.
+pub fn is_separator(c: char) -> bool {
     matches!(c, '-' | '_' | '.' | '*' | '+' | '~' | '/' | '|' | '\\')
+}
+
+/// Does a separator sitting at this position bind two word characters?
+///
+/// The shared core of "this separator is being used *as* a separator, rather
+/// than as punctuation" -- used both by [`is_injected_separator`] (the full
+/// [`is_separator`] set, for the fold) and by the manufactured-boundary gate
+/// (the `-`/`_` subset, for [`span_edge_is_manufactured`]). One definition,
+/// two call sites, so the two mechanisms can never quietly disagree about
+/// what "binds" means.
+fn separator_binds(prev: Option<char>, next: Option<char>) -> bool {
+    prev.is_some_and(|c| c.is_alphanumeric()) && next.is_some_and(|c| c.is_alphanumeric())
 }
 
 /// Is this separator being used *as* a separator, rather than as punctuation?
@@ -96,11 +113,78 @@ fn is_injected_separator(chars: &[(usize, char)], index: usize) -> bool {
     let before = index
         .checked_sub(1)
         .and_then(|i| chars.get(i))
-        .is_some_and(|(_, c)| c.is_alphanumeric());
-    let after = chars
-        .get(index + 1)
-        .is_some_and(|(_, c)| c.is_alphanumeric());
-    before && after
+        .map(|(_, c)| *c);
+    let after = chars.get(index + 1).map(|(_, c)| *c);
+    separator_binds(before, after)
+}
+
+/// Is `c` one of the two separators the manufactured-boundary gate (issue
+/// #128) reasons about?
+///
+/// A deliberate strict subset of [`is_separator`]: only `-` and `_`. Those
+/// two are what join compound identifiers and command names in every
+/// ecosystem this tool scans (`sh-lint`, `on-call`, `sh_lint`), and they
+/// cover 6/6 of the false positives measured for #128. `.` and `/` are
+/// excluded on purpose -- they join *paths and domains*, where a match edge
+/// landing before the separator is routinely legitimate (`evil.test`,
+/// `x.sh`), so folding them into the gate would spend recall for nothing
+/// measured. If a future sweep shows a `-`/`_` case the gate misses,
+/// widening is a later measured decision, not a guess made here.
+pub fn is_compound_separator(c: char) -> bool {
+    matches!(c, '-' | '_')
+}
+
+/// Is the compound separator at byte offset `at` in `text` a manufactured
+/// boundary -- i.e. does it bind two word characters?
+///
+/// Char-boundary safe: `text.get(at..)` returns `None` rather than panicking
+/// when `at` does not land on a boundary or is past the end of `text`. A
+/// fixed byte-offset slice into real third-party text that assumes a
+/// boundary is exactly the class of bug `src/frontmatter.rs`'s char-boundary
+/// panic recorded (issue tracked there); this function never assumes one.
+fn is_manufactured_edge_at(text: &str, at: usize) -> bool {
+    let Some(c) = text.get(at..).and_then(|rest| rest.chars().next()) else {
+        return false;
+    };
+    if !is_compound_separator(c) {
+        return false;
+    }
+    let prev = text.get(..at).and_then(|s| s.chars().next_back());
+    let next = text.get(at + c.len_utf8()..).and_then(|s| s.chars().next());
+    separator_binds(prev, next)
+}
+
+/// Is the match spanning `text[start..end]` a manufactured-boundary
+/// artefact (issue #128)?
+///
+/// A match is an artefact when the character immediately at its end, or the
+/// character immediately preceding its start, is a compound separator
+/// (`-` or `_`) binding two word characters -- i.e. the match edge falls
+/// inside a separator-joined compound token (`sh-lint`, `on-call`,
+/// `DAN-mode-switch`, `sh_lint`). A match whose separators are strictly
+/// interior (`ignore-all-previous-instructions`) is kept: only the EDGE is
+/// manufactured, never the inside.
+///
+/// `start` and `end` are ordinary Rust regex `Match::start()`/`Match::end()`
+/// byte offsets (end exclusive) into `text` -- "original text" meaning the
+/// text the span was actually matched against. For the raw, multi-line,
+/// structural and decoded scanner passes that is simply their own haystack;
+/// the normalized pass is responsible for mapping its span back to the
+/// original text (via its `origin` map) before calling this function, since
+/// the fold that created the normalized text is exactly what this predicate
+/// must see through.
+pub fn span_edge_is_manufactured(text: &str, start: usize, end: usize) -> bool {
+    if is_manufactured_edge_at(text, end) {
+        return true;
+    }
+    let Some(prev) = text.get(..start).and_then(|s| s.chars().next_back()) else {
+        return false;
+    };
+    if !is_compound_separator(prev) {
+        return false;
+    }
+    let sep_at = start - prev.len_utf8();
+    is_manufactured_edge_at(text, sep_at)
 }
 
 /// Normalize `input`, or `None` if nothing changed.
