@@ -37,10 +37,7 @@ const MIN_NEGATIVES: usize = 2;
 /// **Do not add to this list.** A new pattern without cases must gain cases,
 /// not an exemption. Backfilling is tracked in #89; remove ids from here as
 /// they are covered — a test below fails if you leave a compliant id behind.
-const LEGACY_UNTESTED: &[&str] = &[
-    "PI003", "PI011", "PI012", "PI013", "PI025", "PI030", "PI033", "PI037", "PI040", "PI041",
-    "PI042",
-];
+const LEGACY_UNTESTED: &[&str] = &[];
 
 /// Counts of `(positive, negative)` cases per pattern id across `tests/`.
 ///
