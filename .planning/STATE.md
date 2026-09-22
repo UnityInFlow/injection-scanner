@@ -315,6 +315,7 @@ the pattern set rather than the input. Two misses therefore remain, both for sta
 | 260915-u3j | Fix #128 — a pattern-agnostic manufactured-boundary gate stops `sh-lint`/`on-call`/`DAN-mode-switch` from firing PI028/PI030/PI031 as artefacts, across all five scanner passes; adds ADR-006 | 2026-09-16 | `66351c8`..`b31b110` (+ Task 4) | [260915-u3j-fix-128-separator-normalizer-folds-sh-li](./quick/260915-u3j-fix-128-separator-normalizer-folds-sh-li/) |
 | 260916-sz4 | Amend GATE-04 to a review-unit rule — "No reviewable unit widens more than one category"; the old "its own PR" wording was never once satisfiable as written (#117) | 2026-09-16 | `7c8e99e` | [260916-sz4-amend-gate-04-to-no-reviewable-unit-wide](./quick/260916-sz4-amend-gate-04-to-no-reviewable-unit-wide/) |
 | 260916-sz4b | Fold the GATE-04 amendment into `.continue-here.md` — a fourth, tracked copy of the standing-gates table still read "One category per PR" (#117) | 2026-09-17 | `20ae586` | — |
+| 260922-st9 | Put the `LEGACY_UNTESTED` ratchet note in past tense — #138 emptied the list, so the present-tense "they are listed in" doc read as a disabled check rather than the ratchet at full strictness (#89) | 2026-09-22 | `b85a536` | [260922-st9-update-stale-legacy-untested-module-doc-](./quick/260922-st9-update-stale-legacy-untested-module-doc-/) |
 
 ## Milestone hygiene done 2026-08-30
 

@@ -18,12 +18,27 @@
 //! 30 of the original patterns predated the helpers and had no cases at all.
 //! The four category widenings (#80, #95, #97, #99) took that to 11 as a side
 //! effect -- rewriting a pattern is the natural moment to give it cases.
-//! Rather than block on backfilling them (#89) or leave the policy unenforced,
-//! they are listed in [`LEGACY_UNTESTED`]. That list is a debt register with
-//! three properties, each pinned by a test below: a pattern not on it must
-//! comply, the list may not grow, and an entry that *starts* complying must be
-//! removed from it. The last one is what makes this tighten on its own rather
-//! than becoming a permanent excuse.
+//! Rather than block on backfilling them or leave the policy unenforced, they
+//! were listed in [`LEGACY_UNTESTED`]. The backfill tracked in #89 covered
+//! the last 11 and emptied the list.
+//!
+//! [`LEGACY_UNTESTED`] is empty now. Read that as this ratchet at maximum
+//! strictness, not as a check that has been switched off: with nothing
+//! exempt, every shipped pattern has to clear the 3-match / 2-non-match
+//! minimum. An empty list is not a loophole waiting to be refilled -- it is
+//! this ratchet's intended end state, and that state has been reached.
+//!
+//! The list still carries the three properties that got it here, each
+//! pinned by a test below and still meaningful on an empty list: a pattern
+//! not on it must comply -- which by now is every pattern -- the list may
+//! not grow, and an entry that *starts* complying must be removed from it.
+//! That third property is what drove the list to empty instead of letting
+//! it calcify into a permanent excuse -- a completed fact now, not a hope.
+//!
+//! Nothing goes back on: a pattern that ships without cases gains cases,
+//! not an exemption. And the empty const plus its tests stay right where
+//! they are -- deleting them would reopen the exemption route the
+//! may-not-grow guard currently holds shut.
 
 use injection_scanner::patterns::load_embedded_patterns;
 use std::collections::BTreeMap;
@@ -35,8 +50,9 @@ const MIN_NEGATIVES: usize = 2;
 /// Patterns that shipped before `assert_positives`/`assert_negatives` existed.
 ///
 /// **Do not add to this list.** A new pattern without cases must gain cases,
-/// not an exemption. Backfilling is tracked in #89; remove ids from here as
-/// they are covered — a test below fails if you leave a compliant id behind.
+/// not an exemption. The #89 backfill completed and covered every remaining
+/// id — a test below fails if you leave a compliant id behind. The register
+/// is empty on purpose and stays that way; see the module docs above for why.
 const LEGACY_UNTESTED: &[&str] = &[];
 
 /// Counts of `(positive, negative)` cases per pattern id across `tests/`.
