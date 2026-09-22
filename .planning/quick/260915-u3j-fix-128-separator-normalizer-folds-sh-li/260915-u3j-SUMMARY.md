@@ -26,6 +26,16 @@ authorship_note: >
   orchestrator error, not an agent failure. No code was lost — the fast-forward captured all four
   commits — but the agent's summary file went with the worktree. Every number below was
   re-measured by the orchestrator on the merged branch rather than copied from the agent's report.
+
+  Correction, 2026-09-22: the agent's summary was NOT lost. The worktree directory was
+  unregistered from git but never deleted from disk, and the file survived at
+  `.claude/worktrees/agent-a8518b9e85ecdd5c4/` until it was recovered. It is preserved beside
+  this one as `260915-u3j-SUMMARY-agent-original.md`. This file remains the canonical record —
+  its numbers were re-measured on the merged branch, the agent's were not, and the agent states
+  outright that it could not re-verify anything after losing its working directory. Read the
+  companion for what only the executing agent saw: the per-task commit hashes, the in-flight
+  correction to two of the plan's twelve byte-offset triples, and its account of the teardown
+  landing mid-`cargo test --test recall_test`.
 ---
 
 # Quick Task 260915-u3j — issue #128: the manufactured-boundary gate
