@@ -10,14 +10,25 @@ Static scanner for prompt injection attacks in skill files, CLAUDE.md, RAG docum
 
 ## Status
 
-**v0.0.2 shipped** (2026-06-24) — 6 target-triple binaries, consumed by `spec-ci-plugin`.
+**v0.1.0 is the latest release** (2026-08-29). Earlier tags — v0.0.1, v0.0.2 (2026-06-24, 6
+target-triple binaries, consumed by `spec-ci-plugin`), v0.0.3 (2026-08-22) — are history, not the
+current shipped state.
 
-**Current milestone: Production Readiness (v0.0.3 + v0.1.0).** A 2026-08 audit
-(`docs/AUDIT-2026-08.md`, independently verified) found the tool does not do what its README claims.
-Live planning: `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`.
-Backlog beyond this milestone: `docs/DETECTION-BACKLOG.md`. Checklist: `TODO.md`.
+**Current milestone: v0.2.0 — Agent-shaped attacks** (opened 2026-08-30). Phases 1-3 are complete —
+structural frontmatter engine (ENG-01, #32), recursive decoder (ENG-02, #30), tool & permission
+abuse (CAT-01, #33). Phase 4 — MCP & tool-description poisoning (CAT-02, #34) — is in flight. Live
+planning: `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`. Backlog beyond
+this milestone: `docs/DETECTION-BACKLOG.md`. Checklist: `TODO.md`. The superseded milestone's
+artifacts moved to `.planning/archive/milestone-v0.1.0/`; its audit remains at `docs/AUDIT-2026-08.md`.
 
-**Phase 1 is a hard gate** — CI has been dead since 2026-06-24. Nothing merges until it is green.
+**CI is green** and is the merge gate every PR goes through. It runs on a GitHub-hosted runner by
+deliberate choice, not the org's self-hosted fleet — see `## CI / Self-Hosted Runners` below for the
+binding policy before touching any workflow.
+
+> **Verify status before planning from it.** This block has drifted before — it once named a
+> release two versions stale as current and presented an archived milestone as live. The live
+> answer is `gh release list --repo UnityInFlow/injection-scanner` and `gh run list --branch main`,
+> and it beats this file whenever the two disagree. Last verified: 2026-09-23.
 
 ## Reference Documents
 
@@ -100,7 +111,8 @@ Superpowers skills (TDD, code review, debugging) activate automatically during e
 
 ## CI / Self-Hosted Runners
 
-> **Revised 2026-08-21 (Phase 1, this milestone).** The guidance below replaces the original
+> **Revised 2026-08-21 (Phase 1, milestone now archived at `.planning/archive/milestone-v0.1.0/`).**
+> The guidance below replaces the original
 > "never use ubuntu-latest / default to arc-runner-unityinflow" instruction, which produced two
 > 24-hour CI queue timeouts and left this repo with no test gate. See the August 2026 row in the
 > root CLAUDE.md decisions log.
