@@ -332,6 +332,7 @@ the pattern set rather than the input. Two misses therefore remain, both for sta
 | 260916-sz4b | Fold the GATE-04 amendment into `.continue-here.md` — a fourth, tracked copy of the standing-gates table still read "One category per PR" (#117) | 2026-09-17 | `20ae586` | — |
 | 260922-st9 | Put the `LEGACY_UNTESTED` ratchet note in past tense — #138 emptied the list, so the present-tense "they are listed in" doc read as a disabled check rather than the ratchet at full strictness (#89) | 2026-09-22 | `b85a536` | [260922-st9-update-stale-legacy-untested-module-doc-](./quick/260922-st9-update-stale-legacy-untested-module-doc-/) |
 | 260923-dbv | Reconcile the stale `CLAUDE.md` Status block — it named a release two versions behind, presented the archived Production Readiness milestone as current, and asserted "CI has been dead since 2026-06-24. Nothing merges" while five PRs were merging through green CI | 2026-09-23 | `4ffbee7` | [260923-dbv-reconcile-the-stale-claude-md-status-blo](./quick/260923-dbv-reconcile-the-stale-claude-md-status-blo/) |
+| 261006-tq8 | Reconcile five stale claims in this file — merged PR #110 still named as the open blocker for closing Phase 4, `0 merge commits`, `357 tests`, two drifted catalogue line numbers, and #129 shown as open; adds the anti-drift blockquote | 2026-10-06 | `465526a` | [261006-tq8-reconcile-stale-claims-in-state-md-110-i](./quick/261006-tq8-reconcile-stale-claims-in-state-md-110-i/) |
 
 ## Milestone hygiene done 2026-08-30
 
