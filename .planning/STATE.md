@@ -29,6 +29,14 @@ See: `.planning/PROJECT.md`
 
 **Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **all 7 plans complete (04-01 through 04-07)** — phase-complete marker and the PR are the orchestrator's to set after its own verification runs
 
+> **This section has drifted before — verify it before planning from it.** It once named a merged PR
+> as the open blocker for closing Phase 4, and carried a test count and two pinned line numbers that
+> had all moved. Settle such claims with `gh pr view <N> --json state` (is a PR actually open),
+> `git log --merges --oneline origin/main` (the merge-commit count) and a full `cargo test` (the test
+> count). The live answer beats this file whenever the two disagree. State now: `main` = `9789f2c`,
+> CI green, one open PR — #152, an external attempt at #134, currently CHANGES_REQUESTED after review
+> found it introduces four HIGH false positives on ordinary tool documentation. Last verified: 2026-10-06.
+
 Phase 3 shipped 2026-09-02 as **PR #109** (rebase-merged, issue #33 auto-closed): `PI050`-`PI057`,
 the `relaxed_pattern` schema field, and ADR-004. Its code review found one critical false positive
 — **CR-01**, three prose patterns firing on *prohibitions* ("Never run with
@@ -38,23 +46,29 @@ payloads carry a negator inside the matched sentence, so a guard would have supp
 and `PI057`'s own `example` values and failed `pattern_example_test`.
 
 Phases 1 and 2 shipped 2026-08-30; both engines are done. The two remaining phases are pattern
-categories, one PR each (GATE-04). `main` clean, **357 tests**, CI green, still 0 merge commits.
+categories, one PR each (GATE-04). `main` clean, **454 tests**, CI green. `main` now carries exactly **1** merge commit, `0d50e92`
+— the #110 integration below. It had been strictly linear by design, and that integration is the
+one deliberate break.
 
-**One open PR: #110** — an external contribution (+2,072 lines, 32 files, CI green) that
-touches three categories at once: PI058 (CAT-01), PI070 (opens CAT-03), PI110-PI113
-(multilingual, #39, a v0.3.0 issue), plus `src/context.rs` and a new integration. It
-conflicts with GATE-04 (one category per PR), GATE-01 (its corpus is derived from its own
-patterns), GATE-02 (moves the recall pin to 93/97, changing the denominator) and GATE-03
-(evidence is 6 web pages, not the ~1,300-file sweep). It also repairs this repo's own dead
-`.claude` hooks, which used non-existent event names so every guard was a silent no-op.
-Triage before Phase 4 closes — it edits the same files Phase 4 does.
+**PR #110 — triaged and resolved.** An external contribution (+2,072 lines, 32 files, CI green)
+that touched three categories at once: PI058 (CAT-01), PI070 (opens CAT-03), PI110-PI113
+(multilingual, #39, a v0.3.0 issue), plus `src/context.rs` and a new integration. The triage found
+it conflicted with GATE-04 (one reviewable unit per category), GATE-01 (its corpus was derived from
+its own patterns), GATE-02 (it moved the recall pin to 93/97, changing the denominator) and
+GATE-03 (its evidence was 6 web pages, not the ~1,300-file sweep). It also repaired this repo's own
+dead `.claude` hooks, which used non-existent event names so every guard was a silent no-op. It
+merged 2026-09-04 as `aaaadad` and was brought into the Phase 4 line by merge commit `0d50e92`
+("merge: bring PR #110 (origin/main) into the Phase 4 line"), since it edited the same files Phase 4
+does. The triage is satisfied; nothing in this file blocks Phase 4 from closing.
 
 **Carried into Phase 4:** `PI050+` patterns must ship a `relaxed_pattern` (GATE-05, ADR-004). The
 generalizable CR-01 rule — *fix negation where the negator sits*: clause-initial anchoring when it
 precedes the span, an enumerated filler set when it sits inside — applies directly to CAT-02's
 prose arms. Open follow-ups: **WR-02** (structural corpus README documents 1 of 5 payloads),
 **WR-03** (`scripts/gate03-sweep.sh` helpers declare no `local`), and two pre-existing
-`docs/PATTERN-CATALOGUE.md` self-matches (`PI001` at :74, `PI031` at :903) that predate PR #109.
+`docs/PATTERN-CATALOGUE.md` self-matches (`PI001` at :77, `PI031` at :890) that predate PR #109. The line numbers keep moving —
+`docs/PATTERN-CATALOGUE.md` is regenerated whenever the pattern library changes — so the pattern
+ids are the durable handle and the line numbers are indicative only.
 
 **04-04 shipped 2026-09-06 (3 commits, branch `feat/34-mcp-tool-poisoning-pi060`).** D-03's three
 config-hygiene signals are live: `PI060` unvetted-mcp-server-source, `PI061` plaintext-mcp-endpoint,
@@ -212,7 +226,7 @@ attacker-encoded inherits this same gap.
 covers `PI070`+), the CR-01 negation rule (fix negation where the negator sits — clause-initial
 anchoring before the span, an enumerated filler set inside it), the per-category structural
 corpus layout (`tests/corpus/attack/structural/<category>/`, one level of nesting, non-recursive
-collectors), and the open follow-ups in `deferred-items.md` (#129-#133, D-01's accepted
+collectors), and the open follow-ups in `deferred-items.md` (#130-#133, D-01's accepted
 third-person blind spot, the rug-pull bound).
 
 ## The milestone in one paragraph
@@ -290,7 +304,8 @@ the pattern set rather than the input. Two misses therefore remain, both for sta
 - **Deferred:** the `v0.3.0` milestone holds 10 issues — pattern categories #36-#40 plus #31, #41,
   #10, #11, #4
 
-- **Filed at Phase 4 close-out (04-07, #34):** #129 (JSONC parse gap, silent), #130 (decoded-layer
+- **Filed at Phase 4 close-out (04-07, #34):** #129 (JSONC parse gap, silent — **resolved**: fixed
+  by quick task `260915-spt` / `4cddc99`, issue closed), #130 (decoded-layer
   pass skips structural patterns), #131 (D-05 structural cross-reference for tool shadowing),
   #132 (`docs/DETECTION-BACKLOG.md` self-match, PR #110-origin), #133 (WR-02, structural corpus
   README backfill). Full accounting in
