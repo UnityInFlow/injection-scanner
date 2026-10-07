@@ -74,16 +74,25 @@ an existing row's count.
 
 ### `tool-permission-abuse/` (CAT-01, #33)
 
+All five are whole-file documents; the wrapper shapes are spread across the
+two conventions a grant can arrive in — YAML frontmatter on a skill file, and
+a bare JSON manifest or settings document.
+
 | File | Shape |
 |---|---|
 | `01-wildcard-allowed-tools-block-sequence.md` | Claude Code skill file granting tools via a YAML block sequence, one entry of which is an unrestricted shell grant (`Bash(*)`) |
+| `02-scalar-wildcard-tools-grant.md` | The same grant as a frontmatter **scalar** rather than a sequence — `tools: "*"` — so the wildcard is the whole value and there is no entry to enumerate |
+| `03-json-manifest-wildcard-tools.md` | A wrapper-less JSON automation manifest granting tools via a wildcard **array entry**, `"tools": ["*"]` |
+| `04-permissions-allow-wildcard-settings.md` | A settings-shaped JSON document granting an unrestricted shell wildcard through `permissions.allow: ["Bash(*)"]`, alongside a populated `deny` list — the deny entry does not narrow the wildcard it sits next to |
+| `05-bypass-permission-mode.md` | Claude Code skill file setting `permissions.defaultMode: bypassPermissions`, removing per-action confirmation entirely rather than widening any one grant |
 
-**WR-02 (carried over from Phase 3, still open):** this table documents only
-1 of the 5 payloads in `tool-permission-abuse/`. That gap predates this
-plan's directory-layout change and is not closed here — folding the
-subdirectory split into the same commit as backfilling four missing rows
-would make it harder to tell which change caused which diff. Still tracked as
-a follow-up.
+**WR-02 (carried over from Phase 3) — closed by [#133](https://github.com/UnityInFlow/injection-scanner/issues/133).**
+This table documented 1 of the 5 payloads from Phase 3 until the four rows
+above were backfilled. It stayed open across Plans 04-01, 04-05, 04-06 and
+04-07 deliberately: `tool-permission-abuse/` is CAT-01's corpus, and GATE-04
+keeps one category per unit of review, so backfilling it inside a CAT-02-only
+change was the wrong place. Done here as its own documentation-only change.
+The pinned recall row and every payload file are untouched.
 
 ### `mcp-tool-poisoning/` (CAT-02, #34)
 
