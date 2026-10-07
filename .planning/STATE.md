@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
-stopped_at: Completed 04-07-PLAN.md
-last_updated: "2026-09-07T18:36:33.000Z"
-state_head: e4b46a1
+stopped_at: "Phase 4 complete (CAT-02, #34) — closed out 2026-10-07"
+last_updated: "2026-10-07T07:19:38.734Z"
+state_head: 7ba2745
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 16
   completed_plans: 16
   percent: 100
@@ -27,7 +27,49 @@ See: `.planning/PROJECT.md`
 
 ## Current Phase
 
-**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **all 7 plans complete (04-01 through 04-07)** — phase-complete marker and the PR are the orchestrator's to set after its own verification runs
+**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **COMPLETE** (closed
+2026-10-07). All 7 plans (04-01 through 04-07) and all 10 patterns `PI060`–`PI069` shipped.
+
+**Next: Phase 5 — Persistence & lifecycle hijack (CAT-03, #35)**, `PI070`–`PI079`, the last phase of
+this milestone. Not yet discussed or planned. `PI070` is already seeded on `main` from PR #110.
+
+> **There was never a Phase 4 PR left to open.** The close-out was bookkeeping only. CAT-02's code
+> was already merged, as **PR #120** (`PI060`–`PI062`, the config-hygiene band) and **PR #136**
+> (`PI063`–`PI069`, the description-poisoning, shadowing and rug-pull arms), both on 2026-09-07 —
+> and `REQUIREMENTS.md`'s GATE-04 was amended under #117 to record exactly that, including that the
+> reviewable unit is the PR where one exists and the phase's commit range where it does not. An
+> earlier version of this section instead said the marker "and the PR" were still owed, which sent
+> at least one session looking for work that did not exist. Verify with
+> `gh pr view 120 --json state` and `gh pr view 136 --json state` before believing otherwise.
+
+**#134 closed out as an accepted blind spot.** `PI064`'s destination check cannot distinguish a
+smuggling argument from a tool's own output field in the general case. The two *measured* false
+positives were fixed in `04-REVIEW-FIX.md`'s CR-02 iteration 2 by restricting the verb alternation
+to base forms; what remains is a third-person-phrased attacker directive, which is the same class of
+accepted limit D-01 already names for `PI063`–`PI065`'s second-person-only address. Inflection is a
+proxy for phrasing, not provenance. Recorded in `deferred-items.md` row 9; the issue stays open for
+the residual rather than the phase staying open for the issue.
+
+> **This section has drifted before — verify it before planning from it.** It once named a merged PR
+> as the open blocker for closing Phase 4, and carried a test count and two pinned line numbers that
+> had all moved. Settle such claims with `gh pr view <N> --json state` (is a PR actually open),
+> `git log --merges --oneline origin/main` (the merge-commit count) and a full `cargo test` (the test
+> count). The live answer beats this file whenever the two disagree. State at close-out: `main` =
+> `7ba2745`, CI green, **458 tests**. **#159** (#132 — a context-classifier false positive, see
+> below) and **#160** (#133 — corpus README table backfill) both merged 2026-10-07, so the only
+> open PR is **#152** (external, an attempt at #134, CHANGES_REQUESTED — it introduces four HIGH
+> false positives on ordinary file-tool documentation, proven by building both binaries and
+> comparing). Last verified: 2026-10-07.
+
+**#132 was not the documentation-formatting issue it was filed as** (PR #159). The 10 self-matches
+in `docs/DETECTION-BACKLOG.md` came from `hidden_openers` reading the raw line, so the
+`<span style="display:none">` that file *documents* for `PI017` opened a hidden block that never
+closed — scoring every later line `HiddenHtml` at confidence 1.0 and overriding the inline-code and
+table downgrades. The issue's proposed fix (backtick the quoted phrases) could not have worked:
+line 74's two payloads were already in code spans and still reported HIGH. Fixed in `src/context.rs`
+by skipping openers inside a **closed** code span; the "closed" qualifier is what stops the fix from
+becoming an evasion. **#158** filed for the untouched counterpart — a quoted *closing* tag still
+closes a real hidden block early.
 
 Phase 3 shipped 2026-09-02 as **PR #109** (rebase-merged, issue #33 auto-closed): `PI050`-`PI057`,
 the `relaxed_pattern` schema field, and ADR-004. Its code review found one critical false positive
@@ -38,23 +80,29 @@ payloads carry a negator inside the matched sentence, so a guard would have supp
 and `PI057`'s own `example` values and failed `pattern_example_test`.
 
 Phases 1 and 2 shipped 2026-08-30; both engines are done. The two remaining phases are pattern
-categories, one PR each (GATE-04). `main` clean, **357 tests**, CI green, still 0 merge commits.
+categories, one PR each (GATE-04). `main` clean, **454 tests**, CI green. `main` now carries exactly **1** merge commit, `0d50e92`
+— the #110 integration below. It had been strictly linear by design, and that integration is the
+one deliberate break.
 
-**One open PR: #110** — an external contribution (+2,072 lines, 32 files, CI green) that
-touches three categories at once: PI058 (CAT-01), PI070 (opens CAT-03), PI110-PI113
-(multilingual, #39, a v0.3.0 issue), plus `src/context.rs` and a new integration. It
-conflicts with GATE-04 (one category per PR), GATE-01 (its corpus is derived from its own
-patterns), GATE-02 (moves the recall pin to 93/97, changing the denominator) and GATE-03
-(evidence is 6 web pages, not the ~1,300-file sweep). It also repairs this repo's own dead
-`.claude` hooks, which used non-existent event names so every guard was a silent no-op.
-Triage before Phase 4 closes — it edits the same files Phase 4 does.
+**PR #110 — triaged and resolved.** An external contribution (+2,072 lines, 32 files, CI green)
+that touched three categories at once: PI058 (CAT-01), PI070 (opens CAT-03), PI110-PI113
+(multilingual, #39, a v0.3.0 issue), plus `src/context.rs` and a new integration. The triage found
+it conflicted with GATE-04 (one reviewable unit per category), GATE-01 (its corpus was derived from
+its own patterns), GATE-02 (it moved the recall pin to 93/97, changing the denominator) and
+GATE-03 (its evidence was 6 web pages, not the ~1,300-file sweep). It also repaired this repo's own
+dead `.claude` hooks, which used non-existent event names so every guard was a silent no-op. It
+merged 2026-09-04 as `aaaadad` and was brought into the Phase 4 line by merge commit `0d50e92`
+("merge: bring PR #110 (origin/main) into the Phase 4 line"), since it edited the same files Phase 4
+does. The triage is satisfied; nothing in this file blocks Phase 4 from closing.
 
 **Carried into Phase 4:** `PI050+` patterns must ship a `relaxed_pattern` (GATE-05, ADR-004). The
 generalizable CR-01 rule — *fix negation where the negator sits*: clause-initial anchoring when it
 precedes the span, an enumerated filler set when it sits inside — applies directly to CAT-02's
 prose arms. Open follow-ups: **WR-02** (structural corpus README documents 1 of 5 payloads),
 **WR-03** (`scripts/gate03-sweep.sh` helpers declare no `local`), and two pre-existing
-`docs/PATTERN-CATALOGUE.md` self-matches (`PI001` at :74, `PI031` at :903) that predate PR #109.
+`docs/PATTERN-CATALOGUE.md` self-matches (`PI001` at :77, `PI031` at :890) that predate PR #109. The line numbers keep moving —
+`docs/PATTERN-CATALOGUE.md` is regenerated whenever the pattern library changes — so the pattern
+ids are the durable handle and the line numbers are indicative only.
 
 **04-04 shipped 2026-09-06 (3 commits, branch `feat/34-mcp-tool-poisoning-pi060`).** D-03's three
 config-hygiene signals are live: `PI060` unvetted-mcp-server-source, `PI061` plaintext-mcp-endpoint,
@@ -212,7 +260,7 @@ attacker-encoded inherits this same gap.
 covers `PI070`+), the CR-01 negation rule (fix negation where the negator sits — clause-initial
 anchoring before the span, an enumerated filler set inside it), the per-category structural
 corpus layout (`tests/corpus/attack/structural/<category>/`, one level of nesting, non-recursive
-collectors), and the open follow-ups in `deferred-items.md` (#129-#133, D-01's accepted
+collectors), and the open follow-ups in `deferred-items.md` (#130-#133, D-01's accepted
 third-person blind spot, the rug-pull bound).
 
 ## The milestone in one paragraph
@@ -290,7 +338,8 @@ the pattern set rather than the input. Two misses therefore remain, both for sta
 - **Deferred:** the `v0.3.0` milestone holds 10 issues — pattern categories #36-#40 plus #31, #41,
   #10, #11, #4
 
-- **Filed at Phase 4 close-out (04-07, #34):** #129 (JSONC parse gap, silent), #130 (decoded-layer
+- **Filed at Phase 4 close-out (04-07, #34):** #129 (JSONC parse gap, silent — **resolved**: fixed
+  by quick task `260915-spt` / `4cddc99`, issue closed), #130 (decoded-layer
   pass skips structural patterns), #131 (D-05 structural cross-reference for tool shadowing),
   #132 (`docs/DETECTION-BACKLOG.md` self-match, PR #110-origin), #133 (WR-02, structural corpus
   README backfill). Full accounting in
@@ -317,6 +366,7 @@ the pattern set rather than the input. Two misses therefore remain, both for sta
 | 260916-sz4b | Fold the GATE-04 amendment into `.continue-here.md` — a fourth, tracked copy of the standing-gates table still read "One category per PR" (#117) | 2026-09-17 | `20ae586` | — |
 | 260922-st9 | Put the `LEGACY_UNTESTED` ratchet note in past tense — #138 emptied the list, so the present-tense "they are listed in" doc read as a disabled check rather than the ratchet at full strictness (#89) | 2026-09-22 | `b85a536` | [260922-st9-update-stale-legacy-untested-module-doc-](./quick/260922-st9-update-stale-legacy-untested-module-doc-/) |
 | 260923-dbv | Reconcile the stale `CLAUDE.md` Status block — it named a release two versions behind, presented the archived Production Readiness milestone as current, and asserted "CI has been dead since 2026-06-24. Nothing merges" while five PRs were merging through green CI | 2026-09-23 | `4ffbee7` | [260923-dbv-reconcile-the-stale-claude-md-status-blo](./quick/260923-dbv-reconcile-the-stale-claude-md-status-blo/) |
+| 261006-tq8 | Reconcile five stale claims in this file — merged PR #110 still named as the open blocker for closing Phase 4, `0 merge commits`, `357 tests`, two drifted catalogue line numbers, and #129 shown as open; adds the anti-drift blockquote | 2026-10-06 | `465526a` | [261006-tq8-reconcile-stale-claims-in-state-md-110-i](./quick/261006-tq8-reconcile-stale-claims-in-state-md-110-i/) |
 
 ## Milestone hygiene done 2026-08-30
 

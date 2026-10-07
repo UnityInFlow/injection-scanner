@@ -614,20 +614,30 @@ It now tracks where in a markdown document each match sits and scores it:
 |---|---|---|
 | Prose | 1.0 | yes |
 | HTML comment | 1.0 | yes |
+| Hidden html | 1.0 | yes |
 | Frontmatter | 0.9 | yes |
 | Block quote | 0.9 | yes |
 | Table cell | 0.3 | no |
 | Inline code span | 0.3 | no |
 | Fenced code block | 0.2 | no |
 
-HTML comments are deliberately **not** downgraded. Hidden text is a delivery
-mechanism, not a disclaimer — a payload nobody can see is worse than one they can.
-Frontmatter is structured config an agent loads directly, and a block quote is
-still text the model reads.
+HTML comments and hidden elements are deliberately **not** downgraded. Hidden text
+is a delivery mechanism, not a disclaimer — a payload nobody can see is worse than
+one they can. Frontmatter is structured config an agent loads directly, and a block
+quote is still text the model reads.
+
+A hiding tag a document *quotes* is documentation, though, and does not hide
+anything: `` `<span style="display:none">` `` in a code span is a description of
+the mechanism, not the mechanism. Quoting one used to leave a hidden element open
+for the rest of the file, because documentation names an opening tag without its
+closing one — which is how this project's own `docs/DETECTION-BACKLOG.md` came to
+report 25 findings off a single table cell (#132). Note the limit that keeps it
+honest: the quote has to *close*. A lone backtick in front of real markup does not
+disown it.
 
 ```bash
 injection-scanner check README.md                    # 0 findings
-injection-scanner check README.md --strict           # 15 — every context reported
+injection-scanner check README.md --strict           # 26 — every context reported
 injection-scanner check docs/ --min-confidence 0.9   # only the strongest signals
 ```
 
