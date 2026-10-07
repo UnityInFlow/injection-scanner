@@ -38,6 +38,7 @@ already states for every other file here.
 
 | File | Decision it defends |
 |---|---|
+| `mcp-file-tool-response-docs.md` | PR #152 review — five file-tool response and proxy descriptions that exposed four HIGH PI064 false positives after the third-person destination-grammar widening. All five must stay silent under strict scanning. |
 | `mcp-manifest.json` | D-01 (pre-existing, Phase 3) — `config.systemPrompt` is the sharpest already-committed near-miss |
 | `mcp-setup-guide.md` | D-01 (pre-existing, Phase 3) — second person addressed to the human reader, not the agent |
 | `mcp-server-catalogue.json` | D-01 — one hand-written boundary manifest exercising all four real-world near-miss shapes `04-RESEARCH.md` §Q3 measured (protocol-sequencing MUST-obligation, training-awareness second person, sibling-tool naming, multi-step file-read-then-validate) |
