@@ -5,7 +5,7 @@ milestone_name: Agent-shaped attacks
 status: in_progress
 stopped_at: "Phase 4 complete (CAT-02, #34) — closed out 2026-10-07"
 last_updated: "2026-10-07T07:19:38.734Z"
-state_head: 951f96b
+state_head: 7ba2745
 progress:
   total_phases: 5
   completed_phases: 4
@@ -55,7 +55,7 @@ the residual rather than the phase staying open for the issue.
 > had all moved. Settle such claims with `gh pr view <N> --json state` (is a PR actually open),
 > `git log --merges --oneline origin/main` (the merge-commit count) and a full `cargo test` (the test
 > count). The live answer beats this file whenever the two disagree. State at close-out: `main` =
-> `951f96b`, CI green, **458 tests**. **#159** (#132 — a context-classifier false positive, see
+> `7ba2745`, CI green, **458 tests**. **#159** (#132 — a context-classifier false positive, see
 > below) and **#160** (#133 — corpus README table backfill) both merged 2026-10-07, so the only
 > open PR is **#152** (external, an attempt at #134, CHANGES_REQUESTED — it introduces four HIGH
 > false positives on ordinary file-tool documentation, proven by building both binaries and
