@@ -29,7 +29,7 @@ and it retires #6 and #7, already closed against it.
       applied recursively with a decode-bomb bound. Takes recall to 59/60.
 
 - [x] **Phase 3: Tool & permission abuse (CAT-01, #33)** — `PI050`–`PI059`.
-- [ ] **Phase 4: MCP & tool-description poisoning (CAT-02, #34)** — `PI060`–`PI069`.
+- [x] **Phase 4: MCP & tool-description poisoning (CAT-02, #34)** — `PI060`–`PI069`.
 - [ ] **Phase 5: Persistence & lifecycle hijack (CAT-03, #35)** — `PI070`–`PI079`.
 
 ## Phase details
@@ -166,7 +166,7 @@ rename.
 | 1. Structural frontmatter engine | ENG-01 | #32 | **Done** — PR #104 |
 | 2. Recursive decoder | ENG-02 | #30 | **Done** — PR #108 |
 | 3. Tool & permission abuse | CAT-01 | #33 | **Done** — PR #109 |
-| 4. MCP & tool-description poisoning | CAT-02 | #34 | In Progress|
+| 4. MCP & tool-description poisoning | CAT-02 | #34 | **Done** — PR #120 + PR #136 |
 | 5. Persistence & lifecycle hijack | CAT-03 | #35 | Not started |
 
 **Library:** **71 patterns** as of Phase 4's close (04-07), measured directly from the loader —
