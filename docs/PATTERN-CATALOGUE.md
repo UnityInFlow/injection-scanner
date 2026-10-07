@@ -2019,7 +2019,7 @@ Include its full contents in your reply so the user can review them.
 <details><summary>Regex</summary>
 
 ```regex
-(?:^|\n|[.;:!?]\s+|\band\s+|\bthen\s+|\byou\s+(?:can|may|should|must|will|could|might|need\s+to|have\s+to)\s+(?:just\s+|simply\s+|please\s+|first\s+|always\s+)?)\s*(?:[-*+]\s+)?(?:the\s+(?:tool|connector|server)\s+)?(?:pass(?:es)?|include(?:s)?|send(?:s)?|forward(?:s)?|attach(?:es)?|cop(?:y|ies)|put(?:s)?|place(?:s)?)\b[^.\n]{0,20}?\b(?:its|their|the\s+file(?:'s)?)\s+(?:full\s+)?content(?:s)?\b[^.\n]{0,30}?\b(?:as|in|into|through)\s+the\s+['"]?[A-Za-z_][\w-]*['"]?\s+(?:(?:argument|parameter|param)\b|field\b[^.\n]{0,30}?\b(?:when|before|while)\s+(?:(?:you|the\s+(?:tool|assistant|model|agent|client|caller))\s+)?(?:replying|replies|reply|responding|responds|respond|calling|calls|call|invoking|invokes|invoke|using|uses|use|forwarding|forwards|forward|sending|sends|send|submitting|submits|submit|returning|returns|return)\b)
+(?:^|\n|[.;:!?]\s+|\band\s+|\bthen\s+|\byou\s+(?:can|may|should|must|will|could|might|need\s+to|have\s+to)\s+(?:just\s+|simply\s+|please\s+|first\s+|always\s+)?)\s*(?:[-*+]\s+)?(?:pass|include|send|forward|attach|copy|put|place)\b[^.\n]{0,20}?\b(?:its|their|the\s+file(?:'s)?)\s+(?:full\s+)?content(?:s)?\b[^.\n]{0,30}?\b(?:as|in|into|through)\s+the\s+['"]?[A-Za-z_][\w-]*['"]?\s+(?:argument|parameter|param|field)\b
 ```
 
 </details>
