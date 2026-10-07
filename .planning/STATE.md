@@ -55,11 +55,11 @@ the residual rather than the phase staying open for the issue.
 > had all moved. Settle such claims with `gh pr view <N> --json state` (is a PR actually open),
 > `git log --merges --oneline origin/main` (the merge-commit count) and a full `cargo test` (the test
 > count). The live answer beats this file whenever the two disagree. State at close-out: `main` =
-> `951f96b`, CI green, **458 tests**. Open PRs: **#152** (external, an attempt at #134,
-> CHANGES_REQUESTED — it introduces four HIGH false positives on ordinary file-tool documentation,
-> proven by building both binaries and comparing), **#159** (#132 — a context-classifier false
-> positive, see below) and **#160** (#133 — corpus README table backfill).
-> Last verified: 2026-10-07.
+> `951f96b`, CI green, **458 tests**. **#159** (#132 — a context-classifier false positive, see
+> below) and **#160** (#133 — corpus README table backfill) both merged 2026-10-07, so the only
+> open PR is **#152** (external, an attempt at #134, CHANGES_REQUESTED — it introduces four HIGH
+> false positives on ordinary file-tool documentation, proven by building both binaries and
+> comparing). Last verified: 2026-10-07.
 
 **#132 was not the documentation-formatting issue it was filed as** (PR #159). The 10 self-matches
 in `docs/DETECTION-BACKLOG.md` came from `hidden_openers` reading the raw line, so the
