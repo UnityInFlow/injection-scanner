@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
-stopped_at: Completed 04-07-PLAN.md
-last_updated: "2026-09-07T18:36:33.000Z"
-state_head: e4b46a1
+stopped_at: "Phase 4 complete (CAT-02, #34) — closed out 2026-10-07"
+last_updated: "2026-10-07T07:19:38.734Z"
+state_head: 951f96b
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 16
   completed_plans: 16
   percent: 100
@@ -27,15 +27,49 @@ See: `.planning/PROJECT.md`
 
 ## Current Phase
 
-**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **all 7 plans complete (04-01 through 04-07)** — phase-complete marker and the PR are the orchestrator's to set after its own verification runs
+**Phase 4 — MCP & tool-description poisoning (CAT-02, #34)** · status: **COMPLETE** (closed
+2026-10-07). All 7 plans (04-01 through 04-07) and all 10 patterns `PI060`–`PI069` shipped.
+
+**Next: Phase 5 — Persistence & lifecycle hijack (CAT-03, #35)**, `PI070`–`PI079`, the last phase of
+this milestone. Not yet discussed or planned. `PI070` is already seeded on `main` from PR #110.
+
+> **There was never a Phase 4 PR left to open.** The close-out was bookkeeping only. CAT-02's code
+> was already merged, as **PR #120** (`PI060`–`PI062`, the config-hygiene band) and **PR #136**
+> (`PI063`–`PI069`, the description-poisoning, shadowing and rug-pull arms), both on 2026-09-07 —
+> and `REQUIREMENTS.md`'s GATE-04 was amended under #117 to record exactly that, including that the
+> reviewable unit is the PR where one exists and the phase's commit range where it does not. An
+> earlier version of this section instead said the marker "and the PR" were still owed, which sent
+> at least one session looking for work that did not exist. Verify with
+> `gh pr view 120 --json state` and `gh pr view 136 --json state` before believing otherwise.
+
+**#134 closed out as an accepted blind spot.** `PI064`'s destination check cannot distinguish a
+smuggling argument from a tool's own output field in the general case. The two *measured* false
+positives were fixed in `04-REVIEW-FIX.md`'s CR-02 iteration 2 by restricting the verb alternation
+to base forms; what remains is a third-person-phrased attacker directive, which is the same class of
+accepted limit D-01 already names for `PI063`–`PI065`'s second-person-only address. Inflection is a
+proxy for phrasing, not provenance. Recorded in `deferred-items.md` row 9; the issue stays open for
+the residual rather than the phase staying open for the issue.
 
 > **This section has drifted before — verify it before planning from it.** It once named a merged PR
 > as the open blocker for closing Phase 4, and carried a test count and two pinned line numbers that
 > had all moved. Settle such claims with `gh pr view <N> --json state` (is a PR actually open),
 > `git log --merges --oneline origin/main` (the merge-commit count) and a full `cargo test` (the test
-> count). The live answer beats this file whenever the two disagree. State now: `main` = `9789f2c`,
-> CI green, one open PR — #152, an external attempt at #134, currently CHANGES_REQUESTED after review
-> found it introduces four HIGH false positives on ordinary tool documentation. Last verified: 2026-10-06.
+> count). The live answer beats this file whenever the two disagree. State at close-out: `main` =
+> `951f96b`, CI green, **458 tests**. Open PRs: **#152** (external, an attempt at #134,
+> CHANGES_REQUESTED — it introduces four HIGH false positives on ordinary file-tool documentation,
+> proven by building both binaries and comparing), **#159** (#132 — a context-classifier false
+> positive, see below) and **#160** (#133 — corpus README table backfill).
+> Last verified: 2026-10-07.
+
+**#132 was not the documentation-formatting issue it was filed as** (PR #159). The 10 self-matches
+in `docs/DETECTION-BACKLOG.md` came from `hidden_openers` reading the raw line, so the
+`<span style="display:none">` that file *documents* for `PI017` opened a hidden block that never
+closed — scoring every later line `HiddenHtml` at confidence 1.0 and overriding the inline-code and
+table downgrades. The issue's proposed fix (backtick the quoted phrases) could not have worked:
+line 74's two payloads were already in code spans and still reported HIGH. Fixed in `src/context.rs`
+by skipping openers inside a **closed** code span; the "closed" qualifier is what stops the fix from
+becoming an evasion. **#158** filed for the untouched counterpart — a quoted *closing* tag still
+closes a real hidden block early.
 
 Phase 3 shipped 2026-09-02 as **PR #109** (rebase-merged, issue #33 auto-closed): `PI050`-`PI057`,
 the `relaxed_pattern` schema field, and ADR-004. Its code review found one critical false positive
