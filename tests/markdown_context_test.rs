@@ -195,6 +195,69 @@ fn a_hidden_element_nested_in_an_open_one_does_not_end_the_outer_block_early() {
 }
 
 #[test]
+fn a_hidden_opener_quoted_in_a_code_span_does_not_hide_the_lines_that_follow() {
+    // Issue #132. `docs/DETECTION-BACKLOG.md` documents PI017's hiding
+    // mechanisms by quoting them: `<span style="display:none">` inside a code
+    // span, in a table cell. `hidden_openers` read the raw line, so a tag the
+    // document merely *names* opened a hidden block — and because documentation
+    // quotes an opener without its closer, that block never closed. Every line
+    // to EOF was then HiddenHtml at confidence 1.0, which outranks both the
+    // inline-code and the table downgrade, and the file reported 25 findings
+    // across 10 patterns. The payload below is in a code span, so the only
+    // thing that could report it is the leaked hidden context.
+    let doc = format!(
+        "| PI017 | hidden-html-styling | `<span style=\"display:none\">`, `<div hidden>` |\n\n- `{PAYLOAD}`\n"
+    );
+    let found = scan(&doc);
+    assert!(
+        found.is_empty(),
+        "a quoted opener must not hide what follows it: {found:?}"
+    );
+}
+
+#[test]
+fn a_quoted_opener_does_not_hide_a_payload_later_on_its_own_line() {
+    // The same leak within one line, which `in_hidden_element` reaches by a
+    // different path than the block tracking above.
+    let doc = format!("A doc naming `<div hidden>` and then {PAYLOAD}\n");
+    let found = scan(&doc);
+    assert_eq!(found.len(), 1, "{found:?}");
+    assert_eq!(
+        found[0].1,
+        MatchContext::Prose,
+        "the payload is visible prose, not hidden markup"
+    );
+}
+
+#[test]
+fn a_real_opener_still_hides_when_the_line_also_has_a_code_span() {
+    // The narrowing above must not be reachable by wrapping anything on the
+    // line in backticks: this opener is real markup, outside every span.
+    let doc = format!("<div hidden> see `config.json`\n{PAYLOAD}\n</div>\n{PAYLOAD}\n");
+    let found = scan(&doc);
+    assert_eq!(found.len(), 2, "{found:?}");
+    assert_eq!(found[0], (2, MatchContext::HiddenHtml));
+    assert_eq!(found[1], (4, MatchContext::Prose));
+}
+
+#[test]
+fn an_unclosed_backtick_does_not_let_a_real_opener_be_disowned() {
+    // The evasion the #132 narrowing has to avoid. Hidden context is the only
+    // thing that raises a backticked payload's confidence above the threshold
+    // (InlineCode scores 0.3), so if a lone backtick in front of real markup
+    // were enough to disown the opener, this payload would be withheld. The
+    // span must close for the tag to count as quoted.
+    let doc = format!("`<div hidden>\n`{PAYLOAD}`\n</div>\n");
+    let found = scan(&doc);
+    assert_eq!(
+        found.len(),
+        1,
+        "unclosed backtick must not disown it: {found:?}"
+    );
+    assert_eq!(found[0], (2, MatchContext::HiddenHtml));
+}
+
+#[test]
 fn text_after_a_hidden_element_on_the_same_line_is_visible() {
     let doc = format!("<span hidden>menu</span> {PAYLOAD}\n");
     let found = scan(&doc);
@@ -280,7 +343,15 @@ fn confidence_is_carried_on_every_finding() {
 fn the_projects_own_documentation_is_clean() {
     // The acceptance criterion from #20, checked against the real files rather
     // than a fixture that could drift away from them.
-    for doc in ["README.md", "PATTERNS.md", "CONTRIBUTING.md"] {
+    // `docs/DETECTION-BACKLOG.md` joined this list with #132: it is the
+    // project's own documentation by exactly the #20 argument, and it is the
+    // file whose quoted PI017 opener exposed the leak.
+    for doc in [
+        "README.md",
+        "PATTERNS.md",
+        "CONTRIBUTING.md",
+        "docs/DETECTION-BACKLOG.md",
+    ] {
         let content = std::fs::read_to_string(doc).expect("doc must be readable");
         let found = scan(&content);
         assert!(

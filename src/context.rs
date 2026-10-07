@@ -355,6 +355,22 @@ const VOID_ELEMENTS: &[&str] = &[
 /// PI017 regex needed a terminator trick for exactly that, because the regex
 /// crate has no lookaround; reading the attribute list directly is both
 /// simpler and correct.
+///
+/// An opener inside a **closed** inline code span is skipped (issue #132). A
+/// document that *quotes* a tag is describing markup, not emitting it — and it
+/// quotes the opener without its closer, so treating it as real left a hidden
+/// block open to EOF and scored every later line `HiddenHtml` at confidence
+/// 1.0, outranking the very inline-code and table downgrades that exist to
+/// keep documentation quiet. This repo's own `docs/DETECTION-BACKLOG.md`
+/// reported 25 findings across 10 patterns off a single quoted
+/// `<span style="display:none">`.
+///
+/// Two deliberate limits keep this from becoming an evasion. The span must
+/// *close* on the line, because a payload's confidence is only ever raised by
+/// hidden context — a lone backtick typed in front of real markup would
+/// otherwise demote a backticked payload inside the block from `HiddenHtml`
+/// (1.0) to `InlineCode` (0.3) and withhold it. And only the opener's own
+/// position is tested, so backticks elsewhere on the line never reach it.
 fn hidden_openers(line: &str) -> Vec<HiddenOpener> {
     let bytes = line.as_bytes();
     let mut found = Vec::new();
@@ -379,7 +395,10 @@ fn hidden_openers(line: &str) -> Vec<HiddenOpener> {
         let tag = line[name_start..name_end].to_ascii_lowercase();
         let attributes = &line[name_end..end - 1];
 
-        if !VOID_ELEMENTS.contains(&tag.as_str()) && attributes_hide(attributes) {
+        if !VOID_ELEMENTS.contains(&tag.as_str())
+            && attributes_hide(attributes)
+            && !in_closed_inline_code(line, start)
+        {
             found.push(HiddenOpener { start, end, tag });
         }
         index = end;
@@ -515,6 +534,49 @@ fn in_hidden_element(line: &str, offset: usize) -> bool {
         .into_iter()
         .filter(|opener| opener.end <= offset)
         .any(|opener| nesting_after(&line[..offset], opener.end, &opener.tag, 1) > 0)
+}
+
+/// Byte ranges of the content of each *closed* inline code span on this line.
+///
+/// Pairing follows [`in_inline_code`]: a run of N backticks is one delimiter
+/// and closes only against another run of exactly N. A run that never finds
+/// its match is not a span at all, which is the distinction issue #132's fix
+/// rests on — documentation quotes a tag as a balanced `` `<div hidden>` ``.
+fn closed_inline_code_spans(line: &str) -> Vec<(usize, usize)> {
+    let bytes = line.as_bytes();
+    let mut spans = Vec::new();
+    let mut index = 0usize;
+    // (delimiter width, first byte of the span's content)
+    let mut open: Option<(usize, usize)> = None;
+
+    while index < bytes.len() {
+        if bytes[index] != b'`' {
+            index += 1;
+            continue;
+        }
+        let run_start = index;
+        while index < bytes.len() && bytes[index] == b'`' {
+            index += 1;
+        }
+        let run = index - run_start;
+        match open {
+            Some((width, content_start)) if width == run => {
+                spans.push((content_start, run_start));
+                open = None;
+            }
+            Some(_) => {}
+            None => open = Some((run, index)),
+        }
+    }
+
+    spans
+}
+
+/// Whether `offset` falls inside a closed backtick span on this line.
+fn in_closed_inline_code(line: &str, offset: usize) -> bool {
+    closed_inline_code_spans(line)
+        .into_iter()
+        .any(|(start, end)| offset >= start && offset < end)
 }
 
 /// Whether `offset` falls inside a backtick span on this line.
