@@ -43,8 +43,22 @@ threat-model payloads landed ahead of any pattern (D-04), so the corpus
 proves the ordering rather than asserting it. See `structural/` below for
 where its structured half lives. Multilingual (`PI110`–`PI119`) joined the same
 way with `multilingual.md` (#39): one language per slice, misses for the next
-language left in as documented misses. Persistence and lifecycle hijack
-(`PI070`–`PI079`, #35) opened with `persistence-lifecycle-hijack.md`.
+language left in as documented misses.
+
+Persistence and lifecycle hijack (`PI070`–`PI079`, #35) is no longer in that list
+either, and its history is a correction worth keeping. It opened with six prose
+payloads in `persistence-lifecycle-hijack.md` that were **replaced under GATE-01
+and D-01**: all six were one template (a third-person agent, a modal, a write
+verb, a persistence object, only the object swapped), the first was
+byte-identical to `PI070`'s own `example`, and `PI070` alone caught every one —
+a corpus that scored 100% by construction and measured nothing. Its twelve
+replacement payloads were written from the threat model before any `PI071`+
+pattern existed: seven prose lines in `persistence-lifecycle-hijack.md` and five
+whole-file hook documents in `structural/persistence-lifecycle-hijack/`.
+`tools/corpus-derivation-check.py` is the mechanical proof that none of them is
+an adaptation of the replaced six, of `PI070`'s `example`, or of the phase's
+research notes. Three of the twelve are deliberate misses, each named in the
+prose file's own header.
 
 MCP & tool-description poisoning (`PI060`–`PI069`) is no longer in that list
 either: its 12 threat-model payloads (4 prose, 8 structural) landed ahead of
