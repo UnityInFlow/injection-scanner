@@ -27,3 +27,26 @@ trees (see `sweep-baseline-05-01-2026-10-08/RAW-REPORTS.md`).
 
 **Revisit when:** someone proposes `--all-files` as a CI default, or a user reports a hang.
 No issue filed yet.
+
+## 2. `locate()` maps every repeated config key to the first occurrence (found in plan 05-02)
+
+**What:** when a projected configuration document repeats a key, the projection's `locate()`
+resolves all of them to the line of the **first** occurrence. Measured on
+`tests/corpus/clean/persistence-legitimate-hooks-config.json` (nested wrapper shape): a
+binding-only `scope: frontmatter` probe produced 8 hits and every one reported **line 10**.
+
+**Why it matters:** two consumer-visible mechanisms key on line numbers.
+- `# injection-scanner:ignore` / `<!-- injection-scanner:ignore -->` suppression directives are
+  resolved per line, so a directive aimed at one repeated binding suppresses by the wrong line,
+  and a genuine second finding on another line cannot be suppressed independently.
+- `.github/code-scanning-baseline.json` fingerprints embed the line, so several distinct
+  findings collapse onto one baseline entry — accepting one accepts them all.
+
+This lands squarely on the CAT-03 structural arm (`PI077`, plan 05-06), which is the first
+pattern set to match repeated `command` / `bash` keys in one document at scale.
+
+**Not diagnosed:** whether the first-occurrence collapse is in the projection's path->line map or
+in how the structural pass reports a `ProjectedLine`. No fix attempted.
+
+**Status:** no issue filed. Plan 05-07 Task 2 files the engine issues for this phase; this one
+belongs in that batch alongside the whole-file YAML/TOML unprojected-config item.
