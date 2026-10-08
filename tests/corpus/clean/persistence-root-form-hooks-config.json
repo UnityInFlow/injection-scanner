@@ -1,0 +1,46 @@
+{
+  "_comment": "CAT-03 false-positive specimen (phase 05, plan 05-02). Decision it defends: D-03 AMENDMENT, the wrapper-tolerance requirement. The mixed on-disk shape 05-RESEARCH.md section Q2 recorded for a Codex hooks file (VERIFIED there on disk; this file is SYNTHESIZED to that shape, not copied): lifecycle event names at the document ROOT, with no hooks wrapper, AND a hooks wrapper object in the same document, every command benign (the cargo fmt guard is the benign-metacharacter shape 05-RESEARCH.md section Q2 recorded from real hook files on the researcher's machine, reproduced as quoted there). It is the counterpart to the plan 05-01 structural payload that puts the attack on the root side: it proves that reaching the root form is a property of the path shape and not of the file being an attack, so a structural pattern cannot earn its detection from the wrapper shape alone.",
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash \"$HOME/.codex/hooks/log-session-start.sh\""
+        }
+      ]
+    }
+  ],
+  "SubagentStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash \"$HOME/.codex/hooks/log-subagent.sh\""
+        }
+      ]
+    }
+  ],
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.codex/hooks/notify-done.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f Cargo.toml ] && cargo fmt --quiet >/dev/null 2>&1; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}
