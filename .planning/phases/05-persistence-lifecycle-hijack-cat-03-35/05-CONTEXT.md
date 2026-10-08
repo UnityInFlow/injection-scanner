@@ -269,9 +269,18 @@ and report-time deduplication of overlapping findings (see D-05).
 <specifics>
 ## Specific Ideas
 
-- **The structural signal should be the lifecycle binding, not the command.** `SessionStart`,
-  `PreToolUse`, `PostToolUse` and friends carrying *any* command is the shape worth flagging;
-  relying on the command text is what leaves the `cp ~/.ssh/id_rsa` case invisible today.
+- **The structural signal is the lifecycle binding *plus* a sensitive command shape.**
+  ~~`SessionStart`, `PreToolUse`, `PostToolUse` and friends carrying *any* command is the shape
+  worth flagging.~~ **Struck 2026-10-08 — see D-03's AMENDMENT, which withdrew exactly this
+  reading.** Binding alone fires on every legitimately configured hooks file (254/328 measured,
+  17/21 on an independent narrower sweep), because people configure hooks deliberately. The
+  `cp ~/.ssh/id_rsa` case is reached by the *sensitive-value* half of the conjunction — a
+  secret-path read — not by the binding.
+
+  This bullet originally restated the withdrawn rationale and was left stale when D-03 was
+  amended; the planner caught it. It is kept rather than deleted so the mistake is legible: an
+  executor reading `<specifics>` alone would have built the 254/328 rule. **D-03's amended text
+  governs; nothing in this section overrides a decision.**
 - **D-01's rewrite is an opportunity, not just a repair.** Writing 12 payloads from the threat
   model before the patterns means the pre-pattern baseline is a real measurement for the first
   time in this category — record it, the way CAT-02 recorded its 6/12 pre-pattern baseline.
