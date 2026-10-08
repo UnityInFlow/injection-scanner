@@ -706,19 +706,39 @@ Not applicable — this is a pattern-and-corpus addition, not a rename or migrat
 | A8 | VS Code `tasks.json` `runOptions.runOn: folderOpen` is a comparable lifecycle trigger | §Q2 | Not researched; not recommended for this phase |
 | A9 | License-header rules in real AGENTS.md files (darkodemic/systray#2, Euro-Office/sdkjs#99) read as the D-02 near-miss | §Q1 | Search-summary only — fetch the sentence before committing a specimen |
 
-## Open Questions
+## Questions Raised by This Research — all eight resolved
+
+**Section relabelled 2026-10-08 at planning time.** Every question below was open when this document
+was written and is now settled, either by a locked decision in `05-CONTEXT.md` or by a planner call
+recorded in a Phase 5 plan. The resolution is stated inline under each one as **RESOLVED**, with the
+decision id or the `plan:task` that carries it. Nothing here is still open — do not reopen a question
+from this list without first reading its resolution, which is the mistake this relabelling exists to
+prevent. (The one genuinely open item that came out of this research is the whole-file YAML/TOML
+projection gap in question 6; it is resolved *as a filed issue*, not as work in this phase.)
 
 1. **D-03's rationale vs measurement (needs the user).**
+   - **RESOLVED — D-03 AMENDMENT in `05-CONTEXT.md`, implemented in `05-06:T1`.** The user accepted
+     the discriminator change: the arm and its corpus subdirectory stand, the "independent of what
+     the command does" sentence is withdrawn, and the rule is binding **plus** a sensitive command
+     shape. The withdrawn binding-only form ships as `PI077`'s `relaxed_pattern`, and `05-02:T2`
+     records it firing on three clean specimens so the amendment is a CI gate rather than a note.
    - Known: "a command bound to a session-lifecycle event, independent of what the command does" fires on 254/328 real configs (958 commands); binding + sensitive-command shape fires on 0/328 and catches 6/8 seeds.
    - Unclear: whether the user accepts the discriminator change (the arm and its corpus directory stand; only the value filter is added).
    - Recommendation: proceed with binding + value filter; record the deviation in the plan and the pattern header. This is an `[ASSUMED]`-class decision until confirmed.
 2. **Widen `PI070` or add `PI071`?** Widening `PI070`'s object/verb sets is a regex-only change (name unchanged) but alters a shipped pattern and its `relaxed_pattern`; a sibling duplicates the long addressee skeleton. Recommendation: **add `PI071` for the new shapes and widen `PI070`'s object set** in one reviewed commit, since object coverage (2/24) is the cheapest recall.
+   - **RESOLVED — both, in `05-03:T1` (widen `PI070`) and `05-03:T2` (add `PI071`).** The recommendation was adopted. `PI070`'s `name` and subject alternation are asserted byte-identical, and its `relaxed_pattern` object list widens in step so the false-positive control keeps measuring a narrowing that still exists.
 3. **Narrow `PI070`'s generic "agent" subject?** The Jenkins-agent probe fires HIGH today. Either accept (0 hits on 9,528 files) and add a clean specimen only if a real sentence is found, or restrict to AI-specific nouns while widening objects. Recommendation: do not change the subject set in this phase (GATE-04 discipline); record the latent FP.
+   - **RESOLVED — no, subject set untouched; `05-03:T1` records it, `05-07:T2` files it.** The recommendation was adopted. `05-03:T1` asserts the subject alternation byte-identical and requires a header paragraph naming the one sentence that fires, the sibling product variant that does not, and the zero-hit measurement across 9,528 third-party files. `PI071`'s own declarative arm is restricted to AI-specific nouns, so the new pattern does not inherit the latent case.
 4. **`examples/persistence-lifecycle-hijack-attack.md` repeats three of the six tainted payloads** (lines 5, 7, 9 fire `PI070`). It is not a recall input and not pinned, but it is regenerated into the code-scanning baseline. Rewrite it from the new corpus or leave it as a demo file; do not leave a stale comment claiming it is representative.
+   - **RESOLVED — rewritten from the new corpus in `05-01:T3`.** Leaving it would keep the tainted template alive in a shipped demo file after the corpus removed it. The task also forbids adding a comment claiming the file is representative, since nothing pins it to stay so, and confirms by check that `the_attack_corpus_keeps_every_finding` does not reference it before or after.
 5. **Agent-timing as a second D-04 cue** (`before finishing`) would catch CONTEXT's 4th table sentence but collides with legitimate GSD workflow phrasing. Decide with the user; default: not included.
+   - **RESOLVED — not included; `05-05:T1` excludes it and names the gap, `05-07:T2` files it.** The default was taken as a planner call under `05-CONTEXT.md` §"Claude's Discretion". A conjunct earns its place by a measurement, and this one collides with phrasing this ecosystem's own workflows use legitimately. The uncovered row of D-04's table is written into `PI073`'s header and into the deferral list, so the choice is visible to the next reader rather than silent.
 6. **File an engine issue** for whole-file YAML/TOML configs (`.aider.conf.yml`, `.codex/config.toml`) — measured silent. Companion to #129/#130; not this phase's work.
+   - **RESOLVED as a filed issue, not as work — `05-07:T2` files it and `05-06:T1` states it in `PI077`'s header.** This is the one item from this research that remains genuinely open *as engineering*: `extract()` handles `---`, `+++` and leading-`{` only, so a hook in a whole-file YAML or TOML configuration is not projected at all and produces no finding and no error. Out of scope for a pattern-and-corpus phase; tracked so it is not rediscovered.
 7. **`PI079` vs honest 8.** See §Q4; if dropped, amend ROADMAP's "10 patterns" in the same PR.
+   - **RESOLVED — D-07, implemented in `05-06:T2`.** Both `PI078` and `PI079` are provisional, each with a written, measurable ship-or-drop criterion evaluated before commit. `PI079` ships only if it fires on the blind-written corpus payload carrying a literal key blob; `PI078` ships only if the loopback specimen stays silent and the GATE-03 sweep attributes no addition to it on a legitimate audit endpoint. A dropped id is left unallocated — never reused, since a published id is part of the JSON contract — and the ROADMAP criterion is amended in the same change, citing D-07.
 8. **Close-out comment on #35** recording the CRITICAL → HIGH/MEDIUM deviation and the 9-slot arithmetic.
+   - **RESOLVED — D-06, implemented in `05-07:T2`.** The comment is a required deliverable with three stated contents: that the issue's blanket severity assertion was not adopted, the evidence that settled it (`PATTERNS.md` rule 3 plus the real documents now sitting in the clean corpus), and the slot arithmetic. Each pattern plan records its own per-pattern severity rationale in a form that comment can quote, so the deviation is argued from measurement rather than asserted.
 
 ## Environment Availability
 
