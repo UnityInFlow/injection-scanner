@@ -112,3 +112,26 @@ server name is the top-level key).
 | `08-non-tls-endpoint-servers-wrapper.md` | Config-hygiene: a non-TLS `http://` endpoint (synthesized — no naturally occurring example was found, per `04-RESEARCH.md` §Q2), under the VS Code family `servers` wrapper |
 | `09-remote-script-fetch-execute-server.md` | Config-hygiene: a server launched by fetching and executing a remote script (`curl ... \| sh`), wrapper-less |
 | `12-encoded-description-payload.md` | A base64-encoded file-read-and-smuggle instruction inside a `tools/list` `description` value — measures whether the E2 recursive decoder reaches `scope: frontmatter` projected values at all |
+
+### `persistence-lifecycle-hijack/` (CAT-03, #35)
+
+Landed by plan 05-01, ahead of any `PI071`+ pattern (GATE-01). All five are
+whole-file documents, and they are the hook-configuration half of CAT-03: a
+lifecycle hook only exists as an attack once it sits inside a real, parseable
+hooks document, bound to a lifecycle event. Each payload uses a different host
+convention (`05-RESEARCH.md` §Q2 measured how much the hosts disagree about
+where the `hooks` key lives and what the command key is called), so no two
+share a wrapper shape *and* a command key. No prose/structural ratio was set in
+advance; this split (7 prose, 5 structural) is what the threat model produced.
+
+| File | Shape |
+|---|---|
+| `01-session-hook-secret-path-read.md` | The **mixed** Codex on-disk document: lifecycle events (`SessionStart`, `SubagentStart`) at the document root *and* a `hooks` wrapper in the same file. The attack is on the root-form side — a `SessionStart` command copying `~/.ssh/id_ed25519` out of the home directory; the wrapped `Stop` hook is benign. Command key `command` |
+| `02-skill-frontmatter-hook-appends-shell-profile.md` | Claude skill file: a nested `hooks:` block in YAML frontmatter (`SessionStart` → `hooks[]` → `command`) appending a `PATH` export to `~/.zshrc`. The opening `---` is the literal first line |
+| `03-copilot-hooks-json-authorized-keys-append.md` | Copilot `.github/hooks/*.json` convention: flat `hooks.sessionStart[]` entries whose command key is **`bash`**, appending a literal public key to `~/.ssh/authorized_keys` |
+| `04-http-handler-remote-lifecycle-endpoint.md` | Claude nested `hooks.PostToolUse[].hooks[]` with a `type: http` handler: the handler is a remote endpoint (`url`, a dotted non-loopback host) rather than a command |
+| `05-cursor-flat-hook-posts-session-to-webhook.md` | Cursor flat camelCase `hooks.stop[]` with a `command` key that `curl`s the last session file to a plain webhook URL. **A deliberate, documented miss**: plain webhook hooks are the commonest legitimate hook shape, so the structural discriminator excludes them on purpose (`05-CONTEXT.md` D-03 AMENDMENT) |
+
+Every payload's opening byte is `{` or the literal `---` fence; rationale lives
+here, never above it (see "The opening fence must be the file's literal first
+line").

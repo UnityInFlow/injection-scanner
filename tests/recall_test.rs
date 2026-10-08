@@ -254,7 +254,7 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // CAT-03 (#35) opens with PI070 agent-directed-persistence-write: six
     // payloads from install guides and support pages, every one a write that
     // outlives the session.
-    ("persistence-lifecycle-hijack", 6, 6),
+    ("persistence-lifecycle-hijack", 0, 7),
     // persistence-lifecycle-hijack-structural: the CAT-03 (#35) structural
     // half (D-03). Opens with one payload, the awkward shape on purpose: the
     // mixed Codex on-disk document, lifecycle events at the document root AND
@@ -262,7 +262,7 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // side. Measured 2026-10-08 on the shipping 71-pattern set: **1/1**, and
     // reached by a PROSE pattern (PI029 over the raw JSON line), not by any
     // `scope: frontmatter` pattern -- none exists for this category yet.
-    ("persistence-lifecycle-hijack-structural", 1, 1),
+    ("persistence-lifecycle-hijack-structural", 1, 5),
 ];
 
 fn scanner() -> Scanner {
