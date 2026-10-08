@@ -149,6 +149,44 @@ Two ways to make the comparison honest:
 2. Run the later comparison with those three rows excluded from both sides and compare the
    other thirty.
 
+### RESOLVED 2026-10-08 by the orchestrator — option 1 was taken
+
+`$MAIN` below is the **main checkout** root (the working tree whose branch is not an
+`agent-*` / `worktree-agent-*` namespace). It is the root every later plan compares from.
+
+- The frozen input sets were copied out of the agent worktree into `$MAIN/.planning/local/`
+  (`sweep-inputs-ext-05/{cursor,vscode}/`, `sweep-inputs-hooks-05/`) **before** that worktree
+  was removed, together with the 33 raw reports.
+- A release binary was built in `$MAIN`. Its `src/`, `patterns/`, `Cargo.toml` and `Cargo.lock`
+  are unchanged from the recorded baseline sha `1d734937410c8025c9d484834a505d2154511199`
+  (`git diff --stat 1d73493..HEAD -- src patterns Cargo.toml Cargo.lock` is empty), so it
+  carries the same 71-pattern set and the re-capture is comparable.
+- Only the three `$REPO` rows were re-run. The thirty `$HOME` rows were left exactly as
+  captured, because their keys never depended on which checkout ran the sweep.
+- Accepted by this file's own criterion: the three re-captured rows match the committed
+  `manifest.tsv` **row for row** — `1234 / 271`, `1593 / 431`, `263 / 59`.
+- `$MAIN/.planning/local/sweep-baseline-05-01-2026-10-08/` now holds 33 reports, none containing
+  the retired worktree id, and its own `manifest.tsv` was corrected to the `$MAIN` paths.
+  `--compare` of that directory against itself is empty, exit 0.
+
+**BINDING RULE for plans 05-03 through 05-07.** Each executor runs in its own worktree, so a
+`$REPO`-relative input path would re-introduce precisely this defect — silently, as a pile of
+additions and removals that look like a regression. Sweep the input sets and the baseline by
+their **`$MAIN`-absolute** paths, never by a path relative to your own checkout:
+
+```
+$MAIN/.planning/local/sweep-inputs-ext-05/cursor
+$MAIN/.planning/local/sweep-inputs-ext-05/vscode
+$MAIN/.planning/local/sweep-inputs-hooks-05
+
+bash scripts/gate03-sweep.sh --compare \
+  $MAIN/.planning/local/sweep-baseline-05-01-2026-10-08 \
+  <your candidate output dir>
+```
+
+Do not copy the input sets into your own worktree, and do not re-capture the baseline. Both
+re-create the path skew this section exists to close.
+
 ## RECOVERY — the raw JSON is not in git
 
 If `.planning/local/sweep-baseline-05-01-2026-10-08/` is lost, rebuild it. Never use `git stash`.
