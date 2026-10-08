@@ -145,6 +145,29 @@ Plans:
 - Self-rewriting instructions, hook and lifecycle abuse, memory-file poisoning
 - At least one pattern detects an instruction to write *into* a file the agent will re-read
 
+> **`05-CONTEXT.md` is authoritative where it sharpens these criteria — do not re-derive the
+> superseded readings.** Three things were settled there after measurement. (1) The range has **9**
+> free slots, not 10: `PI070` already shipped via PR #110, so the phase plans `PI071`–`PI079` and
+> the "10 patterns" line above counts the whole range rather than the phase's own additions (D-07);
+> `PI078`/`PI079` are provisional and the criterion is amended in the same change if either is
+> dropped. (2) The 12 corpus payloads **replace** the 6 inherited with PR #110, which were
+> GATE-01-tainted — payload 1 was byte-identical to `PI070`'s own `example` — so the pinned recall
+> row is expected to fall below its published 6/6 and that is the gate working (D-01). (3) Issue
+> #35's "CRITICAL across the board" is **not** followed: `PATTERNS.md` rule 3 governs severity and
+> nothing in this range ships in that tier (D-06).
+
+**Plans:** 7 plans
+
+Plans:
+
+- [ ] 05-01-PLAN.md — GATE-03 pre-edit baseline, 12 blind-written payloads, measured pre-pattern pins (D-01, D-03, D-05)
+- [ ] 05-02-PLAN.md — Nine clean-corpus specimens and the two mutation proofs that make D-03's amendment and D-04's conjuncts load-bearing (D-02, D-03, D-04)
+- [ ] 05-03-PLAN.md — `PI070` object/verb widening and `PI071` agent-persistence-nonmodal, HIGH, prose (D-06)
+- [ ] 05-04-PLAN.md — `PI072` self-propagation, `PI074`/`PI075` memory arms, and the self-matching backlog bullets (D-02, D-05, D-06)
+- [ ] 05-05-PLAN.md — `PI073` instruction-file-write-directive (MEDIUM) and `PI076` agent-hook-registration-directive (D-04, D-06)
+- [ ] 05-06-PLAN.md — `PI077` structural lifecycle arm, plus `PI078`/`PI079` resolved on measured criteria (D-03, D-06, D-07)
+- [ ] 05-07-PLAN.md — Whole-category GATE-03 delta, number reconciliation, deferral issues, #35 close-out, pre-PR gates
+
 ## Gates applied to every phase
 
 | Gate | Rule |

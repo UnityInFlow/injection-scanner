@@ -104,11 +104,55 @@ and report-time deduplication of overlapping findings (see D-05).
 
   The same file with `curl … | sh` is caught only incidentally, by `PI028` (prose pass, CRITICAL)
   and `PI062` (structural, MEDIUM) — both because of the *command's* shape, not because it is bound
-  to a lifecycle event. For the category whose entire subject is lifecycle abuse, the signal is **a
-  command bound to a session-lifecycle event**, independent of what the command does.
+  to a lifecycle event.
+
+  **AMENDED 2026-10-08, after research measured it (`05-RESEARCH.md` §Q2, Open Question 1).** This
+  decision originally read *"the signal is a command bound to a session-lifecycle event, independent
+  of what the command does"*. **That is not implementable and the sentence is withdrawn.** A
+  binding-only structural pattern fires on **every legitimately configured hooks file** — 254 of 328
+  real hook/settings files in the researcher's sweep (958 hook commands), and 17 of 21 in an
+  independent narrower sweep run to check the claim. People configure hooks deliberately; the
+  binding alone carries no signal.
+
+  The discriminator is therefore **binding *plus* a sensitive command shape** — a secret-path
+  read/copy, a persistence-target write, fetch-and-exec, decode-and-exec, or a remote URL. Measured
+  **0 hits across all 328 files / 958 commands**, catching 6 of 8 structural seeds. The two seeds it
+  misses are an accepted, documented blind spot, to be written into the pattern header.
+
+  The arm and its corpus directory are unaffected — only the value filter is added.
 
   Layout constraint inherited from Phase 4: **one** level of nesting under `structural/`, because
   the collectors are non-recursive — a third level would need a new dedicated walker.
+
+### Severity policy (added 2026-10-08)
+
+- **D-06:** `PATTERNS.md` governs severity, **not** issue #35. No pattern in this range ships at
+  CRITICAL; each is graded HIGH or MEDIUM on its own measured evidence.
+  — **Reversibility:** reversible — a severity is a single YAML field, though it is a consumer-visible
+  change once published.
+
+  Issue #35 states *"CRITICAL across the board — there is no benign reading of a document
+  instructing an agent to modify its own persistent configuration."* `PATTERNS.md` rule 3 states
+  *"If you had to imagine the benign case, it is not CRITICAL. If you can recall a real document
+  that would match, it is MEDIUM at most."* These conflict, and the conflict is settled in
+  `PATTERNS.md`'s favour: it is the published contributor contract, it is enforced by
+  `tests/pattern_test.rs` (which asserts every severity level stays populated), and #35 was written
+  before any benign case had been measured. Real benign documents that would match were found —
+  Claude's own memory documentation, and GSD's *"Add an auto-load routing line to the project's
+  `CLAUDE.md`"*. `install-hook` also already blocks commits at HIGH, so CRITICAL buys no additional
+  protection here.
+
+  A close-out comment goes on #35 recording this deviation and the 9-slot arithmetic below.
+
+### Pattern budget (added 2026-10-08)
+
+- **D-07:** Plan `PI071`–`PI079` — **9** patterns, not the 10 the ROADMAP success criterion names,
+  because `PI070` already shipped. `PI078` and `PI079` are **provisional**: research rates their
+  evidence weakest, and if it does not hold up during execution they are dropped and the ROADMAP
+  criterion is amended in the same PR rather than shipping a thin pattern to satisfy a count.
+
+  Shipping a pattern on thin evidence to hit a number is the failure mode GATE-01 and `PATTERNS.md`
+  both exist to prevent.
 
 ### Reporting
 
@@ -225,9 +269,18 @@ and report-time deduplication of overlapping findings (see D-05).
 <specifics>
 ## Specific Ideas
 
-- **The structural signal should be the lifecycle binding, not the command.** `SessionStart`,
-  `PreToolUse`, `PostToolUse` and friends carrying *any* command is the shape worth flagging;
-  relying on the command text is what leaves the `cp ~/.ssh/id_rsa` case invisible today.
+- **The structural signal is the lifecycle binding *plus* a sensitive command shape.**
+  ~~`SessionStart`, `PreToolUse`, `PostToolUse` and friends carrying *any* command is the shape
+  worth flagging.~~ **Struck 2026-10-08 — see D-03's AMENDMENT, which withdrew exactly this
+  reading.** Binding alone fires on every legitimately configured hooks file (254/328 measured,
+  17/21 on an independent narrower sweep), because people configure hooks deliberately. The
+  `cp ~/.ssh/id_rsa` case is reached by the *sensitive-value* half of the conjunction — a
+  secret-path read — not by the binding.
+
+  This bullet originally restated the withdrawn rationale and was left stale when D-03 was
+  amended; the planner caught it. It is kept rather than deleted so the mistake is legible: an
+  executor reading `<specifics>` alone would have built the 254/328 rule. **D-03's amended text
+  governs; nothing in this section overrides a decision.**
 - **D-01's rewrite is an opportunity, not just a repair.** Writing 12 payloads from the threat
   model before the patterns means the pre-pattern baseline is a real measurement for the first
   time in this category — record it, the way CAT-02 recorded its 6/12 pre-pattern baseline.
