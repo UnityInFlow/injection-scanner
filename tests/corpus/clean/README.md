@@ -59,6 +59,27 @@ the strict-mode matches it currently relies on come from patterns that
 already ship (`PI015`, `PI028`, `PI029`), not from `PI060`+ — plan 04-07
 re-checks it once the full CAT-02 set lands.
 
+## CAT-03 (`persistence-*`) — the persistence and lifecycle-hijack boundary family
+
+`persistence-*` files exist so the false-positive gate is in the tree **before**
+the patterns that could fire on it (phase 05, plan 05-02). Every one is a flat
+file sharing the `persistence-` prefix, for the same reason the CAT-02 section
+above gives: both enumerations read one level deep and skip a directory, so a
+specimen in a subdirectory leaves both gates green while proving nothing.
+
+A `PI07x` pattern that fires on any `persistence-*` file is **narrowed, not
+accommodated** by editing the specimen. Where a header says a sentence is
+synthesized, no third party is quoted for it.
+
+| File | Decision it defends |
+|---|---|
+| `persistence-shell-install-prose.md` | D-02 / `PI070` / `PI071` — the second-person shell-profile, authorized_keys and crontab sentences that are the commonest lines in any install guide (two sourced from the Homebrew and nvm install pages as quoted in `05-RESEARCH.md` §Q1, two synthesized). `PI070` already excludes `you` for this reason; a persistence-object pattern added later must not undo it. |
+| `persistence-git-hook-docs.md` | `05-RESEARCH.md` §Q4 and Pitfall 5 — the Pro Git sentence that is word-for-word how a human is told to enable a hook (the reason no pattern slot is spent on a git-hook prose arm), and the defensive `core.hooksPath=/dev/null` clone idiom from Anthropic's own security plugin. A pattern that flags a security control is the `permissions.deny`-versus-`permissions.allow` failure in a new costume. |
+| `persistence-memory-feature-docs.md` | D-04 / `PI074` grading — Claude Code's own memory page says conversation-only instructions can be added to an instruction file to make them persist. The durability cue is present in a legitimate, sourced sentence, which is why a memory-write arm is graded below the band that blocks commits. |
+| `persistence-instruction-file-writes.md` | D-04 — agent-directed, legitimate writes into a named instruction file (a GSD workflow's routing line, a skill describing itself as updating `CLAUDE.md`, a tool writing a named section). `05-RESEARCH.md` §Q3 measured that nothing in the grammar separates these from the attack, only the determiner (`the project's`, not `your`) and the absence of a future-reader cue. Two synthesized sections keep that measurement in this repo: a deictic variant of the routing line (cue-less, `the project's`) and two vendor-README lines addressed to the human (`your`). A throwaway cue-less, determiner-blind probe fires on both; see the plan 05-02 SUMMARY. |
+| `persistence-file-template-conventions.md` | D-02 — licence-header, copyright-notice, file-template and docstring rules, grammatically identical to self-propagation and differing only in the object. All synthesized. Forces `PI072` to discriminate on the propagated object rather than the addressee. |
+| `persistence-hook-setup-docs.md` | `05-RESEARCH.md` §Q4 — hook-registration sentences addressed to a human developer, plus this repository's own `CLAUDE.md` / `PROJECT.md` wording about its pre-commit hook installer. A bare hook-registration draft fired on both, which is why the prose hook arm requires an AI addressee. |
+
 ## Provenance — vendored third-party files (D-06(3))
 
 Every row below was triaged **outside this repository**, in a scratch location, by
