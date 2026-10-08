@@ -14,7 +14,7 @@
 # structural/persistence-lifecycle-hijack/) were rewritten under GATE-01 and
 # D-01: the six lines this file held before were one template with the object
 # swapped, the first of them byte-identical to PI070's own `example`, and PI070
-# alone caught all six. They were drawn from document genres an agent is
+# caught all six. They were drawn from document genres an agent is
 # plausibly pointed at -- a support knowledge-base page, a vendor setup page, a
 # maintainer's issue-thread comment, a contributor README for coding agents, a
 # release note, a prompt-library page -- and, apart from the sentences that

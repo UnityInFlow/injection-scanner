@@ -379,7 +379,7 @@ contribute one.
 
 ## How Much Does It Actually Catch?
 
-Measured, not claimed. `tests/corpus/attack/` holds 109 realistic payloads written from the
+Measured, not claimed. `tests/corpus/attack/` holds 115 realistic payloads written from the
 threat model rather than from the regexes, and `tests/recall_test.rs` pins the numbers in CI.
 
 | Category | Detected | Recall |
@@ -391,9 +391,9 @@ threat model rather than from the regexes, and `tests/recall_test.rs` pins the n
 | Role Override | 11 / 12 | **92%** |
 | Encoding/Obfuscation | 11 / 12 | **91.7%** |
 | MCP & Tool-Description Poisoning | 9 / 12 | **75%** |
-| Persistence & Lifecycle Hijack | 6 / 6 | **100%** |
+| Persistence & Lifecycle Hijack | 1 / 12 | **8.3%** |
 | Multilingual (Czech; German misses) | 8 / 10 | **80%** |
-| **Total** | **102 / 109** | **93.6%** |
+| **Total** | **97 / 115** | **84.3%** |
 
 *Table as of 2026-09-03. The Tool & Permission Abuse row's first 12
 threat-model payloads (7 prose, 5 structural) landed first with a measured 0/12 pre-pattern
@@ -408,6 +408,15 @@ The category's combined row is now fully measured at 12/12. See
 
 *Four payloads were added 2026-09-03 with the widenings that catch them (PI014, PI015, PI018,
 PI029), each written against a live web page before the arm existed.*
+
+*Measured 2026-10-08. The Persistence & Lifecycle Hijack row is a **pre-pattern baseline**, not a
+regression. Its six inherited payloads were replaced under GATE-01 and D-01: they were one
+template, the first was byte-identical to `PI070`'s own `example`, and `PI070` caught all six, so
+the row scored 6 / 6 by construction. Its 12 replacement payloads (7 prose, 5 structural) were
+written from the threat model before any `PI071`+ pattern exists. `PI070` catches none of the 7
+prose payloads, and the one structural payload counted is reached by `PI029` over the raw JSON
+line rather than by any structural pattern. Three of the 12 are deliberate misses, named in the
+corpus file's own header. The total's denominator now counts six payloads fewer and twelve more than before.*
 
 *Measured 2026-09-03. The MCP & Tool-Description Poisoning row's 12 threat-model payloads (4
 prose, 8 structural) landed deliberately BEFORE any `PI060`–`PI069` pattern exists (GATE-01), so
@@ -476,7 +485,7 @@ all 12 of its threat-model payloads are detected.
 
 ### What this still is not
 
-Recall is measured against 109 payloads written from the threat model. It is not a claim about an
+Recall is measured against 115 payloads written from the threat model. It is not a claim about an
 adversary who has read the pattern library — every pattern here is public, and a determined
 attacker can phrase around a regex. Treat it as a pre-commit tripwire that now catches the
 common shapes of the documented categories, not as a control that stops a motivated attacker.

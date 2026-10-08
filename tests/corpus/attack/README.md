@@ -50,8 +50,8 @@ either, and its history is a correction worth keeping. It opened with six prose
 payloads in `persistence-lifecycle-hijack.md` that were **replaced under GATE-01
 and D-01**: all six were one template (a third-person agent, a modal, a write
 verb, a persistence object, only the object swapped), the first was
-byte-identical to `PI070`'s own `example`, and `PI070` alone caught every one —
-a corpus that scored 100% by construction and measured nothing. Its twelve
+byte-identical to `PI070`'s own `example`, and `PI070` caught every one (`PI014`
+co-fired on two) — a corpus that scored 100% by construction and measured nothing. Its twelve
 replacement payloads were written from the threat model before any `PI071`+
 pattern existed: seven prose lines in `persistence-lifecycle-hijack.md` and five
 whole-file hook documents in `structural/persistence-lifecycle-hijack/`.

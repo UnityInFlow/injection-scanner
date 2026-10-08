@@ -59,7 +59,11 @@ const STRUCTURAL_SUFFIX: &str = "-structural";
 /// (PI014, PI015, PI018, PI029): **74 of 76**.
 /// The Czech multilingual slice added the same day: **82 of 86**, and PI058's
 /// five destructive-command payloads: **87 of 91**. CAT-03 opened with PI070
-/// and six persistence payloads: **93 of 97**.
+/// and six persistence payloads: **93 of 97**. Plan 05-01 then replaced those
+/// six under GATE-01 and D-01 (they were one template, the first byte-identical
+/// to PI070's own `example`) with twelve threat-model payloads written before
+/// any PI071+ pattern: the pre-pattern baseline is **97 of 115**, with the two
+/// CAT-03 rows at 0/7 (prose) and 1/5 (structural).
 ///
 /// Started this milestone at 10/60. The dividing line was never how hard the
 /// attacks are - it is whether a pattern matches *shape* or a literal phrase.
@@ -251,17 +255,39 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // documented misses: the range covers one language so far, and the
     // misses show what the next language's work looks like.
     ("multilingual", 8, 10),
-    // CAT-03 (#35) opens with PI070 agent-directed-persistence-write: six
-    // payloads from install guides and support pages, every one a write that
-    // outlives the session.
+    // CAT-03 (#35) prose half, 7 payloads (no ratio was set in advance; the
+    // threat model produced 7 sentence-shaped and 5 document-shaped).
+    //
+    // History: this row opened with PI070 agent-directed-persistence-write and
+    // six payloads, pinned 6/6. That was GATE-01's exact failure mode -- all
+    // six were one template (third-person agent + modal + write verb +
+    // persistence object, only the object swapped), payload 1 was
+    // byte-identical to PI070's own `example`, and PI070 caught every one
+    // (PI014 co-fired on two). Plan 05-01 replaced them under D-01.
+    //
+    // Measured 2026-10-08 on the shipping 71-pattern set, PI070 the only PI07x
+    // pattern: **0/7**. Not one of the seven draws a finding of any kind
+    // (reported, low-confidence or suppressed) from any pattern, PI070
+    // included. Two are deliberate documented misses (the launchd line, whose
+    // subject is an unresolvable "it", and the contributor-bot hook-install
+    // line, which is word for word how the Git documentation tells a human to
+    // enable a hook); the other five are the shapes PI071+ are written to
+    // catch. Each pattern commit bumps this by exactly what it adds.
     ("persistence-lifecycle-hijack", 0, 7),
     // persistence-lifecycle-hijack-structural: the CAT-03 (#35) structural
-    // half (D-03). Opens with one payload, the awkward shape on purpose: the
-    // mixed Codex on-disk document, lifecycle events at the document root AND
-    // a `hooks` wrapper in the same file, with the attack on the root-form
-    // side. Measured 2026-10-08 on the shipping 71-pattern set: **1/1**, and
-    // reached by a PROSE pattern (PI029 over the raw JSON line), not by any
-    // `scope: frontmatter` pattern -- none exists for this category yet.
+    // half (D-03), 5 whole-file hook documents across five host conventions
+    // (Codex mixed root-and-wrapper, Claude skill YAML, Copilot `bash` key,
+    // Claude `type: http`, Cursor flat). Measured 2026-10-08 on the shipping
+    // 71-pattern set: **1/5**.
+    //
+    // The one hit, payload 01 (the mixed Codex shape, a lifecycle command
+    // reading `~/.ssh/id_ed25519`), is PI029 email-the-contents HIGH over the
+    // raw JSON line (prose context, confidence 1.0) -- PROSE SPILLOVER, not a
+    // `scope: frontmatter` pattern; none exists for this category yet. A later
+    // structural pattern therefore cannot claim payload 01 as new recall.
+    // Payloads 02-04 draw no finding of any kind. Payload 05 (a plain webhook
+    // POST) is a deliberate documented miss: plain webhook hooks are the
+    // commonest legitimate hook shape, so the discriminator excludes them.
     ("persistence-lifecycle-hijack-structural", 1, 5),
 ];
 
