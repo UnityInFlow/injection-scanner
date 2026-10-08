@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
-stopped_at: Phase 5 wave 1 (05-01) complete and merged — wave 2 next
-last_updated: "2026-10-08T18:55:50.129Z"
-state_head: 297d449
+stopped_at: Phase 5 wave 2 (05-02) complete and merged — wave 3 next
+last_updated: "2026-10-08T19:29:30.082Z"
+state_head: 00cd4b5
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 23
-  completed_plans: 17
-  percent: 74
+  completed_plans: 18
+  percent: 78
 ---
 
 # State: injection-scanner
