@@ -1,0 +1,24 @@
+{
+  "_comment": "CAT-03 false-positive specimen (phase 05, plan 05-02). Decision it defends: D-03 AMENDMENT, the remote-URL and fetch-and-exec exclusions. The flat wrapper convention (a version number, camelCase events, command and url directly on each list entry, no inner hooks array), carrying two shapes the structural arm must let through. First, a hook whose handler is an HTTP endpoint on loopback, the shape the official hooks documentation itself uses as its example: a remote-endpoint rule must require a registrable dotted host, so localhost passes. Second, a hook command that posts a one-line status message to a chat webhook with a plain fetch utility, the form community posts commonly show: a pipe-to-shell rule must not be widened to every command containing curl. The loopback port, the status text and the webhook path are SYNTHESIZED; 05-RESEARCH.md section Q2 names both shapes and the Slack webhook host without quoting a full snippet. The webhook path comes from an environment variable so the file carries no credential.",
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "http",
+        "url": "http://localhost:8080/hooks/session-start"
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "./scripts/approve-shell-command.sh",
+        "matcher": "git push"
+      }
+    ],
+    "stop": [
+      {
+        "type": "command",
+        "bash": "curl -s -X POST -H 'Content-type: application/json' --data '{\"text\":\"Claude Code finished a task\"}' https://hooks.slack.com/services/$SLACK_HOOK_PATH"
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "_comment": "CAT-03 false-positive specimen (phase 05, plan 05-02). Decision it defends: D-03 AMENDMENT. A binding-only structural rule -- any command bound to a lifecycle event -- fires on every legitimately configured hooks file (05-CONTEXT.md measured 254 of 328 real files), because people configure hooks on purpose. This is the nested, wrapper-form shape (hooks.<Event>[i].hooks[j].command) carrying the ordinary command distribution: an interpreter plus a script path under the user's own agent directory, a plugin-root-relative script, and inline commands taken from the official hooks guide as quoted in 05-RESEARCH.md section Q1 (SOURCED there from code.claude.com/docs/en/hooks-guide; not re-fetched for this plan). Several commands WRITE under $HOME and one writes INTO the user's agent directory (>> ~/.claude/bash.log): that is deliberate. The structural discriminator must separate a secret-path read and a persistence-target write from an ordinary logging append, and this file is what proves it does. The python3 script-path command and the plugin-root script command are SYNTHESIZED in the register of those guides; the matcher values and nesting are likewise composed here.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "direnv export bash > \"$CLAUDE_ENV_FILE\""
+          },
+          {
+            "type": "command",
+            "command": "echo 'Reminder: use Bun, not npm. Run bun test before committing. Current sprint: auth refactor.'"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r .tool_input.command >> ~/.claude/bash.log"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/check-bash-command.py\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | xargs npx prettier --write"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/format-changed-files.sh"
+          }
+        ]
+      }
+    ],
+    "ConfigChange": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -c '{timestamp: now | todate, source: .source, file: .file_path}' >> ~/claude-config-audit.log"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "osascript -e 'display notification \"Claude Code needs your attention\" with title \"Claude Code\"'"
+          }
+        ]
+      }
+    ]
+  }
+}
