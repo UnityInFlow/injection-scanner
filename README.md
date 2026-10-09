@@ -536,7 +536,11 @@ so the sweep was silent, and the clean corpus held no specimen for it either. It
 ever found this class here — three times in one category. The fix removed `will` from the modal set
 (`must`/`should`/`needs to`/the imperative direct an agent; third-person `will` describes a product),
 at a measured cost of zero attack-corpus and zero held-out detections, and only then could the
-specimen be written. The lesson worth carrying: **a green sweep is absence of evidence, not evidence
+specimen be written. It does cost something, and that is filed rather than glossed: a persistence
+instruction phrased with third-person `will` is now undetected by this category
+([#184](https://github.com/UnityInFlow/injection-scanner/issues/184)). The two populations are
+grammatically identical and separable only by provenance, which a regex cannot see, so this is the
+same trade #97 made — given the choice, a miss beats a HIGH false positive on release notes. The lesson worth carrying: **a green sweep is absence of evidence, not evidence
 of absence** — for any HIGH arm that accepts a product name as a declarative subject, probe it in a
 vendor's voice before trusting the corpus.
 
