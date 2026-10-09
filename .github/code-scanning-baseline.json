@@ -451,6 +451,20 @@
       "first_seen_line": 11
     },
     {
+      "file": "examples/persistence-lifecycle-hijack-attack.md",
+      "pattern_id": "PI074",
+      "digest": "sha256:2312c8388d4650f97c1f45bdda59d73f601220792bc3413f42fdff941ce37cc5",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "examples/persistence-lifecycle-hijack-attack.md",
+      "pattern_id": "PI075",
+      "digest": "sha256:cca9453d72b5cea62d277872e1ec636a5b74a5e4b39b09fb678892e4ce6f8847",
+      "count": 1,
+      "first_seen_line": 15
+    },
+    {
       "file": "examples/role-override-attack.md",
       "pattern_id": "PI001",
       "digest": "sha256:a202ee6e402bb4a0ae16157ab7e1cd7ff08fde9a966cb7ea5caa819a155810b2",
@@ -1120,14 +1134,28 @@
       "pattern_id": "PI070",
       "digest": "sha256:e3c8f6586d08b91eb1c624d92abd4325b8ddd35c7f8bb40c76def6f7274721e9",
       "count": 1,
-      "first_seen_line": 125
+      "first_seen_line": 169
     },
     {
       "file": "patterns/core/persistence-lifecycle-hijack.yaml",
       "pattern_id": "PI072",
       "digest": "sha256:9291befc1100d6bde1135aa87147027bd1f3544102a202e7b3b2f627286d76d7",
       "count": 1,
-      "first_seen_line": 156
+      "first_seen_line": 200
+    },
+    {
+      "file": "patterns/core/persistence-lifecycle-hijack.yaml",
+      "pattern_id": "PI074",
+      "digest": "sha256:68ec15f079a3f6c4369537867e62fc1bf2bc47446100691764d59d51fcf9e75a",
+      "count": 1,
+      "first_seen_line": 214
+    },
+    {
+      "file": "patterns/core/persistence-lifecycle-hijack.yaml",
+      "pattern_id": "PI075",
+      "digest": "sha256:84a96fb2b3eefdd68b7004a2aa52a1e27064f4ff2f0e3e5e992926caf86e6459",
+      "count": 1,
+      "first_seen_line": 229
     },
     {
       "file": "patterns/core/role-override.yaml",
@@ -1891,6 +1919,13 @@
       "digest": "sha256:c8565bd35fcde8e784b299880fb40c8e2cb55441cdfb9b7bdd0a073e44f5fa19",
       "count": 1,
       "first_seen_line": 57
+    },
+    {
+      "file": "tests/corpus/attack/persistence-lifecycle-hijack.md",
+      "pattern_id": "PI075",
+      "digest": "sha256:55543bd65c2763d5b51973b4f641442c4462906e90a53cee6130a57b71024512",
+      "count": 1,
+      "first_seen_line": 56
     },
     {
       "file": "tests/corpus/attack/role-override.md",
