@@ -81,3 +81,23 @@ wire it into `ci.yml` and/or a test, and rewrite the header to claim lexical non
 - The structural corpus is described as "five host conventions"; it is strictly 4 host families
   across 5 distinct wrapper/command-key shapes. This matches plan 05-01's own definition of the
   requirement ("no two may share a wrapper and command-key shape"), so it is wording only.
+
+## 5. `PI070`'s subject alternation has no leading word boundary, so `LaunchAgents` supplies the subject `Agents` (found in plan 05-03)
+
+**What:** the subject group `(?:the\s+)?(?:ai\s+)?(?:agents?|assistants?|models?|llms?|claude|copilot)\b` is not
+preceded by `\b`, so it can start in the middle of a word. Measured on both the pre-edit binary
+and the widened one: `Files in ~/Library/LaunchAgents will install the helper at login via
+launchctl.` fires `PI070` HIGH, with the trailing `Agents` of `LaunchAgents` acting as the subject
+and `will` as the modal. `The LaunchAgents folder should register the job with launchctl at boot.`
+fires the same way.
+
+**Why it matters:** it is pre-existing, but plan 05-03's object widening makes it reachable by more
+sentences (every new object is another way to complete the match once a mid-token subject is
+found). The sweep over 26,417 third-party files produced no `PI070` finding, so it is a latent
+false positive, not a measured one.
+
+**Not fixed:** plan 05-03 requires `PI070`'s subject alternation to stay byte-identical (narrowing
+it is its own change with its own false-positive story, GATE-04). The fix is a leading `\b` (or
+`(?:^|[^\w])`) on the subject, plus a clean-corpus specimen and a pattern_test negative.
+
+**Status:** no issue filed.
