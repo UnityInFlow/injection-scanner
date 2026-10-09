@@ -101,3 +101,42 @@ it is its own change with its own false-positive story, GATE-04). The fix is a l
 `(?:^|[^\w])`) on the subject, plus a clean-corpus specimen and a pattern_test negative.
 
 **Status:** no issue filed.
+
+## 6. `PI071`'s declarative arm needed a deictic cue — fixed in-phase, limits recorded (found by the orchestrator reviewing plan 05-03)
+
+**Not deferred — this one was fixed.** Recorded here because the two accepted limits the fix
+leaves behind are real, and because the failure mode is worth not repeating.
+
+**What was wrong:** `PI071`'s declarative arm required an AI subject, a write verb and a
+persistence object, with no modal. Measured on the 05-03 binary, that fired **HIGH on five
+ordinary vendor sentences** — "Claude Code adds a line to your `~/.zshrc`", "Gemini stores your
+preferences in `.gemini/settings.json`", "Codex installs a `git hooks` shim", "Claude Code edits
+`CLAUDE.md` for you", and "The assistant now writes a cache entry to your `shell profile`".
+HIGH is what `install-hook` blocks commits at, so this was `PATTERNS.md`'s `#97` failure
+repeating: `PI070` kept install prose out by requiring a **modal**, and the new arm dropped the
+modal without replacing the discriminator the modal was carrying.
+
+**Why it was not caught by the gates:** the clean corpus held install prose addressed to a human
+(`persistence-shell-install-prose.md`) but no vendor sentence with an **AI-product subject**. The
+arm's own `counter_example` tested the subject requirement, not the missing-modal consequence. The
+GATE-03 sweep was empty because no third-party file on this machine happened to contain that
+sentence shape — absence of evidence, which is exactly what the sweep's own header warns about.
+
+**The fix:** the declarative arm now requires a deictic cue (`below`, `above`, `following`,
+`preceding`, `this`, `these`, `those`) between the verb and the persistence object. An attack has
+to point at content in the document it arrived in; a release note describes an action on the
+reader's machine. The measured vendor sentence became the arm's `counter_example`, so
+`pattern_relaxed_control_test` now proves the cue is load-bearing in CI, and all five sentences
+are pinned in `tests/corpus/clean/persistence-vendor-installer-prose.md`. Measured cost: **zero
+recall** — the arm detected 0 of the 12 payloads before the change and 0 after, because `PI071`'s
+single detection comes from the passive-obligation arm.
+
+**Accepted limits this leaves (both pinned as negatives in `test_pi071`):**
+1. A deictic that trails its object — "appends to `~/.zshrc` the line below" — is missed.
+2. A cue-less declarative — "the coding agent registers a launchd job" — is missed. This one is
+   deliberate: it is word-for-word the grammar of the vendor lines above, and provenance is the
+   only thing separating them. Closing it means re-opening the false positive.
+
+**Revisit when:** the held-out set is opened in 05-07. If a held-out payload is a cue-less
+declarative, that is the evidence for whether limit 2 is worth paying — and per
+`heldout-set.md` rule 4 it becomes a backlog item, not a pattern edit in v0.2.0.
