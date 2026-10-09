@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
-stopped_at: "Phase 5 plan 05-07 (close-out) complete: 9 patterns, development recall 103/115, held-out recall 2/12; BLOCKING finding 183 (PI070 will-sentences) awaits a maintainer decision before the PR"
-last_updated: "2026-10-09T15:00:00.000Z"
-state_head: 1d8642e
+stopped_at: "Phase 5 plan 05-07 (close-out) complete and BLOCKING finding 183 RESOLVED in-phase: will dropped from PI070 modal set, zero attack-corpus and zero held-out detections lost, clean specimen added and mutation-tested; 9 patterns, development recall 103/115, held-out recall 2/12; gates re-run green (467+ tests, fmt, clippy, self-scan) — ready for the single phase PR"
+last_updated: "2026-10-09T15:40:00.000Z"
+state_head: c4dd0a7
 progress:
   total_phases: 5
   completed_phases: 4
@@ -49,10 +49,14 @@ directions (`05-SWEEP.md`); GATE-04 proven by a quoted diff (one pattern file); 
 Self-scan outside `examples/ patterns/ tests/ tools/` is exactly the two standing `PATTERN-CATALOGUE.md` findings (`PI001`, `PI031`) and
 nothing new.
 
-**One BLOCKING finding is open and needs a maintainer decision before the PR: #183.** The pre-PR code-review gate found that `PI070`'s
-widened objects and verbs make third-person `will` vendor-feature sentences fire HIGH (13 of 17 probes are new relative to the pre-phase
-pattern; the sweep is silent because no such sentence is in a real file on this machine). The 9b remedy does not discriminate; the options
-are a deictic requirement, dropping `will` from the HIGH modal set, a MEDIUM grade, or reverting the widening. See `05-REVIEW.md` BL-01.
+**The one BLOCKING finding, #183, is RESOLVED (2026-10-09) — the phase is not shipping it open.** The pre-PR code-review gate found that
+`PI070`'s widened objects and verbs made third-person `will` vendor-feature sentences fire HIGH (13 of 17 probes new relative to the
+pre-phase pattern; the sweep was silent because no such sentence is in a real file on this machine). The 9b determiner remedy could not
+discriminate — the class fires on `the` as readily as `your`. The maintainer chose to drop `will` from the modal set, keeping `may now`
+(a claim that a control is off is attack framing, not product description). Measured cost: **zero** attack-corpus and **zero** held-out
+detections, so held-out stays 2/12 and development 103/115; no sibling pattern shows the class. The permanent guard is a new clean
+specimen, `tests/corpus/clean/persistence-vendor-release-notes.md`, mutation-tested at shipped 0 / `will`-restored 6. `PI070` stays HIGH
+because the benign sentence class was removed rather than the grade waived. See `05-REVIEW.md` 'BL-01: RESOLVED'.
 
 **Filed at close-out:** #164-#183 (all milestone v0.3.0 except #183, which is v0.2.0), full accounting in
 `.planning/phases/05-persistence-lifecycle-hijack-cat-03-35/deferred-items.md`. The #35 close-out comment (the severity deviation and the
@@ -72,7 +76,7 @@ to the pattern authors, so the check could not see structural dependence. The he
 is the only number here that is independent. `tools/corpus-derivation-check.py` proves "no wording was lifted", never "GATE-01 satisfied" (#166).
 
 **(2) "A modal keeps vendor prose out" is false for `will`, and a clean sweep is absence of evidence.** Every HIGH prose arm that accepts a
-product name as a declarative subject fired on vendor documentation: `PI071` twice, `PI076` once, and now `PI070` (#183). The 26,407-file
+product name as a declarative subject fired on vendor documentation: `PI071` twice, `PI076` once, and `PI070` (#183, fixed by removing `will`). The 26,407-file
 sweep was empty every time because no such sentence existed in a real file on this machine. The only thing that found each one was an
 adversarial probe with synthesized vendor-voice sentences. Run one (the one in `05-REVIEW.md`) before trusting a green sweep on a HIGH
 prose arm. The discriminator for `PI071`/`PI076` was the second-person possessive, not the deictic word; `PI070`'s bare-object-path case
@@ -106,7 +110,7 @@ lifecycle hook that reinstalls the attacker's instructions after the file is cle
 | 2 | ENG-02 recursive decoder | #30 | **Done** — PR #108, also closed #6 and #7 |
 | 3 | CAT-01 tool & permission abuse `PI050-059` | #33 | **Done** — PR #109 |
 | 4 | CAT-02 MCP & tool-description poisoning `PI060-069` | #34 | **Done** — PR #120 + PR #136 |
-| 5 | CAT-03 persistence & lifecycle hijack `PI070-079` | #35 | 7/7 plans executed — 9 patterns, held-out recall 2/12; blocked on a decision for #183, then phase-complete marker and PR (orchestrator) |
+| 5 | CAT-03 persistence & lifecycle hijack `PI070-079` | #35 | 7/7 plans executed — 9 patterns, held-out recall 2/12; #183 resolved (`will` dropped from `PI070`), gates re-run green; phase-complete marker and PR (orchestrator) |
 
 Engines first, and the dependency is real rather than tidiness: #32 states it is the prerequisite
 for `PI050-059` and `PI060-069`, and both categories carry frontmatter-shaped patterns
@@ -310,7 +314,7 @@ HUB-V2-02 precedent first — unguarded `cfg(unix)` deps that would not link.
 ## Session Continuity
 
 Last session: 2026-10-09
-Stopped at: Completed 05-07-PLAN.md (Phase 5 close-out) — #183 awaits a maintainer decision before the PR
+Stopped at: Completed 05-07-PLAN.md (Phase 5 close-out); #183 resolved in-phase (`will` dropped from `PI070`'s modal set) — ready for the single phase PR
 Resume file: None
 
 ---

@@ -527,6 +527,19 @@ widening after the first ships the clean specimen that proves its own control, a
 specimens caught a real over-widening before it merged. The corpus is the gate that decides how
 far a pattern may go, so it grows with them.
 
+**The fifth widening did cost one, and the corpus did not catch it.** `PI070`'s object and verb sets
+were widened for the persistence category, and that made third-person vendor prose — `Claude will
+save your choice to .claude/settings.json` — fire HIGH, the tier `install-hook` blocks commits at.
+Every gate was green: 26,407 real files on the author's machine contain no sentence of that shape,
+so the sweep was silent, and the clean corpus held no specimen for it either. It was found by
+*probing* the shipped binary with synthesized vendor sentences, which is the only thing that has
+ever found this class here — three times in one category. The fix removed `will` from the modal set
+(`must`/`should`/`needs to`/the imperative direct an agent; third-person `will` describes a product),
+at a measured cost of zero attack-corpus and zero held-out detections, and only then could the
+specimen be written. The lesson worth carrying: **a green sweep is absence of evidence, not evidence
+of absence** — for any HIGH arm that accepts a product name as a declarative subject, probe it in a
+vendor's voice before trusting the corpus.
+
 ### The two oldest misses are deliberate
 
 These are the two long-standing misses from before v0.2.0. The agent-shaped categories added since
