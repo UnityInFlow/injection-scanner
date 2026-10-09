@@ -154,6 +154,24 @@ and report-time deduplication of overlapping findings (see D-05).
   Shipping a pattern on thin evidence to hit a number is the failure mode GATE-01 and `PATTERNS.md`
   both exist to prevent.
 
+  **AMENDMENT 2026-10-09 — `PI078`'s ship-or-drop criterion is now a named specimen, not a judgement
+  call.** `tests/corpus/clean/persistence-corporate-audit-endpoint.json` was added to the clean
+  corpus before plan 05-06 runs, carrying lifecycle handlers that are HTTP endpoints on dotted,
+  non-loopback hosts (a compliance audit endpoint and an OpenTelemetry collector). It exists because
+  `05-RESEARCH.md` §Q4 records `PI078`'s own false positive as "corporate audit endpoint fires",
+  while the only HTTP specimen in the corpus was a loopback URL — which a dotted-host rule passes by
+  construction, leaving the gate blind to the single case that decides the pattern.
+
+  That specimen and the structural attack payload
+  `tests/corpus/attack/structural/persistence-lifecycle-hijack/04-http-handler-remote-lifecycle-endpoint.md`
+  are the same shape: a lifecycle binding whose handler is an HTTP endpoint on a dotted host, with no
+  command and no secret path in either. So `PI078` ships **only** if 05-06 can state a discriminator
+  that fires on payload 04 and stays silent on that specimen, proven by both directions and not by
+  assertion. If it cannot, `PI078` is dropped, the id is left unallocated, and the ROADMAP's
+  pattern-count criterion is amended in the same change — which this decision already permits.
+
+  Raised by an external review of waves 1-2 and confirmed against the research before being adopted.
+
 ### Reporting
 
 - **D-05:** Overlapping findings are **allowed and expected**; avoiding co-firing is an explicit

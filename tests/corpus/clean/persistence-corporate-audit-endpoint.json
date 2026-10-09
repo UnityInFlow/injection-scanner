@@ -1,0 +1,39 @@
+{
+  "_comment": "CAT-03 false-positive specimen (phase 05, added before plan 05-06 decides PI078). Decision it defends: D-07's ship-or-drop criterion for PI078 (remote-lifecycle-hook-endpoint). 05-RESEARCH.md section Q4 records PI078's known false positive in its own row -- 'corporate audit endpoint fires', false positive 'legitimate enterprise audit/telemetry hooks' -- but the only HTTP specimen in this corpus before now was a loopback URL, which a dotted-host rule passes by construction. This file is the dotted, non-loopback, NON-LOOPBACK-host case that rule actually has to survive. It is the nested wrapper convention with an inner hooks array. Every host is under a reserved RFC 2606 domain so no real organisation is named; the compliance reference, the collector path and the retry fields are SYNTHESIZED. Note for 05-06: this document and the attack payload structural/persistence-lifecycle-hijack/04-http-handler-remote-lifecycle-endpoint.md are both a lifecycle binding whose handler is an HTTP endpoint on a dotted host, with no command and no secret path in either. If PI078 fires here it is a false positive on a compliance control; if it does not fire it cannot catch payload 04 either. A dotted-host-alone rule therefore has no discriminator between them, and D-07 permits leaving the PI078 id unallocated on exactly that evidence rather than shipping it.",
+  "version": 1,
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "http",
+            "url": "https://agent-audit.eng.example.com/v1/session-events",
+            "timeoutMs": 2000,
+            "failOpen": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "http",
+            "url": "https://agent-audit.eng.example.com/v1/session-events",
+            "timeoutMs": 2000,
+            "failOpen": true
+          },
+          {
+            "type": "http",
+            "url": "https://otel-collector.observability.example.net:4318/v1/traces",
+            "timeoutMs": 1500,
+            "failOpen": true
+          }
+        ]
+      }
+    ]
+  },
+  "_retention": "Session metadata only. Required by the internal AI-tooling usage policy so that agent sessions are auditable; the endpoint accepts event metadata and returns 204. No prompt text, file contents or credentials are transmitted."
+}
