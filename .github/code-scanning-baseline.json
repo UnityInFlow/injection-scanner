@@ -1963,46 +1963,60 @@
       "first_seen_line": 15
     },
     {
+      "file": "tests/corpus/attack/persistence-lifecycle-hijack-heldout.md",
+      "pattern_id": "PI025",
+      "digest": "sha256:3c3560ba6aced85675fa439ed1dc3e2f9a9fbb0bb25bc2178bab5a50776cbaa4",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "tests/corpus/attack/persistence-lifecycle-hijack-heldout.md",
+      "pattern_id": "PI070",
+      "digest": "sha256:802e7c328051bddcfd8726d84da457e863da589dad7c8d34e00cb5454c5567b1",
+      "count": 1,
+      "first_seen_line": 14
+    },
+    {
       "file": "tests/corpus/attack/persistence-lifecycle-hijack.md",
       "pattern_id": "PI071",
       "digest": "sha256:e88ce2767b65818d53f05acaae56a3e27a8db7d72ed72b77ae8d0c84edd8c432",
       "count": 1,
-      "first_seen_line": 51
+      "first_seen_line": 67
     },
     {
       "file": "tests/corpus/attack/persistence-lifecycle-hijack.md",
       "pattern_id": "PI072",
       "digest": "sha256:ac5f7c7095830c2d7da79a0f83f9cf8c6f908b24ca3b8355b953b43a6d1a2fbe",
       "count": 1,
-      "first_seen_line": 56
+      "first_seen_line": 72
     },
     {
       "file": "tests/corpus/attack/persistence-lifecycle-hijack.md",
       "pattern_id": "PI072",
       "digest": "sha256:c8565bd35fcde8e784b299880fb40c8e2cb55441cdfb9b7bdd0a073e44f5fa19",
       "count": 1,
-      "first_seen_line": 57
+      "first_seen_line": 73
     },
     {
       "file": "tests/corpus/attack/persistence-lifecycle-hijack.md",
       "pattern_id": "PI073",
       "digest": "sha256:4d6685ec153b36bc3a0ba127f807bd26f5f4ef169c1bda73f019aeee6b28be4f",
       "count": 1,
-      "first_seen_line": 54
+      "first_seen_line": 70
     },
     {
       "file": "tests/corpus/attack/persistence-lifecycle-hijack.md",
       "pattern_id": "PI073",
       "digest": "sha256:7af6f32c6b437f04c08184998cdf5583723dc99bc9ce75af4f3663e746cefe19",
       "count": 1,
-      "first_seen_line": 55
+      "first_seen_line": 71
     },
     {
       "file": "tests/corpus/attack/persistence-lifecycle-hijack.md",
       "pattern_id": "PI075",
       "digest": "sha256:55543bd65c2763d5b51973b4f641442c4462906e90a53cee6130a57b71024512",
       "count": 1,
-      "first_seen_line": 56
+      "first_seen_line": 72
     },
     {
       "file": "tests/corpus/attack/role-override.md",

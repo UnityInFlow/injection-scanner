@@ -69,6 +69,10 @@ const STRUCTURAL_SUFFIX: &str = "-structural";
 /// PI074/PI075 in plan 05-04 had taken it from 1/7 to 3/7).
 /// Plan 05-06 shipped PI077 (the first structural pattern of the category):
 /// **103 of 115**, the structural row at 3/5.
+/// Plan 05-07 then opened the sealed held-out CAT-03 set: two rows below carry
+/// the `-heldout` marker, score **2 of 12**, and are totalled separately from
+/// the 115 (the report prints both totals), so the development denominator is
+/// still 115.
 ///
 /// Started this milestone at 10/60. The dividing line was never how hard the
 /// attacks are - it is whether a pattern matches *shape* or a literal phrase.
@@ -351,9 +355,12 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // (the addressee requirement, proven by mutation), not a recall number.
     ("persistence-lifecycle-hijack", 4, 7),
     // persistence-lifecycle-hijack-structural: the CAT-03 (#35) structural
-    // half (D-03), 5 whole-file hook documents across five host conventions
-    // (Codex mixed root-and-wrapper, Claude skill YAML, Copilot `bash` key,
-    // Claude `type: http`, Cursor flat). Measured 2026-10-08 on the shipping
+    // half (D-03), 5 whole-file hook documents across four host families and
+    // five distinct wrapper/command-key shapes (Codex mixed root-and-wrapper,
+    // Claude skill YAML, Copilot `bash` key, Claude `type: http`, Cursor flat).
+    // Of the 12 development payloads in this category (with the prose row):
+    // 7 detected, 3 deliberate misses, 2 recorded gaps (the crontab prose line
+    // and payload 04, undetected because PI078 was dropped). Measured 2026-10-08 on the shipping
     // 71-pattern set: **1/5**.
     //
     // The one hit, payload 01 (the mixed Codex shape, a lifecycle command
