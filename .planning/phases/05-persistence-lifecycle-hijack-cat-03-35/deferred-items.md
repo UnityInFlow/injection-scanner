@@ -164,3 +164,34 @@ the second line's offset) or in the anchor idiom shared by `PI056`/`PI057`/`PI07
 for a pattern plan and it touches the report contract `spec-ci-plugin` consumes.
 
 **Status:** no issue filed. Belongs in plan 05-07 Task 2's batch of engine issues.
+
+## 8. The self-scan criterion cannot be met as written: two standing `PATTERN-CATALOGUE.md` findings (carried since Phase 3)
+
+**What:** the `pattern-library` skill and plans 05-03..05-06 all require the whole-repo self-scan
+to return `[]` outside `examples/`, `patterns/`, `tests/` and `tools/`. It does not, and has not
+for three milestones. Measured at every wave of this phase:
+
+    [('./docs/PATTERN-CATALOGUE.md', 77, 'PI001'), ('./docs/PATTERN-CATALOGUE.md', 890, 'PI031')]
+
+`.planning/.continue-here.md` records them as "two pre-existing findings ... Identical under
+v0.1.0 — not introduced by this milestone. The skill says 'expect `[]`', so this is a standing
+violation with no issue of its own yet." It cited lines 73 and 902; the line numbers move as the
+catalogue is regenerated, which is itself a reason the current form is not a stable record.
+
+**Why it matters:** the criterion is unsatisfiable, so every wave has to report a deviation for a
+condition nobody intends to fix in-flight. That trains executors to treat a failed self-scan as
+expected noise — which is precisely how a *real* new finding would get waved through. Plans
+05-03, 05-04 (and the orchestrator's own PI071 fix) each filed the same deviation.
+
+**Root cause:** `docs/PATTERN-CATALOGUE.md` is generated from the pattern library, so it
+necessarily reproduces each pattern's `example` field verbatim — including `PI001`'s and
+`PI031`'s. It is the same self-reference as `docs/DETECTION-BACKLOG.md`, which plan 05-04 fixed
+with code spans, except that this file is GENERATED and so cannot be hand-edited.
+
+**Fix shape (one of):** exclude the generated catalogue from the self-scan the way `.planning/**`
+is excluded; or have the generator emit `example` values inside code spans; or accept the two
+findings in `.github/code-scanning-baseline.json` and change the criterion to "no NEW findings".
+The middle option is the only one that keeps the catalogue honest and the gate strict.
+
+**Status:** no issue filed. Belongs in plan 05-07 Task 2's batch. 05-07 should also restate the
+criterion as "no new findings beyond the accepted baseline" so it is satisfiable.
