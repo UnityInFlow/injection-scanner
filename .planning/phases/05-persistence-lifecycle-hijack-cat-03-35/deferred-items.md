@@ -305,3 +305,52 @@ aimed squarely at it while `PI071` fires on the same sentence.
   `persistence-vendor-hook-release-notes.md`, which already hold this genre.
 - Then: regenerate `docs/PATTERN-CATALOGUE.md` and `.github/code-scanning-baseline.json`, run the
   whole-repo self-scan, and run the FULL suite redirected to a file checking `$?` (never piped).
+
+## 10. `PI078` remote-lifecycle-hook-endpoint DROPPED on evidence — file as an issue (decided in plan 05-06)
+
+**What:** D-07's AMENDMENT made `PI078`'s ship-or-drop test a named specimen: a rule must fire on
+structural payload `04-http-handler-remote-lifecycle-endpoint.md` and stay silent on
+`tests/corpus/clean/persistence-corporate-audit-endpoint.json`, proven in both directions. It cannot.
+
+**Measured** (throwaway `scope: frontmatter` draft armed through `--patterns`; release binary at the
+plan 05-06 Task 1 commit):
+
+    dotted-host rule on payload 04       : fires   (line 9)
+    dotted-host rule on audit specimen   : fires   (3 findings, all reported at line 11)
+    dotted-host rule on loopback specimen: silent
+    audit endpoints moved onto PostToolUse            : still fires
+    payload 04 moved onto SessionStart                : still fires
+    audit URLs on a non-reserved real-style host      : still fires
+    payload 04 on a reserved (RFC 2606) host          : still fires
+    payload 04 carrying the audit URL                 : fires
+    dotted-host rule over the 263-file frozen hooks sweep: 0 hits
+
+The dotted-host requirement excludes loopback and nothing else. The event name, the registrable
+domain and the URL are not discriminators. What remains is host vocabulary (audit / otel vs sync /
+relay), an allow-list an attacker satisfies by naming a host, and fields (`timeoutMs`, `failOpen`)
+that no single projected line carries.
+
+**Verdict:** dropped. The id `PI078` is left UNALLOCATED. The ROADMAP's Phase 5 criterion was amended
+in the same commit (D-07). Payload 04 is a declared miss.
+
+**Revisit when:** the engine can match more than one projected line (a rule that sees a lifecycle
+binding together with sibling leaves), or a discriminator beyond the host is found. Closing it would
+also need a way to tell a sanctioned destination from an unsanctioned one, which is policy a regex
+cannot hold; an allow-list of destinations supplied by the user is the shape that could.
+
+**Status:** no issue filed. Belongs in plan 05-07 Task 2's batch.
+
+## 11. Observed in plan 05-06: `locate()` collapses repeated keys onto the first occurrence, for the CAT-03 structural arm (extends item 2)
+
+Measured with the shipped binary, not inferred:
+
+- the binding-only relaxed rule on `persistence-legitimate-hooks-config.json` reports 8 findings,
+  every one at **line 10**; on `persistence-root-form-hooks-config.json` 4 findings, every one at
+  line 8;
+- a throwaway `url` rule on `persistence-corporate-audit-endpoint.json` reports 3 findings, every
+  one at **line 11**, although the three URLs sit on different lines.
+
+`PI077` itself behaves the same way, measured on a three-hook document whose two sensitive commands
+sit at lines 9 and 13: both findings report **line 9**. This is what makes `# injection-scanner:ignore PI077` unusable for a single command in a multi-hook
+file and collapses distinct baseline fingerprints onto one. 05-07's issue for item 2 should cite
+these numbers.

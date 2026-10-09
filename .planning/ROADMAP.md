@@ -141,7 +141,7 @@ Plans:
 
 **Success criteria**
 
-- 10 patterns; 12 new corpus payloads
+- 9 patterns in `PI070`-`PI079` (`PI078` deliberately unallocated, amended by D-07 in plan 05-06); 12 new corpus payloads
 - Self-rewriting instructions, hook and lifecycle abuse, memory-file poisoning
 - At least one pattern detects an instruction to write *into* a file the agent will re-read
 
@@ -155,6 +155,13 @@ Plans:
 > row is expected to fall below its published 6/6 and that is the gate working (D-01). (3) Issue
 > #35's "CRITICAL across the board" is **not** followed: `PATTERNS.md` rule 3 governs severity and
 > nothing in this range ships in that tier (D-06).
+>
+> **Amended in plan 05-06 under D-07's authority.** `PI078` (remote-lifecycle-hook-endpoint) was
+> measured and dropped, so the range ships 9 patterns (`PI070`-`PI077` and `PI079`) and the id
+> `PI078` stays unallocated. The measurement: a dotted-host remote-endpoint rule fires on the
+> structural attack payload 04 and on the clean `persistence-corporate-audit-endpoint.json`
+> specimen alike, and swapping the bound event, the host's registrable domain and the URL between
+> the two documents moved nothing. `PI079` was kept (MEDIUM) on its own measured criterion.
 
 **Plans:** 7 plans
 

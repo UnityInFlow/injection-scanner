@@ -20,7 +20,7 @@ entry here cannot drift from the regex beside it without failing the build.
 
 ## Summary
 
-**78 patterns** across 9 categories.
+**79 patterns** across 9 categories.
 
 | Category | Patterns | Default severity |
 |---|---|---|
@@ -31,12 +31,12 @@ entry here cannot drift from the regex beside it without failing the build.
 | encoding | 9 | HIGH |
 | tool_permission_abuse | 9 | HIGH |
 | multilingual | 4 | CRITICAL |
-| persistence_lifecycle_hijack | 8 | HIGH |
+| persistence_lifecycle_hijack | 9 | HIGH |
 | mcp_tool_poisoning | 10 | MEDIUM |
 
 | CRITICAL | HIGH | MEDIUM | LOW |
 |---|---|---|---|
-| 20 | 35 | 22 | 1 |
+| 20 | 35 | 23 | 1 |
 
 ---
 
@@ -2056,6 +2056,34 @@ Does **not** catch:
 
 ```regex
 ^(?:[^\s=]*\.)?hooks(?:\[\d+\])?\.(?:[^\s=]*\.)?(?:command|bash|powershell)(?:\[\d+\])?\s*=\s*(?s:.*?)(?:(?:^|[^\w.-])(?:cat|cp|mv|scp|rsync|tar|zip|7z|gzip|base64|xxd|head|tail|dd)\b[^|;&]{0,100}?[/\s"'=@<](?:\.ssh/id_[a-z0-9_]+(?:[\s"'`;|&<>)]|$)|\.ssh/?(?:[\s"'`;|&<>)]|$)|\.aws/credentials(?:[\s"'`;|&<>)]|$)|\.config/gcloud(?:/|(?:[\s"'`;|&<>)]|$))|\.azure/(?:accessTokens|msal_token_cache)\.json(?:[\s"'`;|&<>)]|$)|\.kube/config(?:[\s"'`;|&<>)]|$)|\.docker/config\.json(?:[\s"'`;|&<>)]|$)|\.(?:npmrc|pypirc|netrc|git-credentials|pgpass)(?:[\s"'`;|&<>)]|$)|\.gnupg(?:/|(?:[\s"'`;|&<>)]|$))|\.config/gh/hosts\.yml(?:[\s"'`;|&<>)]|$)|\.claude/\.credentials\.json(?:[\s"'`;|&<>)]|$)|\.codex/auth\.json(?:[\s"'`;|&<>)]|$)|\.gemini/oauth_creds\.json(?:[\s"'`;|&<>)]|$)|Library/Keychains(?:/|(?:[\s"'`;|&<>)]|$))|\.local/share/keyrings(?:/|(?:[\s"'`;|&<>)]|$))|\.password-store(?:/|(?:[\s"'`;|&<>)]|$))|/etc/shadow(?:[\s"'`;|&<>)]|$))|[@<]\s*[\"']?[^\s|;&]{0,50}?/(?:\.ssh/id_[a-z0-9_]+(?:[\s"'`;|&<>)]|$)|\.ssh/?(?:[\s"'`;|&<>)]|$)|\.aws/credentials(?:[\s"'`;|&<>)]|$)|\.config/gcloud(?:/|(?:[\s"'`;|&<>)]|$))|\.azure/(?:accessTokens|msal_token_cache)\.json(?:[\s"'`;|&<>)]|$)|\.kube/config(?:[\s"'`;|&<>)]|$)|\.docker/config\.json(?:[\s"'`;|&<>)]|$)|\.(?:npmrc|pypirc|netrc|git-credentials|pgpass)(?:[\s"'`;|&<>)]|$)|\.gnupg(?:/|(?:[\s"'`;|&<>)]|$))|\.config/gh/hosts\.yml(?:[\s"'`;|&<>)]|$)|\.claude/\.credentials\.json(?:[\s"'`;|&<>)]|$)|\.codex/auth\.json(?:[\s"'`;|&<>)]|$)|\.gemini/oauth_creds\.json(?:[\s"'`;|&<>)]|$)|Library/Keychains(?:/|(?:[\s"'`;|&<>)]|$))|\.local/share/keyrings(?:/|(?:[\s"'`;|&<>)]|$))|\.password-store(?:/|(?:[\s"'`;|&<>)]|$))|/etc/shadow(?:[\s"'`;|&<>)]|$))|(?:\bgpg2?\b[^|;&]*--export-secret-(?:keys|subkeys)\b|\bsecurity\s+(?:find-generic-password|find-internet-password|dump-keychain)\b)|(?:>>?|(?:^|[^\w.-])tee\b(?:\s+-[a-z]+)*|(?:^|[^\w.-])(?:cp|mv|ln|install)\b[^|;&]{0,60}?\s|(?:^|[^\w.-])sed\s+-i\S*\b[^|;&]{0,80}?\s)\s*[\"']?[^\s\"'|;&]{0,50}?(?:\.(?:bashrc|bash_profile|bash_login|bash_logout|profile|zshrc|zshenv|zprofile|zlogin|zlogout|cshrc|tcshrc|kshrc|xprofile|xinitrc|xsessionrc)(?:[\s"'`;|&<>)]|$)|\.config/fish/config\.fish(?:[\s"'`;|&<>)]|$)|\.ssh/authorized_keys2?(?:[\s"'`;|&<>)]|$)|/etc/(?:profile|bash\.bashrc|zshrc|rc\.local|crontab|environment|sudoers)(?:[\s"'`;|&<>)]|$)|/etc/(?:profile|cron)\.d/|Library/Launch(?:Agents|Daemons)/|\.config/(?:systemd/user|autostart)/|/etc/systemd/system/)|(?:\bcrontab\s+(?:-\s*(?:$|[|;&<)\"'])|-e\b|[~/.$]\S*)|\blaunchctl\s+(?:load|bootstrap|enable|submit)\b|\bsystemctl\s+(?:--?[a-z]+\s+)*enable\b|\bschtasks(?:\.exe)?\s+/create\b)|(?:(?:^|[^\w.-])(?:curl|wget|iwr|irm|invoke-webrequest|invoke-restmethod)\b[^|;&]*\|\s*(?:(?:(?:sudo|env)\s+(?:-\S+\s+)*)?(?:ba|z|da|k|c|tc|fi)?sh\b|(?:(?:sudo|env)\s+(?:-\S+\s+)*)?(?:python[0-9.]*|perl|ruby|node|php|pwsh|powershell)(?:\s+-)?\s*(?:$|[|;&)\"'`])|(?:iex|invoke-expression)\b)|(?:\beval|\b(?:ba|z|da|k)?sh|\bsource|\s\.)\s+(?:-c\s+)?[\"']?(?:\$\(|<\(|`)\s*(?:curl|wget|iwr|irm|invoke-webrequest|invoke-restmethod)\b|(?:iex|invoke-expression)\b[^|;&]{0,40}?\b(?:iwr|irm|invoke-webrequest|invoke-restmethod|downloadstring)\b)|(?:(?:\bbase64\s+(?:-[a-z]*d[a-z]*|--decode)\b|\bopenssl\s+(?:enc|base64)\b[^|;&]*?\s-d\b|\bxxd\s+-[a-z]*r[a-z]*\b|\bcertutil\b[^|;&]*?-decode\b)[^|;&]*\|\s*(?:(?:(?:sudo|env)\s+(?:-\S+\s+)*)?(?:ba|z|da|k|c|tc|fi)?sh\b|(?:(?:sudo|env)\s+(?:-\S+\s+)*)?(?:python[0-9.]*|perl|ruby|node|php|pwsh|powershell)(?:\s+-)?\s*(?:$|[|;&)\"'`])|(?:iex|invoke-expression)\b)|(?:\beval|\b(?:ba|z|da|k)?sh\s+-c)\s+[\"']?\$\([^)]*?(?:\bbase64\s+(?:-[a-z]*d[a-z]*|--decode)\b|\bopenssl\s+(?:enc|base64)\b[^|;&]*?\s-d\b|\bxxd\s+-[a-z]*r[a-z]*\b|\bcertutil\b[^|;&]*?-decode\b)|\b(?:powershell|pwsh)(?:\.exe)?\s+[^|;&]*?-e(?:nc(?:odedcommand)?)?\s+[A-Za-z0-9+/=]{20,}))
+```
+
+</details>
+
+### PI079 — `persistence-command-with-payload`
+
+**MEDIUM** · `persistence` `ssh` `authorized-keys`
+
+A line carries a literal public-key blob of a named key type and, on the same line, appends it to an authorized-keys file with a redirect or an append-mode tee
+
+Catches:
+
+```text
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOm3vKq0x9Tt2pRz1bYdE7uWcH4sLfN8aXgJkQ5VnZ6c ops@pool' >> ~/.ssh/authorized_keys
+```
+
+Does **not** catch:
+
+```text
+cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+```
+
+**Fix:** Remove the line. Adding a key to authorized_keys grants login access, so it is the user's decision, made outside the document being read.
+
+<details><summary>Regex</summary>
+
+```regex
+(?:ssh-(?:rsa|ed25519|dss)|ecdsa-sha2-nistp(?:256|384|521))\s+(?-i:AAAA)[A-Za-z0-9+/]{40,}={0,3}[^\n]{0,250}?(?:>>\s*|\btee\s+(?:-[a-z]+\s+)*-[a-z]*a[a-z]*\s+)[\"']?[^\s\"'|;&]{0,40}?authorized_keys2?\b
 ```
 
 </details>

@@ -377,6 +377,13 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // endpoint, the same shape as tests/corpus/clean/persistence-corporate-
     // audit-endpoint.json) and payload 05 (a plain webhook POST) remain
     // misses by design.
+    //
+    // Plan 05-06 Task 2 resolved the two provisional slots. PI078 was DROPPED
+    // (its id is unallocated), so payload 04 stays a miss by design. PI079
+    // persistence-command-with-payload SHIPPED at MEDIUM and also reaches
+    // payload 03, through the prose pass over its raw JSON line, but that
+    // payload was already counted via PI077, so the pin is byte-identical:
+    // 3/5, total 103/115.
     ("persistence-lifecycle-hijack-structural", 3, 5),
 ];
 
