@@ -195,3 +195,34 @@ The middle option is the only one that keeps the catalogue honest and the gate s
 
 **Status:** no issue filed. Belongs in plan 05-07 Task 2's batch. 05-07 should also restate the
 criterion as "no new findings beyond the accepted baseline" so it is satisfiable.
+
+## 9. `PI071`'s declarative arm still fires HIGH on vendor prose that says `this` / `these` (found in plan 05-05)
+
+**What:** deferred item 6 narrowed `PI071`'s declarative arm to require a deictic cue between the verb and
+the persistence object. The cue set includes `this`, `these` and `those`, and a vendor release note uses
+exactly those words. Measured on the release binary of plan 05-05 (`PI071` is the only pattern that fires,
+HIGH, confidence 1.0):
+
+```
+Claude Code adds this line to your ~/.zshrc so the CLI is on your PATH.
+Claude Code adds this hook to your .claude/settings.json to format files.
+Gemini writes these preferences to .gemini/settings.json next to the project root.
+```
+
+All three are synthesized in the voice of a vendor release note, like the five pinned in
+`tests/corpus/clean/persistence-vendor-installer-prose.md`; none is sourced. HIGH is what `install-hook`
+blocks commits at, so this is `PATTERNS.md`'s `#97` failure one step further along: the narrowing moved the
+boundary from "no cue" to "a cue a release note also uses".
+
+**Why it was not caught:** the specimen holds the five sentences that were measured, none of which says
+`this`; the arm detects 0 of the 12 corpus payloads, so no recall number notices it either.
+
+**Why it was not fixed here:** `PI071` is plan 05-03's pattern and 05-05 is scoped to `PI073`/`PI076`. Plan
+05-05 deliberately left `this`/`these`/`those` out of `PI076`'s analogous cue set for this reason and pins the
+result in `tests/corpus/clean/persistence-vendor-hook-release-notes.md`.
+
+**Fix shape:** drop `this|these|those` from `PI071`'s cue set (keeping `below|above|following|preceding`),
+add the three sentences above to a clean specimen, and re-measure recall (the arm contributes none, so it
+should not move). Cheap, and it removes a commit-blocking false positive.
+
+**Status:** no issue filed. Surfaced to the orchestrator in the plan 05-05 report.

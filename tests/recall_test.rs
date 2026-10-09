@@ -339,6 +339,14 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // line and the hook-install line are the deliberate misses, and the cron
     // "stick a line" line is reached by no pattern. This is a DEVELOPMENT-corpus
     // score; the held-out set plan 05-07 opens is the independent number.
+    //
+    // Plan 05-05 Task 2 shipped PI076 agent-hook-registration-directive.
+    // Measured after: **4/7 still** (total 101/115), the pin byte-identical. PI076
+    // reaches NO payload in this corpus: the three still-missed prose payloads
+    // (launchd, cron, git-hook install) name no hook-configuration file and no
+    // lifecycle hook with an AI addressee, and the hook payloads that do exist
+    // (the structural half) are whole-file documents, not prose. Its justification is the threat model and the clean-corpus evidence
+    // (the addressee requirement, proven by mutation), not a recall number.
     ("persistence-lifecycle-hijack", 4, 7),
     // persistence-lifecycle-hijack-structural: the CAT-03 (#35) structural
     // half (D-03), 5 whole-file hook documents across five host conventions
