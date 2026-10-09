@@ -60,6 +60,16 @@ an adaptation of the replaced six, of `PI070`'s `example`, or of the phase's
 research notes. Three of the twelve are deliberate misses, each named in the
 prose file's own header.
 
+**The held-out set.** `persistence-lifecycle-hijack-heldout.md` (8 prose lines) and
+`structural/persistence-lifecycle-hijack-heldout/` (4 hook files) are NOT development corpus. They
+were authored blind, sealed by hash on 2026-10-08 before any `PI071`+ pattern existed, and first
+opened in plan 05-07 after the category's patterns were frozen. Their recall rows are pinned
+separately in `tests/recall_test.rs` and are totalled separately from the development rows. A payload
+here that no pattern catches is reported and filed in `docs/DETECTION-BACKLOG.md`; **no pattern may be
+edited to catch one in v0.2.0**, because that would turn the only independent measurement of the
+category into a second development corpus. The structural files are byte-identical to the sealed
+originals; the prose file is the sealed `prose.md` behind a comment header.
+
 MCP & tool-description poisoning (`PI060`–`PI069`) is no longer in that list
 either: its 12 threat-model payloads (4 prose, 8 structural) landed ahead of
 any pattern for the same reason (GATE-01). See `mcp-tool-poisoning.md` for

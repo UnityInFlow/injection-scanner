@@ -87,12 +87,32 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   moved nothing. `PI079` ships on its own criterion: it fires on a blind-written corpus payload
   through the prose pass and is silent on every clean specimen.
 
-  Recall on this category's 12 threat-model payloads is **7/12 (58.3%)** (4/7 prose, 3/5
-  structural); measured library-wide recall is **103/115 (89.6%)**. Of the structural payloads,
-  `PI077` newly reaches two (a skill's frontmatter hook that appends to a shell profile, and a
-  `bash`-keyed hook that appends to `authorized_keys`) and also reaches a third, the secret-path
-  read, that `PI029` had already counted through prose spillover. The two remote-URL payloads and
-  the three prose payloads that name no hook file or AI addressee remain declared misses.
+  **There are two recall numbers for this category, and they differ a lot.**
+
+  | Measurement | Detected | Recall |
+  |---|---|---|
+  | **Held-out set, the published v0.2.0 CAT-03 number** (8 prose, 4 structural) | **2/12** | **16.7%** |
+  | Development corpus, same category (4/7 prose, 3/5 structural) | 7/12 | 58.3% |
+
+  The development corpus is 12 payloads written from the threat model before any pattern existed, but
+  then used to build the patterns, so it measures how well the build went. The held-out set was
+  written blind by an agent that saw no research, plan, corpus or pattern, sealed by hash before any
+  `PI071`+ pattern existed, and opened once, after the category's patterns were frozen. It is the
+  independent measurement, so it is the number published, and it is reported beside the development
+  score and never summed with it. Neither held-out detection is a pattern this release wrote (they
+  are `PI025` and `PI070`); all four lifecycle-hook files and every self-propagation, git-hook,
+  shell-profile and cron payload were missed. Misses are reported and filed in
+  `docs/DETECTION-BACKLOG.md` for the next milestone, not tuned away.
+
+  Library-wide development recall is **103/115 (89.6%)**, up from the pre-pattern 97/115 baseline
+  measured when the category's corpus landed, with the category moving from 1/12 to 7/12 (prose 0/7
+  to 4/7, structural 1/5 to 3/5); the held-out payloads are not part of that denominator. Of the
+  structural payloads, `PI077` newly reaches two (a skill's frontmatter hook that appends to a shell
+  profile, and a `bash`-keyed hook that appends to `authorized_keys`) and also reaches a third, the
+  secret-path read, that `PI029` had already counted through prose spillover. Of the 12
+  development payloads, 7 are detected, 3 are deliberate misses (a launchd line with an anaphoric
+  subject, a bare-imperative git hook, and a plain webhook hook) and 2 are recorded gaps (a crontab
+  line, and the remote-endpoint hook that follows from dropping `PI078`).
 
 ### Changed
 
