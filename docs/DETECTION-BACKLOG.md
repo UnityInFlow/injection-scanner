@@ -110,7 +110,7 @@ pattern; see `patterns/core/mcp-tool-poisoning.yaml` for the full ten-pattern se
 
 Injection whose payload is *durability* — surviving past the current session.
 
-- "write this to CLAUDE.md", "append to your memory", "remember this permanently"
+- `write this to CLAUDE.md`, `append to your memory`, `remember this permanently`
 - "add this to your global config", `~/.claude/settings.json`, `.claude/hooks/` writes
 - `crontab`, `launchctl`, `~/.zshrc` / `~/.bashrc` modification instructions
 - Git hook installation from document text
