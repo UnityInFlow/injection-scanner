@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 0
+open_count: 1
 waived_count: 1
 fixed_count: 1
-total_count: 2
-last_updated: 2026-09-07T18:13:18.253Z
+total_count: 3
+last_updated: 2026-10-09T12:02:45.581Z
 ---
 
 # Broken Windows Ledger
@@ -17,6 +17,7 @@ last_updated: 2026-09-07T18:13:18.253Z
 |----|-------|------|------|------|-------------|--------|--------|-------------|-------------|
 | 1 | 04 | todo | src/frontmatter.rs | 219 | walk() scalar truncation panics on real multi-byte UTF-8 content over MAX_VALUE_LEN (assertion failed: self.is_char_boundary(new_len)); reproduced against ~/.cursor/extensions during 04-01 baseline capture; not fixed (Task 1 required zero source diff) — file a follow-up issue | fixed |  | 2026-09-03T09:08:30.773Z | 2026-09-07T18:10:37.614Z |
 | 2 | 04 | todo | tests/corpus/attack/structural/README.md |  | WR-02 (carried over from Phase 3): the Payloads table documents only 1 of tool-permission-abuse/'s 5 corpus files; noted explicitly in the README as still open after the 04-01 directory-layout generalisation | waived | Filed as issue #133 — CAT-01's own corpus doc table backfill, out of scope for a CAT-02-only PR (GATE-04); not fixed here | 2026-09-03T09:08:34.501Z | 2026-09-07T18:13:18.253Z |
+| 3 | 5 | unmet-truth | patterns/core/persistence-lifecycle-hijack.yaml | 436 | BLOCKING review finding BL-01 (issue 183): PI070 widened objects and verbs make third-person will vendor-feature sentences fire HIGH (13 of 17 probes new vs pre-phase). Unresolved; needs a maintainer decision before the PR. See 05-REVIEW.md. | open |  | 2026-10-09T12:02:45.581Z |  |
 
 ````json
 [
@@ -43,6 +44,18 @@ last_updated: 2026-09-07T18:13:18.253Z
     "reason": "Filed as issue #133 — CAT-01's own corpus doc table backfill, out of scope for a CAT-02-only PR (GATE-04); not fixed here",
     "recorded_at": "2026-09-03T09:08:34.501Z",
     "resolved_at": "2026-09-07T18:13:18.253Z"
+  },
+  {
+    "id": 3,
+    "kind": "unmet-truth",
+    "phase": "5",
+    "file": "patterns/core/persistence-lifecycle-hijack.yaml",
+    "line": 436,
+    "description": "BLOCKING review finding BL-01 (issue 183): PI070 widened objects and verbs make third-person will vendor-feature sentences fire HIGH (13 of 17 probes new vs pre-phase). Unresolved; needs a maintainer decision before the PR. See 05-REVIEW.md.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-09T12:02:45.581Z",
+    "resolved_at": null
   }
 ]
 ````
