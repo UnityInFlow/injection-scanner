@@ -10,9 +10,15 @@
      withheld as low-confidence), and under --strict exactly 2 are reported,
      both PI070 (agent-directed-persistence-write) -- the fenced
      authorized_keys sentence in the fenced block and the CLAUDE.md memory
-     sentence in the table cell. They come from PI070 alone, not from PI071+. Plan 05-07 re-checks this file once the full PI071-PI079 set has
-     landed, to confirm the strict-mode match set grows to include them rather
-     than staying pinned to the patterns that ship today. -->
+     sentence in the table cell. They come from PI070 alone, not from PI071+.
+     RE-CHECKED in plan 05-07 against the full 79-pattern library (PI070-PI077
+     and PI079 loaded, PI078 unallocated), release binary: at the default
+     threshold 0 matches are reported (2 are withheld as low-confidence, both
+     PI070, at confidence 0.2 and 0.3), and under --strict exactly 2 are
+     reported, both still PI070. The set did NOT grow: no pattern added in this
+     phase reaches this write-up at either threshold, so the strict-mode
+     matches are supplied by PI070 alone and the file's two-sided contract
+     rests on that one pattern. -->
 
 # What persistence and lifecycle hijack look like
 
