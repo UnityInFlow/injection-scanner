@@ -50,3 +50,34 @@ in how the structural pass reports a `ProjectedLine`. No fix attempted.
 
 **Status:** no issue filed. Plan 05-07 Task 2 files the engine issues for this phase; this one
 belongs in that batch alongside the whole-file YAML/TOML unprojected-config item.
+
+## 3. `tools/corpus-derivation-check.py` is not wired to anything and overstates what it proves (found by external review of waves 1-2)
+
+**What:** three separate weaknesses, all verified:
+- **It passes on whatever subset it is handed.** Given only the prose file it exits 0. It never
+  asserts that it was pointed at the full 7 prose + 5 structural payload set, so an invocation that
+  silently covers half the corpus is indistinguishable from one that covers all of it. Its own
+  success line reports `{n} payload file(s)` — whatever `n` happened to be.
+- **Nothing runs it.** `grep -rn 'corpus-derivation-check' .github/ tests/ scripts/` returns no
+  hits; it is referenced only in prose, in `tests/corpus/attack/README.md:58` and the payload file
+  header. So GATE-01's only mechanical check is a thing a human has to remember to run.
+- **Its header oversells.** It detects lexical copying — shared 5-grams and high token-Jaccard
+  sentences. It does not and cannot detect independent derivation: a payload rebuilt from a
+  barred source's *shape* with entirely fresh wording passes it cleanly. That is exactly the gap
+  the waves 1-2 review found, and the reason the held-out set in `heldout-set.md` exists.
+
+**Why it matters:** the first two make the check skippable and partially-satisfiable; the third
+means a green run should never be read as "GATE-01 satisfied", only as "no wording was lifted".
+
+**Fix shape:** assert a minimum payload count (or take the corpus root and enumerate it itself),
+wire it into `ci.yml` and/or a test, and rewrite the header to claim lexical non-copying only.
+
+**Status:** no issue filed. Belongs in plan 05-07 Task 2's batch with the other two engine items.
+
+## 4. Nits from the same review (no action needed beyond wave 7's existing rewrite)
+
+- `README.md` recall table still carries an "as of 2026-09-03" date. Plan 05-07 republishes these
+  numbers anyway, so it is fixed there rather than separately.
+- The structural corpus is described as "five host conventions"; it is strictly 4 host families
+  across 5 distinct wrapper/command-key shapes. This matches plan 05-01's own definition of the
+  requirement ("no two may share a wrapper and command-key shape"), so it is wording only.
