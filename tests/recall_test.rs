@@ -273,6 +273,18 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // line, which is word for word how the Git documentation tells a human to
     // enable a hook); the other five are the shapes PI071+ are written to
     // catch. Each pattern commit bumps this by exactly what it adds.
+    //
+    // Plan 05-03 Task 1 widened PI070's object and verb sets (shell-startup
+    // variants, launchd/systemd/scheduled tasks, autostart, four more agent
+    // instruction files, the agent's own memory, put/place/copy/drop/schedule/
+    // enable). Measured after: STILL 0/7, structural STILL 1/5. The widening
+    // closes the vocabulary gap behind 20 of the 22 missed probe sentences of
+    // the form "The agent must <verb> ... <object>" (the other two are the
+    // non-modal shapes PI071 takes); none of the twelve payloads is
+    // that shape (they are passive, anaphoric, bare-imperative or second
+    // person), so the widening is a vocabulary fix with no recall movement on
+    // this corpus. The number does not move because the corpus was written
+    // from the threat model, not from PI070's grammar.
     ("persistence-lifecycle-hijack", 0, 7),
     // persistence-lifecycle-hijack-structural: the CAT-03 (#35) structural
     // half (D-03), 5 whole-file hook documents across five host conventions
