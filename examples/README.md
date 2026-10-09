@@ -26,7 +26,7 @@ injection-scanner check examples/ --format json
 | `jailbreak-attack.md` | D: Jailbreaks | PI030-PI038 | 5 HIGH |
 | `tool-permission-abuse-attack.md` | E: Tool & Permission Abuse | PI050-PI058 | 3 CRITICAL + prose HIGH |
 | `mcp-tool-poisoning-attack.md` | F: MCP & Tool-Description Poisoning | PI060-PI062 | 3 MEDIUM (structural) |
-| `persistence-lifecycle-hijack-attack.md` | H: Persistence & Lifecycle Hijack | PI070, PI071, PI072, PI073, PI074, PI075, PI076 | 5 HIGH, 2 MEDIUM (one line per pattern; `PI073` and `PI074` are the MEDIUM ones) |
+| `persistence-lifecycle-hijack-attack.md` | H: Persistence & Lifecycle Hijack | PI070, PI071, PI072, PI073, PI074, PI075, PI076, PI077 | 6 HIGH, 2 MEDIUM (one line per pattern; `PI073` and `PI074` are the MEDIUM ones; `PI077` is the frontmatter hook at the top of the file, not a sentence) |
 | `multilingual-attack.md` | G: Multilingual (Czech) | PI110-PI113 | 4 findings |
 | `mixed-attack.md` | All categories | Multiple | 7+ findings |
 | `suppressed-documentation.md` | Inline suppression | Suppressed | 1 finding (unsuppressed) |
