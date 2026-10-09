@@ -227,7 +227,7 @@ should not move). Cheap, and it removes a commit-blocking false positive.
 
 **Status:** no issue filed. Surfaced to the orchestrator in the plan 05-05 report.
 
-## 9b. DECIDED, NOT YET IMPLEMENTED — apply PI073's determiner allow-list to PI071 and PI076
+## 9b. DECIDED AND IMPLEMENTED — PI073's determiner allow-list applied to PI071 and PI076
 
 **User decision (2026-10-09): apply PI073's determiner allow-list to both arms and KEEP HIGH.**
 
@@ -354,3 +354,32 @@ Measured with the shipped binary, not inferred:
 sit at lines 9 and 13: both findings report **line 9**. This is what makes `# injection-scanner:ignore PI077` unusable for a single command in a multi-hook
 file and collapses distinct baseline fingerprints onto one. 05-07's issue for item 2 should cite
 these numbers.
+
+
+## 12. The corpus deliberate-miss list no longer matches the measured misses (found in plan 05-06)
+
+**What:** after wave 6 the category measures prose **4/7** and structural **3/5**, so **five**
+payloads are undetected. The prose file header and the structural README name **three** of them as
+deliberate documented misses (the launchd anaphoric-subject line, the bare-imperative git-hook
+line, and the plain-webhook structural payload). Two further payloads are undetected and appear on
+neither list:
+
+- the crontab prose payload (verb outside `PI070`'s enumerated set, in a maintainer's issue-thread
+  voice);
+- structural payload 04, the `type: http` handler on a dotted non-loopback host — undetected
+  *because* `PI078` was dropped on evidence (item 10), which is the correct outcome but leaves the
+  payload unaccounted for in the corpus documentation.
+
+**Why it matters:** the deliberate-miss list is how a reader tells "we decided not to catch this"
+from "we failed to catch this". A miss that is on neither list reads as an oversight, and at
+close-out it is exactly the kind of gap that gets reconciled by quietly adding it to the
+deliberate list — which would convert a real detection gap into a decision nobody made.
+
+**Fix shape for 05-07 (Task 1, the number reconciliation):** classify each of the five explicitly.
+The crontab payload is a genuine gap and belongs in `docs/DETECTION-BACKLOG.md` for the next
+milestone, not on the deliberate-miss list. Payload 04 is a *consequence of a recorded decision*
+(D-07 / item 10) and should say so by name, citing the clean specimen that forced the drop. Then
+make the two lists and the two `EXPECTED` rows agree, and state the arithmetic: 12 payloads, 7
+detected, 3 deliberate misses, 2 recorded gaps.
+
+**Status:** no issue needed if 05-07 reconciles it in-phase; file one only for the crontab gap.
