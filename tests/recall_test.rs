@@ -67,6 +67,8 @@ const STRUCTURAL_SUFFIX: &str = "-structural";
 /// (no recall movement) and shipped PI071: **98 of 115**, the prose row at 1/7.
 /// Plan 05-05 shipped PI073: **101 of 115**, the prose row at 4/7 (PI072 and
 /// PI074/PI075 in plan 05-04 had taken it from 1/7 to 3/7).
+/// Plan 05-06 shipped PI077 (the first structural pattern of the category):
+/// **103 of 115**, the structural row at 3/5.
 ///
 /// Started this milestone at 10/60. The dividing line was never how hard the
 /// attacks are - it is whether a pattern matches *shape* or a literal phrase.
@@ -362,7 +364,20 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // Payloads 02-04 draw no finding of any kind. Payload 05 (a plain webhook
     // POST) is a deliberate documented miss: plain webhook hooks are the
     // commonest legitimate hook shape, so the discriminator excludes them.
-    ("persistence-lifecycle-hijack-structural", 1, 5),
+    //
+    // Plan 05-06 Task 1 shipped PI077 lifecycle-hook-sensitive-command, the
+    // first `scope: frontmatter` pattern of this category. Measured after:
+    // **3/5** (was 1/5), total 103/115 (was 101/115). By mechanism: payloads 02
+    // (a skill's YAML frontmatter hook appending to `~/.zshrc`) and 03 (a
+    // Copilot `bash` key appending a key blob to `authorized_keys`) are NEW
+    // detections, each reached ONLY by PI077. Payload 01 (the mixed Codex shape
+    // reading `~/.ssh/id_ed25519`) was ALREADY counted through PI029's prose
+    // spillover and PI077 now also reaches it through the wrapper-less root
+    // path, so it adds nothing to the number. Payload 04 (a remote HTTP
+    // endpoint, the same shape as tests/corpus/clean/persistence-corporate-
+    // audit-endpoint.json) and payload 05 (a plain webhook POST) remain
+    // misses by design.
+    ("persistence-lifecycle-hijack-structural", 3, 5),
 ];
 
 fn scanner() -> Scanner {
