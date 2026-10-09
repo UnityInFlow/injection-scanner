@@ -163,17 +163,17 @@ Plans:
 > specimen alike, and swapping the bound event, the host's registrable domain and the URL between
 > the two documents moved nothing. `PI079` was kept (MEDIUM) on its own measured criterion.
 
-**Plans:** 7 plans
+**Plans:** 7/7 plans executed
 
 Plans:
 
-- [ ] 05-01-PLAN.md — GATE-03 pre-edit baseline, 12 blind-written payloads, measured pre-pattern pins (D-01, D-03, D-05)
-- [ ] 05-02-PLAN.md — Nine clean-corpus specimens and the two mutation proofs that make D-03's amendment and D-04's conjuncts load-bearing (D-02, D-03, D-04)
-- [ ] 05-03-PLAN.md — `PI070` object/verb widening and `PI071` agent-persistence-nonmodal, HIGH, prose (D-06)
-- [ ] 05-04-PLAN.md — `PI072` self-propagation, `PI074`/`PI075` memory arms, and the self-matching backlog bullets (D-02, D-05, D-06)
-- [ ] 05-05-PLAN.md — `PI073` instruction-file-write-directive (MEDIUM) and `PI076` agent-hook-registration-directive (D-04, D-06)
-- [ ] 05-06-PLAN.md — `PI077` structural lifecycle arm, plus `PI078`/`PI079` resolved on measured criteria (D-03, D-06, D-07)
-- [ ] 05-07-PLAN.md — Whole-category GATE-03 delta, number reconciliation, deferral issues, #35 close-out, pre-PR gates
+- [x] 05-01-PLAN.md — GATE-03 pre-edit baseline, 12 blind-written payloads, measured pre-pattern pins (D-01, D-03, D-05)
+- [x] 05-02-PLAN.md — Nine clean-corpus specimens and the two mutation proofs that make D-03's amendment and D-04's conjuncts load-bearing (D-02, D-03, D-04)
+- [x] 05-03-PLAN.md — `PI070` object/verb widening and `PI071` agent-persistence-nonmodal, HIGH, prose (D-06)
+- [x] 05-04-PLAN.md — `PI072` self-propagation, `PI074`/`PI075` memory arms, and the self-matching backlog bullets (D-02, D-05, D-06)
+- [x] 05-05-PLAN.md — `PI073` instruction-file-write-directive (MEDIUM) and `PI076` agent-hook-registration-directive (D-04, D-06)
+- [x] 05-06-PLAN.md — `PI077` structural lifecycle arm, plus `PI078`/`PI079` resolved on measured criteria (D-03, D-06, D-07)
+- [x] 05-07-PLAN.md — Whole-category GATE-03 delta, number reconciliation, deferral issues, #35 close-out, pre-PR gates
 
 ## Gates applied to every phase
 
@@ -197,7 +197,18 @@ rename.
 | 2. Recursive decoder | ENG-02 | #30 | **Done** — PR #108 |
 | 3. Tool & permission abuse | CAT-01 | #33 | **Done** — PR #109 |
 | 4. MCP & tool-description poisoning | CAT-02 | #34 | **Done** — PR #120 + PR #136 |
-| 5. Persistence & lifecycle hijack | CAT-03 | #35 | Not started |
+| 5. Persistence & lifecycle hijack | CAT-03 | #35 | 7/7 plans complete (05-07 closed out the category: 9 patterns `PI070`-`PI077` and `PI079`, `PI078` unallocated) - phase-complete marker and PR pending the orchestrator's own verification |
+
+**Library (Phase 5 close, plan 05-07):** **79 patterns**, measured directly from the loader and asserted by
+`test_total_pattern_count`: the 71 at Phase 4's close plus CAT-03's eight new patterns (`PI071`-`PI077` and `PI079`; `PI070`
+had shipped from PR #110 and is not a new count). `PI078` is deliberately unallocated, so the range ships 9 patterns, not
+the 10 its id span names.
+**Recall (Phase 5 close, plan 05-07):** **103/115 (89.6%)** on the development corpus, up from 102/109 at Phase 4's close.
+The denominator moved by +6, not by the 12 CAT-03 payloads alone, because the 6 inherited and GATE-01-tainted CAT-03
+payloads were replaced (D-01) and the category's pre-pattern baseline was 97/115. CAT-03's own development rows are
+**7/12 (58.3%)** (prose 4/7, structural 3/5). **The published CAT-03 number is the sealed held-out set's: 2/12 (16.7%)**
+(prose 2/8, structural 0/4), reported beside the development score and **never summed into the 115**. The projection
+this milestone opened with did not anticipate a held-out set, and the gap between 58.3% and 16.7% is the finding.
 
 **Library:** **71 patterns** as of Phase 4's close (04-07), measured directly from the loader —
 corrected from the ~78 projected when the milestone opened. CAT-02 (`PI060`-`PI069`) added
