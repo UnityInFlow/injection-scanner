@@ -7,7 +7,48 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-09
+
+This release is about **agent-shaped attacks**: injection aimed at an agent's configuration,
+tools, lifecycle and memory rather than at its conversation. It adds two detection engines and
+three pattern categories, taking the library from the 48 patterns across 5 categories that v0.1.0 asserted to
+**79 patterns across 9 categories**.
+
 ### Added
+
+- **Structural frontmatter engine** (ENG-01, [#32](https://github.com/UnityInFlow/injection-scanner/issues/32)):
+  the scanner now reads configuration *as configuration* instead of as prose. A document's own
+  frontmatter is parsed with a real parser — YAML (`serde_yaml_ng`), TOML (`toml`) and JSON
+  (`serde_json`) — and `allowed-tools`, `tools`, `permissions`, `mcpServers`, `hooks`, `model` and
+  `system` are inspected as data. A malformed document is skipped loudly and never aborts the scan.
+  This is what makes an unambiguous shape gradeable at CRITICAL, and ten patterns in this release
+  use it via `scope: frontmatter` (`PI050`-`PI052`, five MCP patterns, and two persistence
+  patterns). Frontmatter detection does not assume `.md`, so `.mdc`, `.cursorrules` and
+  extensionless agent files are covered.
+
+- **Recursive decoder** (ENG-02, [#30](https://github.com/UnityInFlow/injection-scanner/issues/30)):
+  an encoded payload is no longer a bypass, however many layers deep. Six transforms are detected
+  and unwrapped — base64, hex, percent/URL encoding, HTML entities, `\u` escapes and reversed text —
+  applied recursively to a bounded depth of 3 with a 4 KiB candidate limit, so a decode bomb is
+  refused rather than OOM'd. A decoded finding reports the **original** byte offsets and
+  `matched_text` still carries the original bytes, because the `--baseline` digest depends on them
+  and normalizing them would turn every baselined finding into a free pass for its obfuscation
+  family. This closed two of the three standing encoding misses (a base64 payload and a reversed
+  one), taking the Encoding/Obfuscation category to 11/12. Supersedes #6 and #7.
+
+- **Multilingual Evasion** category (`PI110`-`PI113`, [#39](https://github.com/UnityInFlow/injection-scanner/issues/39),
+  widened in [#110](https://github.com/UnityInFlow/injection-scanner/pull/110)): every pattern in
+  `PI001`-`PI051` was English, so a payload translated into any other language matched **nothing, at
+  any severity**. Czech first, because it was the language of the payload that exposed the gap. Four
+  patterns, one per shape that payload combined, each the Czech form of an English pattern and
+  inheriting its false-positive control: `PI110` cs-ignore-previous-instructions (CRITICAL, from
+  `PI001`, object noun required), `PI111` cs-aside-to-the-assistant (MEDIUM, from `PI014`), `PI112`
+  cs-send-to-url (CRITICAL, from `PI020`, the object must be conversation state or a secret) and
+  `PI113` cs-reveal-system-prompt (CRITICAL, from `PI021`, possessive required). Verb lists were
+  widened on native-speaker review. Recall on the multilingual payloads is **8/10 (80%)**; the two
+  misses are German, and the range `PI114`-`PI119` is deliberately left for further languages.
+  **Stated caveat:** the negatives — the expensive half of every language — were written without a
+  native speaker for the first slice, and that is the part of this category most in need of one.
 
 - **Tool & Permission Abuse** category (`PI050`-`PI057`, #33): detects documents that widen the
   agent's own authority — the agentic equivalent of privilege escalation. Three structural
@@ -139,6 +180,31 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   candidate signals a real fix would need; "put `will` back" is not one of them.
 
 ### Changed
+
+- **Up to 3x faster scans, with detection asserted unchanged** (`perf`,
+  [#4](https://github.com/UnityInFlow/injection-scanner/issues/4)): the inner loop ran every
+  compiled regex against every line — one independent search per pattern over the same bytes.
+  `src/prefilter.rs` hoists that into a single Aho-Corasick automaton over the pattern set's
+  required literal prefixes; one overlapping pass per haystack says which patterns *could* match and
+  only those regexes run. Applied to all five passes (raw line, multi-line block, normalized,
+  decoded layer, frontmatter projection), since each has its own haystack. Measured: a single large
+  file 185.8ms → 62.4ms (2.98x), 500 small files 73.4ms → 25.4ms (2.89x), a pathological line
+  19.1ms → 11.4ms (1.68x), and this repository's own `check .` 1600ms → 999ms (1.60x). Pattern-set
+  compilation costs 10.9ms more, once per process. Detection equivalence is **asserted, not argued**:
+  `Scanner::without_prefilter` exposes the unfiltered path and `tests/prefilter_equivalence_test.rs`
+  requires byte-identical reports across every corpus, this repository's own documents, and every
+  pattern's `example`/`counter_example` rewritten eight ways, at three confidence thresholds.
+
+- **Behaviour change: a match whose span edge was manufactured by a separator is now withheld and
+  reported under a new `manufactured_boundary` array** ([#128](https://github.com/UnityInFlow/injection-scanner/issues/128)):
+  separator normalization can supply the very word boundary a pattern matched on, so the match is an
+  artefact of the rewrite rather than of the document. All five passes are now gated on that edge,
+  each against its own haystack, and the check runs **before** suppression and confidence so an
+  artefact can never inflate the `suppressed` or `low_confidence` counts. Nothing is dropped in
+  silence — withheld matches appear in `ScanReport.manufactured_boundary` (JSON, omitted when empty)
+  and `check` prints a count. Deliberately asymmetric with `suppressed` / `low_confidence` /
+  `baselined`: there is **no promotion flag**, because a flag that restores a known artefact
+  re-enables the bug.
 
 - **Behaviour change: a wildcard tool grant in a scanned file's own frontmatter is now a
   CRITICAL finding (D-12).** Previously this shape produced no detection at all — the structural
@@ -328,7 +394,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Inline suppression
 - Stdin mode (`check -`)
 
-[Unreleased]: https://github.com/UnityInFlow/injection-scanner/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/UnityInFlow/injection-scanner/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/UnityInFlow/injection-scanner/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/UnityInFlow/injection-scanner/compare/v0.0.3...v0.1.0
 [0.0.3]: https://github.com/UnityInFlow/injection-scanner/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/UnityInFlow/injection-scanner/compare/v0.0.1...v0.0.2
