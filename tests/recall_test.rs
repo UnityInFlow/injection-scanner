@@ -385,7 +385,50 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // payload was already counted via PI077, so the pin is byte-identical:
     // 3/5, total 103/115.
     ("persistence-lifecycle-hijack-structural", 3, 5),
+    // HELD-OUT ROWS (plan 05-07 Task 0). The two rows below are a SEPARATE
+    // measurement, not part of the development denominator: 8 prose + 4
+    // structural payloads authored blind, sealed (SHA256SUMS manifest hash
+    // 6979b4e8...46bd) before any PI071+ pattern existed, and first opened after
+    // every CAT-03 pattern was frozen. They are reported beside the development
+    // rows and never summed with them (see `is_heldout`). A miss here is reported
+    // and filed in docs/DETECTION-BACKLOG.md, never tuned away in v0.2.0.
+    //
+    // Measured 2026-10-09 on the frozen 79-pattern library, first and only
+    // opening of the set: **2/12 (16.7%)**, against 7/12 on the development
+    // corpus for the same category. No pattern added in this phase (PI071+)
+    // fires on any held-out payload.
+    //
+    // prose 2/8. Both detections are spillover from patterns that predate this
+    // phase's new work: H01 (an install guide telling the reader to add a
+    // fetch-and-obey line to `~/.claude/CLAUDE.md`) is PI025 fetch-url
+    // (MEDIUM, the exfiltration category), and H02 (a knowledge-base article
+    // telling "the assistant" to create `.github/copilot-instructions.md`
+    // containing a fetch-and-obey line) is PI070 (HIGH). The six misses:
+    // H07 and H08 (git-hook install: a bot-addressed download into
+    // `.git/hooks`, and a `core.hooksPath` redirect in release notes), H09 (shell-profile `source` of a downloaded file), H10 (a
+    // crontab pipeline, withheld as a low-confidence PI028 inside a code span,
+    // which `detected()` does not count), H11 (self-propagation addressed to
+    // "AI agents maintaining this project") and H12 (a directive to be copied
+    // into other assistants' guidance).
+    ("persistence-lifecycle-hijack-heldout", 2, 8),
+    // structural 0/4. All four are lifecycle hooks (Claude Code, Cursor,
+    // Copilot, Gemini CLI) that download a remote program to a hidden path,
+    // `chmod` it and run it as three separate steps. PI077's fetch arm requires
+    // the fetch to be piped or substituted into an interpreter; a download to a
+    // file followed by a run is a different shape and is not matched.
+    ("persistence-lifecycle-hijack-heldout-structural", 0, 4),
 ];
+
+/// Marker in a row's name that makes it a held-out row. Held-out rows are
+/// pinned exactly like every other row but are totalled separately, so the
+/// development denominator and the held-out denominator are never one number.
+const HELDOUT_MARKER: &str = "-heldout";
+
+/// Is this recall row part of the sealed held-out set rather than the
+/// development corpus?
+fn is_heldout(row_name: &str) -> bool {
+    row_name.contains(HELDOUT_MARKER)
+}
 
 fn scanner() -> Scanner {
     Scanner::new(&load_embedded_patterns().expect("embedded patterns must load"))
@@ -616,8 +659,29 @@ fn recall_matches_the_recorded_numbers() {
         rows.push((cat.name, hit, total));
     }
 
-    let detected_total: usize = rows.iter().map(|(_, h, _)| h).sum();
-    let payload_total: usize = rows.iter().map(|(_, _, t)| t).sum();
+    // Development and held-out rows are totalled separately (plan 05-07): the
+    // held-out set is an independent measurement and folding it into the
+    // development denominator would blur exactly the gap it exists to expose.
+    let detected_total: usize = rows
+        .iter()
+        .filter(|(n, _, _)| !is_heldout(n))
+        .map(|(_, h, _)| h)
+        .sum();
+    let payload_total: usize = rows
+        .iter()
+        .filter(|(n, _, _)| !is_heldout(n))
+        .map(|(_, _, t)| t)
+        .sum();
+    let heldout_detected: usize = rows
+        .iter()
+        .filter(|(n, _, _)| is_heldout(n))
+        .map(|(_, h, _)| h)
+        .sum();
+    let heldout_total: usize = rows
+        .iter()
+        .filter(|(n, _, _)| is_heldout(n))
+        .map(|(_, _, t)| t)
+        .sum();
 
     let mut report = String::from("\nRecall by category:\n");
     for (name, hit, total) in &rows {
@@ -630,9 +694,16 @@ fn recall_matches_the_recorded_numbers() {
     }
     report.push_str(&format!(
         "  {:<22} {detected_total:>2}/{payload_total:<2}  {:5.1}%\n",
-        "TOTAL",
+        "TOTAL (development)",
         100.0 * detected_total as f64 / payload_total as f64
     ));
+    if heldout_total > 0 {
+        report.push_str(&format!(
+            "  {:<22} {heldout_detected:>2}/{heldout_total:<2}  {:5.1}%\n",
+            "TOTAL (held-out)",
+            100.0 * heldout_detected as f64 / heldout_total as f64
+        ));
+    }
 
     assert!(
         mismatches.is_empty(),

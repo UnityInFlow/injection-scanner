@@ -65,3 +65,21 @@ would leak them into the pattern work and destroy the set's value.
    held-out payload after the set is opened converts the held-out set into a second development
    corpus and destroys the only independent measurement this phase has. Misses become backlog
    items for the next milestone.
+
+## Opened 2026-10-09 (plan 05-07 Task 0)
+
+- **Seal verified before any payload was read.** `shasum -a 256 SHA256SUMS` printed
+  `6979b4e87bd637dd377e1bebef711420db99cc2df3869dddfdd03cda27b046bd`, matching the hash above, and
+  `shasum -a 256 -c SHA256SUMS` reported all 8 files OK.
+- **Derivation check against the FINAL patterns: exit 0.** `tools/corpus-derivation-check.py` with the
+  five payload files as subject and the 13 original barred sources (`05-RESEARCH.md`, `05-01-PLAN.md`,
+  `05-CONTEXT.md`, `tests/corpus/attack/persistence-lifecycle-hijack.md`, the nine `patterns/core/*.yaml`)
+  printed `OK: 5 payload file(s) share no 5-word run and no > 0.6 token-Jaccard sentence with 13 barred
+  source(s).` A wider run with 27 barred sources (every attack-corpus file and the persistence
+  structural payloads added) also exited 0.
+- **Result: 2 of 12 detected (16.7%)**, prose 2/8 and structural 0/4, against 7/12 on the development
+  corpus. Neither detection is a PI071+ pattern (`PI025` fetch-url, `PI070`). Per rule 4, no pattern was
+  edited; the ten misses are in `docs/DETECTION-BACKLOG.md`.
+- **Imported** as `tests/corpus/attack/persistence-lifecycle-hijack-heldout.md` and
+  `tests/corpus/attack/structural/persistence-lifecycle-hijack-heldout/`, pinned in `EXPECTED` as two
+  rows that `tests/recall_test.rs` totals separately from the development rows.
