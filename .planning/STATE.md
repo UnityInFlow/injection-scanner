@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
-stopped_at: Phase 5 wave 2 (05-02) complete and merged — wave 3 next
-last_updated: "2026-10-08T19:29:30.082Z"
-state_head: 00cd4b5
+stopped_at: Phase 5 wave 3 (05-03) restarting; GATE-01 resolved by sealed held-out set 6979b4e8 (see heldout-set.md), PI078 FP specimen landed
+last_updated: "2026-10-09T05:10:15.629Z"
+state_head: 9d28411
 progress:
   total_phases: 5
   completed_phases: 4
