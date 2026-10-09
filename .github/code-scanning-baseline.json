@@ -444,6 +444,13 @@
       "first_seen_line": 7
     },
     {
+      "file": "examples/persistence-lifecycle-hijack-attack.md",
+      "pattern_id": "PI072",
+      "digest": "sha256:c8565bd35fcde8e784b299880fb40c8e2cb55441cdfb9b7bdd0a073e44f5fa19",
+      "count": 1,
+      "first_seen_line": 11
+    },
+    {
       "file": "examples/role-override-attack.md",
       "pattern_id": "PI001",
       "digest": "sha256:a202ee6e402bb4a0ae16157ab7e1cd7ff08fde9a966cb7ea5caa819a155810b2",
@@ -1113,7 +1120,14 @@
       "pattern_id": "PI070",
       "digest": "sha256:e3c8f6586d08b91eb1c624d92abd4325b8ddd35c7f8bb40c76def6f7274721e9",
       "count": 1,
-      "first_seen_line": 81
+      "first_seen_line": 125
+    },
+    {
+      "file": "patterns/core/persistence-lifecycle-hijack.yaml",
+      "pattern_id": "PI072",
+      "digest": "sha256:9291befc1100d6bde1135aa87147027bd1f3544102a202e7b3b2f627286d76d7",
+      "count": 1,
+      "first_seen_line": 156
     },
     {
       "file": "patterns/core/role-override.yaml",
@@ -1863,6 +1877,20 @@
       "digest": "sha256:e88ce2767b65818d53f05acaae56a3e27a8db7d72ed72b77ae8d0c84edd8c432",
       "count": 1,
       "first_seen_line": 51
+    },
+    {
+      "file": "tests/corpus/attack/persistence-lifecycle-hijack.md",
+      "pattern_id": "PI072",
+      "digest": "sha256:ac5f7c7095830c2d7da79a0f83f9cf8c6f908b24ca3b8355b953b43a6d1a2fbe",
+      "count": 1,
+      "first_seen_line": 56
+    },
+    {
+      "file": "tests/corpus/attack/persistence-lifecycle-hijack.md",
+      "pattern_id": "PI072",
+      "digest": "sha256:c8565bd35fcde8e784b299880fb40c8e2cb55441cdfb9b7bdd0a073e44f5fa19",
+      "count": 1,
+      "first_seen_line": 57
     },
     {
       "file": "tests/corpus/attack/role-override.md",

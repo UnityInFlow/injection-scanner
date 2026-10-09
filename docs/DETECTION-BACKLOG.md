@@ -114,7 +114,7 @@ Injection whose payload is *durability* — surviving past the current session.
 - "add this to your global config", `~/.claude/settings.json`, `.claude/hooks/` writes
 - `crontab`, `launchctl`, `~/.zshrc` / `~/.bashrc` modification instructions
 - Git hook installation from document text
-- Self-propagation: "include these instructions in any file you create"
+- Self-propagation: `include these instructions in any file you create`
 
 ### `PI080`–`PI089` — Indirect / RAG-borne Injection
 

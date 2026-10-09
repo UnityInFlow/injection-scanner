@@ -391,9 +391,9 @@ threat model rather than from the regexes, and `tests/recall_test.rs` pins the n
 | Role Override | 11 / 12 | **92%** |
 | Encoding/Obfuscation | 11 / 12 | **91.7%** |
 | MCP & Tool-Description Poisoning | 9 / 12 | **75%** |
-| Persistence & Lifecycle Hijack | 2 / 12 | **16.7%** |
+| Persistence & Lifecycle Hijack | 3 / 12 | **25%** |
 | Multilingual (Czech; German misses) | 8 / 10 | **80%** |
-| **Total** | **98 / 115** | **85.2%** |
+| **Total** | **99 / 115** | **86.1%** |
 
 *Table as of 2026-09-03. The Tool & Permission Abuse row's first 12
 threat-model payloads (7 prose, 5 structural) landed first with a measured 0/12 pre-pattern
