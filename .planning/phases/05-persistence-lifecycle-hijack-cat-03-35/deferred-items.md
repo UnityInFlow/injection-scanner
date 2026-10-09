@@ -509,4 +509,7 @@ and mutation-tested: the shipped set reports 0 on it, restoring `will` reports 6
 than a probe anyone has to remember to re-run. `PI070` stays HIGH: `PATTERNS.md` rule 3 was satisfied by removing the benign
 sentence class, not by waiving the grade. GATE-03 was not re-swept — a pure narrowing cannot add a finding, and the sweep had zero
 `PI070`-`PI079` findings across all 26,407 files. [#183](https://github.com/UnityInFlow/injection-scanner/issues/183) is closed;
-the `unmet-truth` ledger entry in `.planning/WINDOWS.md` is `fixed` and `open_count` is back to 0.
+the `unmet-truth` ledger entry in `.planning/WINDOWS.md` is `fixed` and `open_count` is back to 0. **The fix's own cost is filed, not
+swallowed:** third-person `will` persistence instructions are now undetected by this category (five of seven attack-shaped probes
+produce no finding; `PI071` is non-modal and does not cover them), tracked as
+[#184](https://github.com/UnityInFlow/injection-scanner/issues/184) and recorded in `docs/DETECTION-BACKLOG.md`.

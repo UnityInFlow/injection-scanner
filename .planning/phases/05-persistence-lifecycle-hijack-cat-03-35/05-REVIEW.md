@@ -149,6 +149,14 @@ line-number shift from the comment, no finding added or removed), whole-repo sel
 the full suite green. GATE-03 was not re-swept: a pure narrowing cannot add a finding, and the whole-category sweep had **zero**
 `PI070`-`PI079` findings across 26,407 files, so both directions are provably unchanged.
 
+**The cost it creates, filed rather than left silent.** A post-fix probe of seven *attack*-shaped `will` sentences found five produce
+no finding at all and two fire only on unrelated grounds (`PI014`, `PI015`): third-person `will` persistence instructions are now
+undetected by this category. `PI071` does not cover them, because its arms are non-modal. That is a deliberate trade — the two
+populations differ only by provenance — and it is tracked as [#184](https://github.com/UnityInFlow/injection-scanner/issues/184) with
+the candidate discriminators a real fix needs (a concealment cue, a persistence-justifying clause, an untrusted-document framing, or
+the structural pass), each to be probed against vendor prose before the pattern is written. It is also recorded in
+`docs/DETECTION-BACKLOG.md` under the category's accepted gaps.
+
 [#183](https://github.com/UnityInFlow/injection-scanner/issues/183) is closed by this change, and the `unmet-truth` entry in
 `.planning/WINDOWS.md` is resolved.
 

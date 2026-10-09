@@ -131,6 +131,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `tests/corpus/clean/persistence-vendor-release-notes.md` now holds the line: the shipped set
   reports nothing on it, and restoring `will` makes it report six findings.
 
+  **What that costs, stated plainly (#184).** A persistence instruction phrased in the third person
+  with `will` is now undetected by this category: of seven attack-shaped probes, five produce no
+  finding and the two that do fire on unrelated grounds. The two populations are grammatically
+  identical and differ only by provenance, which a regex cannot see, so this is a deliberate trade —
+  the same conclusion #97 reached for `instruction_injection`. It is tracked as #184 with the
+  candidate signals a real fix would need; "put `will` back" is not one of them.
+
 ### Changed
 
 - **Behaviour change: a wildcard tool grant in a scanned file's own frontmatter is now a
