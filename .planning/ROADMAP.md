@@ -30,7 +30,7 @@ and it retires #6 and #7, already closed against it.
 
 - [x] **Phase 3: Tool & permission abuse (CAT-01, #33)** — `PI050`–`PI059`.
 - [x] **Phase 4: MCP & tool-description poisoning (CAT-02, #34)** — `PI060`–`PI069`.
-- [ ] **Phase 5: Persistence & lifecycle hijack (CAT-03, #35)** — `PI070`–`PI079`.
+- [x] **Phase 5: Persistence & lifecycle hijack (CAT-03, #35)** — `PI070`–`PI079`.
 
 ## Phase details
 
@@ -197,7 +197,7 @@ rename.
 | 2. Recursive decoder | ENG-02 | #30 | **Done** — PR #108 |
 | 3. Tool & permission abuse | CAT-01 | #33 | **Done** — PR #109 |
 | 4. MCP & tool-description poisoning | CAT-02 | #34 | **Done** — PR #120 + PR #136 |
-| 5. Persistence & lifecycle hijack | CAT-03 | #35 | 7/7 plans complete (05-07 closed out the category: 9 patterns `PI070`-`PI077` and `PI079`, `PI078` unallocated) - phase-complete marker and PR pending the orchestrator's own verification |
+| 5. Persistence & lifecycle hijack | CAT-03 | #35 | **Complete.** 7/7 plans; 9 patterns `PI070`-`PI077` and `PI079`, `PI078` unallocated. Held-out recall 2/12 published as the CAT-03 number, development 7/12, library-wide 103/115. Merged as PR #185 (48 commits, rebased); #35 closed. The blocking review finding #183 was fixed before the PR, not deferred, and its own cost filed as #184 |
 
 **Library (Phase 5 close, plan 05-07):** **79 patterns**, measured directly from the loader and asserted by
 `test_total_pattern_count`: the 71 at Phase 4's close plus CAT-03's eight new patterns (`PI071`-`PI077` and `PI079`; `PI070`

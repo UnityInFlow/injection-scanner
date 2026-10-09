@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
-stopped_at: "Phase 5 plan 05-07 (close-out) complete and BLOCKING finding 183 RESOLVED in-phase: will dropped from PI070 modal set, zero attack-corpus and zero held-out detections lost, clean specimen added and mutation-tested; 9 patterns, development recall 103/115, held-out recall 2/12; gates re-run green (467+ tests, fmt, clippy, self-scan) — ready for the single phase PR"
-last_updated: "2026-10-09T15:40:00.000Z"
-state_head: c4dd0a7
+stopped_at: "Phase 5 COMPLETE and merged (PR #185, 48 commits, rebase-merged; #35 closed). All 5 phases of v0.2.0 done and the milestone has 0 open issues. Patterns frozen at 79; held-out CAT-03 recall 2/12 published, development 103/115. #183 fixed pre-PR, its cost filed as #184. NEXT: release v0.2.0 (tag-triggered, GitHub-hosted release.yml), then complete/archive the milestone, then agent-memory v0.1.0 per the scope freeze."
+last_updated: "2026-10-09T13:20:00.000Z"
+state_head: f0e2308
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 23
   completed_plans: 23
   percent: 100
@@ -110,7 +110,7 @@ lifecycle hook that reinstalls the attacker's instructions after the file is cle
 | 2 | ENG-02 recursive decoder | #30 | **Done** — PR #108, also closed #6 and #7 |
 | 3 | CAT-01 tool & permission abuse `PI050-059` | #33 | **Done** — PR #109 |
 | 4 | CAT-02 MCP & tool-description poisoning `PI060-069` | #34 | **Done** — PR #120 + PR #136 |
-| 5 | CAT-03 persistence & lifecycle hijack `PI070-079` | #35 | 7/7 plans executed — 9 patterns, held-out recall 2/12; #183 resolved (`will` dropped from `PI070`), gates re-run green; phase-complete marker and PR (orchestrator) |
+| 5 | CAT-03 persistence & lifecycle hijack `PI070-079` | #35 | **Complete, merged as PR #185** (48 commits, rebase-merged, linear history held; #35 closed 2026-10-09) — 9 patterns, held-out recall 2/12, development 103/115; #183 fixed before the PR (`will` dropped from `PI070`) with its own cost filed as #184 |
 
 Engines first, and the dependency is real rather than tidiness: #32 states it is the prerequisite
 for `PI050-059` and `PI060-069`, and both categories carry frontmatter-shaped patterns
