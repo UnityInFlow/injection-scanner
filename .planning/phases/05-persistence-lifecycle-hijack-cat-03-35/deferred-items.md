@@ -230,6 +230,31 @@ should not move). Cheap, and it removes a commit-blocking false positive.
 ## 9b. DECIDED, NOT YET IMPLEMENTED — apply PI073's determiner allow-list to PI071 and PI076
 
 **User decision (2026-10-09): apply PI073's determiner allow-list to both arms and KEEP HIGH.**
+
+**IMPLEMENTED 2026-10-09.** Both declarative arms now require, between the deictic cue and the
+persistence/hook object: a preposition (`to|into|in|at|under|onto|inside|within|with|via|using`),
+then an OPTIONAL determiner drawn from an allow-list (`the|this|that|a|an|its|their|each|every|
+any|our`) from which `your`/`yours` are absent, then up to two optional qualifier nouns
+(`project|repo|user|global|...|\w+['’]s`). `with|via|using` were added to the preposition set that
+`PI073` uses, because this category has non-path objects reached that way ("installs the plist
+below **with** launchctl").
+
+Measured after the change:
+- All four vendor sentences: **0** findings under `--strict` (were 5 reported at HIGH).
+- Attack shapes all still fire: a bare object ("to `~/.ssh/authorized_keys`"), a possessive
+  ("into the user's `~/.bashrc`", "into the user's shell profile"), and the non-path object
+  ("with launchctl").
+- Recall unchanged, as predicted: both declarative arms detected 0 of the 12 payloads before and
+  after. `PI071`'s detection still comes from its passive-obligation arm.
+
+GATE-05 note: `PI071`'s `counter_example` became "Claude Code adds the line below to your
+~/.zshrc …", which carries a deictic and so isolates the NEW determiner gate. `PI076`'s
+`counter_example` was deliberately left as the addressee-less bare form — a pattern has one
+`relaxed_pattern`/`counter_example` pair and can therefore prove only one narrowing, and for
+`PI076` the addressee requirement is the more valuable control because its bare form was measured
+firing on a host's own documentation and on this repo's own CLAUDE.md. `PI076`'s determiner gate
+is instead proven by `corpus_test` against the extended clean specimen plus explicit negatives in
+`test_pi076`.
 Options rejected: dropping both to MEDIUM; doing both; deferring to 05-07. This supersedes the
 "needs a decision" note in item 9. NOT yet implemented — this is the next action in the phase.
 

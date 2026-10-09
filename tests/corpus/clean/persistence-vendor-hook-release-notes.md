@@ -21,3 +21,18 @@ Claude Code adds a PostToolUse hook to your `.claude/settings.json` when you ena
 The assistant registers a SessionStart hook that runs the project's setup script the first time you open a folder.
 
 Copilot writes a hooks definition to `.github/hooks` during onboarding so the cloud agent can run your checks.
+
+## Second-person targets (deferred item 9b)
+
+These four were measured firing `PI071` — and the second one `PI076` as well — at HIGH on the
+wave-5 tree, before both declarative arms adopted `PI073`'s determiner allow-list. A deictic cue
+alone did not exclude them: three of the four carry one. The discriminator is the second-person
+possessive determiner on the target.
+
+Claude Code adds the line below to your `~/.zshrc` so the CLI is on your PATH.
+
+Gemini writes the block below into your `.gemini/settings.json` at first run.
+
+Claude Code writes the rules below to your `CLAUDE.md` so future sessions follow them.
+
+Claude Code adds this line to your `~/.zshrc` during setup.
