@@ -52,15 +52,23 @@ Ordered by dependency. Each is one PR, with its own false-positive sweep.
       `npx -y` servers and `http://` endpoints; cross-tool shadowing; rug-pull markers that are
       version- or date-conditional. Depends on **ENG-01** for the `mcpServers` half.
 
-- [ ] **CAT-03** (#35): `PI070`–`PI079` — persistence & lifecycle hijack. Payloads that survive
+- [x] **CAT-03** (#35): `PI070`–`PI079` — persistence & lifecycle hijack. Payloads that survive
       the obvious cleanup: instructions that re-write themselves into a config, hook and lifecycle
-      abuse, memory-file poisoning.
+      abuse, memory-file poisoning. **Delivered 2026-10-09:** 9 patterns (`PI070`–`PI077` and
+      `PI079`; `PI078` deliberately unallocated, D-07), nothing CRITICAL (D-06). Development-corpus
+      recall for the category is 7/12; **the published number is the sealed held-out set's, 2/12
+      (16.7%)**, because the development payloads were used to build the patterns. The ten held-out
+      misses are tracked as #176–#179 and are the next milestone's detection work.
 
 ### Gates — non-negotiable, they are what made v0.1.0 trustworthy
 
 - [x] **GATE-01**: Every new category adds **12 corpus payloads** to `tests/corpus/attack/`,
       written from the threat model and **never derived from the patterns** — a corpus built from
       each pattern's own `example` scores 100% by construction and measures nothing.
+      *Phase 5 note:* `tools/corpus-derivation-check.py` proves lexical independence only (5-gram
+      and Jaccard); a payload whose shape was restated to its author passes it. CAT-03 therefore
+      also carries a sealed, blind-authored held-out set (`heldout-set.md`), which is the
+      structural-independence evidence.
 
 - [x] **GATE-02**: `tests/recall_test.rs` continues to pin counts **exactly**, not as a floor, so
       an improvement fails the build too and the published number cannot go stale.
@@ -110,7 +118,7 @@ Tracked, not in this roadmap.
 | ENG-02 | #30 | Phase 2 | Complete |
 | CAT-01 | #33 | Phase 3 | Complete |
 | CAT-02 | #34 | Phase 4 | Complete |
-| CAT-03 | #35 | Phase 5 | Pending |
+| CAT-03 | #35 | Phase 5 | Complete (held-out recall 2/12; development 7/12) |
 | GATE-01..05 | — | All phases | Pending |
 
 **Coverage:** 5 feature requirements, 5 mapped. 5 gates apply to every phase. Unmapped: 0 ✓
