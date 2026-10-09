@@ -1097,9 +1097,16 @@
     {
       "file": "patterns/core/persistence-lifecycle-hijack.yaml",
       "pattern_id": "PI070",
+      "digest": "sha256:b732e4c8e5648ae532464bd480cd7cb0ae6e4a16566ed7408e43ba7fb4fed413",
+      "count": 1,
+      "first_seen_line": 27
+    },
+    {
+      "file": "patterns/core/persistence-lifecycle-hijack.yaml",
+      "pattern_id": "PI070",
       "digest": "sha256:e3c8f6586d08b91eb1c624d92abd4325b8ddd35c7f8bb40c76def6f7274721e9",
       "count": 1,
-      "first_seen_line": 25
+      "first_seen_line": 38
     },
     {
       "file": "patterns/core/role-override.yaml",
