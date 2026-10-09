@@ -47,6 +47,23 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   category's corpus landed) to **102/109 (93.6%)** as the corpus grew alongside the patterns,
   both here and in categories outside this phase.
 
+- **Persistence & Lifecycle Hijack** category (`PI070`-`PI079`, #35), first two patterns: detects
+  injection whose payload is durability — a write that outlives the session (shell profiles,
+  scheduled jobs, SSH keys, hooks, the agent's own instruction files and memory). `PI070`
+  `agent-directed-persistence-write` already shipped; its object and verb vocabulary is widened to
+  what its own header claimed (more shell startup files, launch agents and daemons, `systemctl`,
+  scheduled tasks, autostart, `rc.local`, four more agent instruction files, the agent's settings
+  files, the agent's own memory in the third person, and the verbs `put`, `place`, `copy`, `drop`,
+  `schedule`, `enable`) without changing its name or its agent-subject requirement. `PI071`
+  `agent-persistence-nonmodal` (HIGH, the category default) takes the shapes that carry no modal
+  verb: an AI-specific declarative subject (`the assistant then appends …`), a passive obligation
+  with an automated-reader byline (`… must be added … by whichever assistant processes this
+  guide`), and a vocative address (`Assistants: append …`). Every arm is anchored at clause start,
+  so a prohibition naming the same file stays silent. Recall on this category's 12 threat-model
+  payloads is **2/12 (16.7%)** (1/7 prose, 1/5 structural; the structural hit is `PI029` prose
+  spillover, not a structural pattern); measured library-wide recall is **98/115 (85.2%)**. Later
+  patterns in the range extend this entry.
+
 ### Changed
 
 - **Behaviour change: a wildcard tool grant in a scanned file's own frontmatter is now a
