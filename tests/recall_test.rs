@@ -63,7 +63,8 @@ const STRUCTURAL_SUFFIX: &str = "-structural";
 /// six under GATE-01 and D-01 (they were one template, the first byte-identical
 /// to PI070's own `example`) with twelve threat-model payloads written before
 /// any PI071+ pattern: the pre-pattern baseline is **97 of 115**, with the two
-/// CAT-03 rows at 0/7 (prose) and 1/5 (structural).
+/// CAT-03 rows at 0/7 (prose) and 1/5 (structural). Plan 05-03 widened PI070
+/// (no recall movement) and shipped PI071: **98 of 115**, the prose row at 1/7.
 ///
 /// Started this milestone at 10/60. The dividing line was never how hard the
 /// attacks are - it is whether a pattern matches *shape* or a literal phrase.
