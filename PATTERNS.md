@@ -122,7 +122,7 @@ scaffolding, not a detection to disclose.
 | Encoding/Obfuscation | PI040-PI049 | HIGH |
 | Tool and Permission Abuse | PI050-PI059 | HIGH (structural patterns PI050-PI052 override to CRITICAL) |
 | MCP & Tool-Description Poisoning | PI060-PI069 | MEDIUM (the config-hygiene band; description-poisoning arms override to HIGH) |
-| Persistence & Lifecycle Hijack | PI070-PI079 | HIGH (`PI074`, the memory-write arm, overrides to MEDIUM: a real product document says the same thing) |
+| Persistence & Lifecycle Hijack | PI070-PI079 | HIGH (`PI073`, the instruction-file-write arm, and `PI074`, the memory-write arm, override to MEDIUM: a real product document says the same thing) |
 | Multilingual | PI110-PI119 | CRITICAL |
 
 ## Grading Severity
