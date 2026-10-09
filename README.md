@@ -391,9 +391,9 @@ threat model rather than from the regexes, and `tests/recall_test.rs` pins the n
 | Role Override | 11 / 12 | **92%** |
 | Encoding/Obfuscation | 11 / 12 | **91.7%** |
 | MCP & Tool-Description Poisoning | 9 / 12 | **75%** |
-| Persistence & Lifecycle Hijack | 1 / 12 | **8.3%** |
+| Persistence & Lifecycle Hijack | 2 / 12 | **16.7%** |
 | Multilingual (Czech; German misses) | 8 / 10 | **80%** |
-| **Total** | **97 / 115** | **84.3%** |
+| **Total** | **98 / 115** | **85.2%** |
 
 *Table as of 2026-09-03. The Tool & Permission Abuse row's first 12
 threat-model payloads (7 prose, 5 structural) landed first with a measured 0/12 pre-pattern
@@ -413,9 +413,10 @@ PI029), each written against a live web page before the arm existed.*
 regression. Its six inherited payloads were replaced under GATE-01 and D-01: they were one
 template, the first was byte-identical to `PI070`'s own `example`, and `PI070` caught all six, so
 the row scored 6 / 6 by construction. Its 12 replacement payloads (7 prose, 5 structural) were
-written from the threat model before any `PI071`+ pattern exists. `PI070` catches none of the 7
-prose payloads, and the one structural payload counted is reached by `PI029` over the raw JSON
-line rather than by any structural pattern. Three of the 12 are deliberate misses, named in the
+written from the threat model before any `PI071`+ pattern exists. `PI070` caught none of the 7
+prose payloads; `PI071` (plan 05-03) now reaches one of them, a passive obligation with an
+automated-reader byline, and the one structural payload counted is reached by `PI029` over the raw
+JSON line rather than by any structural pattern. Three of the 12 are deliberate misses, named in the
 corpus file's own header. The total's denominator now counts six payloads fewer and twelve more than before.*
 
 *Measured 2026-09-03. The MCP & Tool-Description Poisoning row's 12 threat-model payloads (4
