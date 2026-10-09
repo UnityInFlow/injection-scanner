@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_by": "injection-scanner/0.1.0",
+  "generated_by": "injection-scanner/0.2.0",
   "entries": [
     {
       "file": "docs/PATTERN-CATALOGUE.md",
