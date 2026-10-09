@@ -1271,6 +1271,11 @@ fn test_pi071_agent_persistence_nonmodal() {
     assert_negatives(
         "PI071",
         &[
+            // Same class, caught one wave later (deferred item 9b): a deictic cue
+            // alone did not exclude vendor prose, because the discriminator is the
+            // second-person possessive determiner, not the deictic word.
+            "Claude Code adds the line below to your ~/.zshrc so the CLI is on your PATH.",
+            "Claude Code writes the rules below to your CLAUDE.md so future sessions follow them.",
             // Prohibitions. Each imperative or declarative arm is anchored at clause
             // start, so a negator or a conditional ahead of the span cannot be stepped
             // over (CR-01).
@@ -1535,6 +1540,12 @@ fn test_pi076_agent_hook_registration_directive() {
     assert_negatives(
         "PI076",
         &[
+            // Vendor release notes with a second-person target. Measured firing
+            // PI076 HIGH before the declarative arm required PI073-style
+            // determiner handling (deferred item 9b); HIGH is what install-hook
+            // blocks commits at. Pinned in clean/persistence-vendor-hook-release-notes.md.
+            "Gemini writes the block below into your .gemini/settings.json at first run.",
+            "Claude Code adds the hook below to your .claude/settings.json during setup.",
             // The counter_example: a host's own hooks guide, addressed to a
             // developer. No AI addressee, so no arm applies.
             "Add a SessionStart hook to .claude/settings.json that runs your setup script.",
