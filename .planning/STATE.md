@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Agent-shaped attacks
 status: in_progress
-stopped_at: Phase 5 wave 4 (05-04) complete and merged — PI072/074/075 shipped, 100/115 — wave 5 next
-last_updated: "2026-10-09T08:06:40.057Z"
-state_head: 0384dd4
+stopped_at: "Phase 5 wave 5 (05-05) merged — PI073/PI076 shipped, 101/115. BLOCKING NEXT ACTION: implement deferred item 9b (PI071+PI076 determiner allow-list, user-approved) before wave 6"
+last_updated: "2026-10-09T09:35:57.043Z"
+state_head: b370a3b
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 23
-  completed_plans: 20
-  percent: 87
+  completed_plans: 21
+  percent: 91
 ---
 
 # State: injection-scanner

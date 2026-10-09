@@ -226,3 +226,57 @@ add the three sentences above to a clean specimen, and re-measure recall (the ar
 should not move). Cheap, and it removes a commit-blocking false positive.
 
 **Status:** no issue filed. Surfaced to the orchestrator in the plan 05-05 report.
+
+## 9b. DECIDED, NOT YET IMPLEMENTED — apply PI073's determiner allow-list to PI071 and PI076
+
+**User decision (2026-10-09): apply PI073's determiner allow-list to both arms and KEEP HIGH.**
+Options rejected: dropping both to MEDIUM; doing both; deferring to 05-07. This supersedes the
+"needs a decision" note in item 9. NOT yet implemented — this is the next action in the phase.
+
+**The defect, measured on HEAD after wave 5:**
+
+    Claude Code adds this line to your `~/.zshrc` ...            -> PI071 HIGH conf 1.0
+    Claude Code adds the line below to your `~/.zshrc` ...        -> PI071 HIGH
+    Gemini writes the block below into your `.gemini/settings.json` -> PI071 HIGH + PI076 HIGH
+    Claude Code writes the rules below to your `CLAUDE.md` ...    -> PI071 HIGH, PI073 silent
+
+HIGH is the tier `install-hook` blocks commits at, so this blocks commits on ordinary vendor
+release notes. It is the third instance of ONE class in this phase: every HIGH prose arm that
+accepts a product name as a declarative subject fires on vendor documentation. `PI070` escaped it
+by requiring a modal; `PI073` escapes it by its determiner allow-list; `PI071` and `PI076` have
+neither.
+
+**Note on the orchestrator's earlier fix (item 6):** requiring a deictic cue narrowed the symptom,
+not the class. Dropping `this|these|those` from that cue set would NOT fix it either — the fourth
+line above uses the retained cue `below` and still fires. The discriminator is the second-person
+possessive determiner, not the deictic word.
+
+**The proven remedy, already in this file one pattern later.** `PI073` conjunct 2 expresses the
+exclusion as an ALLOW-LIST after the preposition, because Rust's `regex` has no lookaround:
+
+    \b(?:to|into|in|at|under|onto|inside|within)\s+
+    (?:(?:the|this|that|a|an|its|their|each|every|any|our)\s+)?
+    (?:(?:project|repo(?:sitory)?|user|global|...|\w+['’]s)\s+){0,2}
+    <object>
+
+`your` and `yours` are simply absent from the list. That is why `PI073` stays silent on a sentence
+aimed squarely at it while `PI071` fires on the same sentence.
+
+**Implementation notes for whoever picks this up:**
+- Apply to `PI071`'s DECLARATIVE arm (arm 1) and `PI076`'s declarative arm only. Do not touch
+  `PI071`'s passive-obligation arm — it carries `PI071`'s only real detection (payload 1), and its
+  automated-reader byline already excludes vendor prose.
+- Measured cost should be ZERO: both declarative arms detect 0 of the 12 corpus payloads today.
+  Re-measure rather than assume; `recall_test` must stay prose 4/7, structural 1/5, 101/115.
+- Attack shapes that MUST survive: "into the user's `~/.bashrc`", "to the project's `CLAUDE.md`",
+  and bare objects with no determiner ("to `~/.ssh/authorized_keys`").
+- `tests/pattern_test.rs` has a positive of mine using `these rules into the user's ~/.bashrc` —
+  it should still pass, and that is the check that the allow-list kept `the ... user's` reachable.
+- Promote one measured vendor sentence to each arm's `counter_example` so
+  `pattern_relaxed_control_test` proves the exclusion load-bearing (GATE-05), as was done for the
+  deictic cue.
+- Pin the four sentences above as a clean specimen, or extend
+  `tests/corpus/clean/persistence-vendor-installer-prose.md` and
+  `persistence-vendor-hook-release-notes.md`, which already hold this genre.
+- Then: regenerate `docs/PATTERN-CATALOGUE.md` and `.github/code-scanning-baseline.json`, run the
+  whole-repo self-scan, and run the FULL suite redirected to a file checking `$?` (never piped).
