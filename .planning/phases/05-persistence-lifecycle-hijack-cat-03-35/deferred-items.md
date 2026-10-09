@@ -1,7 +1,8 @@
 # CAT-03 (#35) — Deferred items
 
 Out-of-scope discoveries logged during Phase 5 execution so they do not survive only as tacit
-knowledge in a SUMMARY. None is fixed here.
+knowledge in a SUMMARY. None is fixed here **except item 23**, the blocking `PI070` vendor-prose
+false positive, which the maintainer decided on 2026-10-09 and which was fixed before the PR.
 
 ## Disposition index (written at close-out, plan 05-07 Task 2)
 
@@ -31,7 +32,7 @@ duplicates.
 | 20 | `PI079` 40-character threshold and MEDIUM grade | adds no recall; 0 key-blob lines in 26,407 files | accepted | [#180](https://github.com/UnityInFlow/injection-scanner/issues/180) |
 | 21 | `gate03-sweep.sh` helpers declare no `local` (WR-03, carried from Phase 3) | `grep -n 'local ' scripts/gate03-sweep.sh` matches two comment lines | confirmed still open, not this phase's job; previously tracked only in a planning note | [#181](https://github.com/UnityInFlow/injection-scanner/issues/181) |
 | 22 | `gate03-sweep.sh --compare` is path-keyed and accepts an empty side | cost Phase 4 a spurious 500-line diff and Phase 5 a re-capture of three rows | procedure mitigates, not fixed | [#182](https://github.com/UnityInFlow/injection-scanner/issues/182) |
-| 23 | **BLOCKING, UNRESOLVED:** `PI070`'s widened objects and verbs make third-person `will` vendor-feature sentences fire HIGH | 13 of 17 synthesized vendor-voice probes are new relative to the pre-phase pattern; 0 hits on 26,407 real files, so the sweep could not see it | found by the pre-PR code-review gate; **needs a maintainer design decision before the PR** (see `05-REVIEW.md` BL-01) | [#183](https://github.com/UnityInFlow/injection-scanner/issues/183) |
+| 23 | **BLOCKING — RESOLVED 2026-10-09, not deferred:** `PI070`'s widened objects and verbs made third-person `will` vendor-feature sentences fire HIGH | 13 of 17 synthesized vendor-voice probes were new relative to the pre-phase pattern; 0 hits on 26,407 real files, so the sweep could not see it | fixed on the maintainer's decision: `will` removed from the modal set, `may now` kept; zero attack-corpus and zero held-out detections lost; clean specimen added and mutation-tested (see `05-REVIEW.md` 'BL-01: RESOLVED') | [#183](https://github.com/UnityInFlow/injection-scanner/issues/183) closed |
 
 Not tracked as issues, by decision: item 4 (two wording nits, fixed in plan 05-07), item 9 (resolved in-phase by item 9b),
 and item 9b itself (implemented). Item 12's second gap is a consequence of the `PI078` decision and is covered by
@@ -485,7 +486,7 @@ Both cost this milestone a result: Phase 4 plan 04-07 a spurious 500-line diff, 
 three repo-local rows. Plan 05-07 avoided both by procedure (literal main-checkout paths, `.planning/local/` only, a planted
 deletion). **Status:** filed as [#182](https://github.com/UnityInFlow/injection-scanner/issues/182).
 
-## 23. BLOCKING and UNRESOLVED: `PI070`'s widened object and verb sets fire HIGH on third-person `will` vendor sentences (found by the code-review gate, plan 05-07 Task 3)
+## 23. BLOCKING, now RESOLVED: `PI070`'s widened object and verb sets fired HIGH on third-person `will` vendor sentences (found by the code-review gate, plan 05-07 Task 3; fixed 2026-10-09)
 
 **What:** plan 05-03 widened `PI070`'s write verbs (`put`, `place`, `copy`, `drop`, `schedule`, `enable`, `set up`) and persistence objects
 (`systemctl`, scheduled tasks, launch agents, a startup folder, the `.claude` / `.gemini` / `.vscode` `settings.json` files,
@@ -496,4 +497,16 @@ pre-phase pattern text does not match 13 of them (for example a sentence of the 
 + new-object specimen. **Not fixed:** the 9b determiner allow-list does not discriminate (both the vendor sentence and the attack end in a
 bare object path), so the choice among a deictic requirement, dropping `will` from the HIGH modal set, a MEDIUM grade for the widened
 objects, or reverting the widening is a maintainer decision about a shipped HIGH pattern after the sweep and the held-out opening.
-**Status:** filed as [#183](https://github.com/UnityInFlow/injection-scanner/issues/183) (P1, milestone v0.2.0). Also noted on #35.
+**Status: RESOLVED 2026-10-09 — this item did not ship deferred.** The maintainer chose to drop `will` from the modal set
+(option b, narrowed to `will` alone; `may now` stays, because "the agent may now write to ..." claims a control is off, which is
+attack framing rather than product description). Measured before committing: all 14 vendor probes silent afterwards at default and
+`--strict`; **zero** attack-corpus and **zero** held-out detections lost, because every real payload in this category directs with
+`must` or `should`, so held-out stays **2/12** and development **103/115**; the one `will` positive in `test_pi070_...` kept its
+`config.fish` object coverage under `must` and its `will` form moved to the negatives, joined by three more vendor-voice negatives;
+and no sibling pattern shows the class (`PI071`/`PI073`/`PI075`/`PI076` are all silent on the same 14 sentences, so it was
+`PI070`-only). `tests/corpus/clean/persistence-vendor-release-notes.md` was added — possible only now the class no longer fires —
+and mutation-tested: the shipped set reports 0 on it, restoring `will` reports 6, so the corpus gate holds the narrowing rather
+than a probe anyone has to remember to re-run. `PI070` stays HIGH: `PATTERNS.md` rule 3 was satisfied by removing the benign
+sentence class, not by waiving the grade. GATE-03 was not re-swept — a pure narrowing cannot add a finding, and the sweep had zero
+`PI070`-`PI079` findings across all 26,407 files. [#183](https://github.com/UnityInFlow/injection-scanner/issues/183) is closed;
+the `unmet-truth` ledger entry in `.planning/WINDOWS.md` is `fixed` and `open_count` is back to 0.

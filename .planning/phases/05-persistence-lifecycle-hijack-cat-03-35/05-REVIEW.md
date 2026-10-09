@@ -15,16 +15,16 @@ findings:
   blocking: 1
   suggestions: 5
   total: 6
-status: issues_found
-blocking_resolution: deferred-with-issue
+status: resolved
+blocking_resolution: fixed-in-phase (BL-01 resolved 2026-10-09; see 'BL-01: RESOLVED')
 ---
 
 # Phase 5: Code Review — CAT-03 (PI070-PI079, #35)
 
 **Reviewed:** the phase's changed source and test files (`git diff 351ba51 HEAD`, merge base with `main`), with the pattern
 library probed as a binary rather than read as text.
-**Status:** `issues_found` — one BLOCKING finding, **deferred with a filed issue and a stated reason, not resolved.** It is
-the headline of this review and of the phase's hand-off; read BL-01 first.
+**Status:** `resolved` — one BLOCKING finding, raised here as deferred, then **fixed in-phase on the maintainer's decision**
+(2026-10-09). Read BL-01 first, then `BL-01: RESOLVED` below for the fix and its measured cost.
 
 ## Summary
 
@@ -109,6 +109,48 @@ CAT-03 pattern, is `PI070`'s) and after every number was published. An in-wave e
 catalogue and baseline, a new clean specimen (which cannot be added until it stops firing, since that corpus must stay at zero), a
 `relaxed_pattern` that still fires on one of the sentences, and a `test_pi070` negative per object family. **It is therefore handed to the
 maintainer as the one open decision before the PR**, and the README / CHANGELOG do not yet mention it.
+
+### BL-01: RESOLVED — `will` removed from `PI070`'s modal set
+
+**Decided by the maintainer on 2026-10-09**, after this review was filed and after the deferral paragraph above was written.
+Option (b) was chosen, narrowed to `will` alone: `may now` stays, because "the agent may now write to ..." is a claim that a
+control is off, which is attack framing rather than vendor description.
+
+**The change.** One token removed from `PI070`'s `pattern` modal set, plus the rationale comment above it. `patterns/`
+otherwise untouched; `src/`, `Cargo.toml` and `Cargo.lock` untouched.
+
+**Measured cost, not argued cost.** The decision was taken against measurement, not the four options in the abstract:
+
+| Question | Method | Result |
+|---|---|---|
+| Does the class actually fire? | 14 synthesized vendor sentences, release binary | 14/14 fired HIGH before; **0/14 after**, at default and `--strict` |
+| Is the determiner the discriminator? | `the` substituted for `your` | No — fires on both, so item 9b's allow-list could not have fixed it |
+| Attack-corpus detections lost | shipped vs mutated regex over every `tests/corpus/attack/**/*.md` line | **0** — both `PI070` attack hits use `should` |
+| Held-out detections lost | same, over the held-out payloads | **0** — `H02`'s detection uses `should`, so held-out stays **2/12** |
+| Development recall moved | `recall_test` `EXPECTED` | **no** — 103/115 unchanged |
+| Test cases affected | `test_pi070_...` | exactly one positive used `will`; see below |
+| Siblings with the same class | same 14 sentences against the full 79-pattern library | none — `PI071`/`PI073`/`PI075`/`PI076` all silent; the class was `PI070`-only |
+
+**The one affected test case** was `"The agent will append the export to ~/.config/fish/config.fish."`. It was the *only* positive
+covering the `config.fish` object, so the object keeps its coverage with an attack modal (`must`), and the `will` form moved to
+`assert_negatives` — where it belongs, since it is the ambiguous grammar itself. Three further vendor-voice negatives were added.
+
+**The gate is now load-bearing, not asserted.** The review's deferral paragraph noted a clean specimen "cannot be added until it
+stops firing". It has stopped, so `tests/corpus/clean/persistence-vendor-release-notes.md` was added, and it was mutation-tested
+the way this repo requires: the shipped set reports **0** findings on it, and restoring `will` makes it report **6**. Putting the
+token back now turns the clean corpus red in six places rather than relying on anyone re-running a probe.
+
+**Why `PI070` may stay HIGH.** `PATTERNS.md` rule 3 caps a grade at MEDIUM when a *recallable benign sentence* fires. The remedy
+removed the benign sentence class instead of lowering the grade, so the rule is satisfied at HIGH rather than waived.
+
+**Re-gated after the fix:** catalogue regenerated (one line changed — `PI070`'s regex), code-scanning baseline regenerated (pure
+line-number shift from the comment, no finding added or removed), whole-repo self-scan back to exactly the two standing
+`PATTERN-CATALOGUE.md` findings of deferred item 8, `cargo fmt --check` and `cargo clippy --all-targets -D warnings` exit 0, and
+the full suite green. GATE-03 was not re-swept: a pure narrowing cannot add a finding, and the whole-category sweep had **zero**
+`PI070`-`PI079` findings across 26,407 files, so both directions are provably unchanged.
+
+[#183](https://github.com/UnityInFlow/injection-scanner/issues/183) is closed by this change, and the `unmet-truth` entry in
+`.planning/WINDOWS.md` is resolved.
 
 ## Suggestions
 
