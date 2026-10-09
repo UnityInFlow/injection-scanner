@@ -306,10 +306,10 @@ default_severity: HIGH
 # (persistence-legitimate-hooks-config.json, persistence-local-hook-endpoint.json,
 # persistence-root-form-hooks-config.json) and PI077 fires on none of them. The
 # discriminator is therefore binding PLUS a sensitive
-# command shape, which measured 0 hits across all 328 files and 958 commands and
-# 0 hits on the 263-file frozen hooks sweep, and catches the secret-path read,
-# the shell-profile append and the authorized-keys append in the structural
-# corpus. The withdrawn binding-only rule is not lost: it ships as this
+# command shape. Research's prototype of it measured 0 hits across all 328 files
+# and 958 commands; this shipped rule measured 0 hits on the 263-file frozen
+# hooks sweep, and it catches the secret-path read, the shell-profile append and
+# the authorized-keys append in the structural corpus. The withdrawn binding-only rule is not lost: it ships as this
 # pattern's `relaxed_pattern`, so pattern_relaxed_control_test fails if anyone
 # promotes it, and a future attempt to ship it has to delete a specimen to do so.
 #
