@@ -93,6 +93,9 @@ jobs:
       - name: cargo test
         run: cargo test --locked
 
+      - name: Sweep helper regression check
+        run: bash tests/gate03_sweep_test.sh
+
       # TEST-02 (issue #29). The criterion benches in `benches/scan.rs` cover the
       # four shapes that matter — pattern-set compile, one large file, 500 small
       # files, and a pathological line — but nothing ran them, so they could rot
