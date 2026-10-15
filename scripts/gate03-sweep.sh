@@ -95,8 +95,9 @@ redact_home() {
 }
 
 sweep_one() {
-  out_dir="$1"
-  dir="$2"
+  local out_dir="$1"
+  local dir="$2"
+  local abs_dir slug report status files_scanned findings
 
   if [ ! -d "$dir" ]; then
     echo "WARNING: skipping '$dir' -- not present on this machine" >&2
@@ -150,7 +151,7 @@ print(sum(len(r['matches']) for r in data))
 # Aggregates findings across every per-directory JSON report already written
 # into <output-dir> by pattern id and severity.
 build_summary() {
-  out_dir="$1"
+  local out_dir="$1"
   python3 -c "
 import glob, json, os, sys
 from collections import Counter
@@ -202,6 +203,8 @@ sys.exit(1 if new else 0)
 }
 
 main() {
+  local out_dir dir
+
   if [ "$#" -eq 0 ]; then
     usage
     exit 2
