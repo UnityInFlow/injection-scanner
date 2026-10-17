@@ -259,11 +259,10 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // not a filesystem path, an environment variable or a concealment
     // instruction, so D-01's discriminator does not reach them.
     ("mcp-tool-poisoning-structural", 5, 8),
-    // The Czech slice of the multilingual range (#39). Eight Czech payloads,
-    // one of them typed without diacritics, and two German ones that are
-    // documented misses: the range covers one language so far, and the
-    // misses show what the next language's work looks like.
-    ("multilingual", 8, 10),
+    // #39: the original eight Czech payloads remain detected. PI114 reaches
+    // the German override and PI117 reaches the German system-prompt request.
+    // The corpus is unchanged; recall moves from 8/10 to 10/10.
+    ("multilingual", 10, 10),
     // CAT-03 (#35) prose half, 7 payloads (no ratio was set in advance; the
     // threat model produced 7 sentence-shaped and 5 document-shaped).
     //

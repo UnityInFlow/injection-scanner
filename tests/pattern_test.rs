@@ -96,7 +96,8 @@ fn test_total_pattern_count() {
     // persistence-command-with-payload SHIPS (MEDIUM): it fires on payload 03's
     // raw line through the prose pass and is silent on every clean specimen.
     // The library moves by exactly one, to 79.
-    assert_eq!(total, 79, "Expected 79 patterns, got {total}");
+    // #39 adds five cross-language shapes in PI114-PI118, retaining PI110-PI113.
+    assert_eq!(total, 84, "Expected 84 patterns, got {total}");
 }
 
 #[test]
