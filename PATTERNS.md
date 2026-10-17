@@ -75,6 +75,23 @@ to ask why.
 > a tag `homoglyph` does nothing. This is pinned by
 > `tests/raw_only_test.rs::a_tag_alone_can_never_disable_the_normalized_pass`.
 
+### Language tags
+
+Multilingual rules use `language:<ISO 639-1 code>` entries in the existing
+`tags` field, for example `tags: [multilingual, 'language:es']`. These tags
+survive `rules --format json`, so consumers can filter rules without changing
+the pattern schema or report contract. A rule with several language branches
+lists all of them; the tags describe supported phrases, not language detection
+on an individual finding. Filtering a rule does not isolate one regex branch.
+
+PI110-PI113 retain the Czech slice (`cs`). PI114-PI118 cover instruction
+override, knowledge reset, model-role reassignment, instruction disclosure,
+and enabled developer-mode claims in Spanish (`es`), French (`fr`), German
+(`de`), Portuguese (`pt`), Italian (`it`), Russian (`ru`), simplified Chinese
+(`zh`), Japanese (`ja`), Korean (`ko`), Arabic (`ar`), and Hindi (`hi`).
+This is a bounded phrase set, not comprehensive detection in those languages.
+Native-speaker review and independently sourced near-misses are welcome.
+
 ### `relaxed_pattern`
 
 **Required for `PI050` and above** (D-09); optional and unused below that

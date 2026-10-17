@@ -7,6 +7,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Multilingual rules PI114-PI118 for five attack shapes across eleven languages
+  (#39), with language tags, Unicode case-folding checks and near-miss controls.
+
 ## [0.2.0] - 2026-10-09
 
 This release is about **agent-shaped attacks**: injection aimed at an agent's configuration,

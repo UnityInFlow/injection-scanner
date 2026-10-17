@@ -122,7 +122,7 @@ Neither can see what the other sees. If you touch `release.yml`, expect both.
 - PI040-PI049: Encoding/obfuscation (Category E)
 - PI050-PI059: Tool and permission abuse (Category F)
 - PI070-PI079: Persistence and lifecycle hijack (Category H)
-- PI110-PI119: Multilingual evasion (Category G; Czech first, one language per slice)
+- PI110-PI119: Multilingual evasion (Category G; Czech PI110-PI113, eleven-language attack shapes PI114-PI118)
 
 ## Commit Convention
 

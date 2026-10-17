@@ -42,8 +42,10 @@ Tool and permission abuse (`PI050`–`PI059`) is no longer in that list: its 12
 threat-model payloads landed ahead of any pattern (D-04), so the corpus
 proves the ordering rather than asserting it. See `structural/` below for
 where its structured half lives. Multilingual (`PI110`–`PI119`) joined the same
-way with `multilingual.md` (#39): one language per slice, misses for the next
-language left in as documented misses.
+way with `multilingual.md` (#39): Czech first, with two German misses left in.
+PI114 and PI117 now detect those German payloads without changing them. The
+eleven-language matrix in `tests/multilingual_test.rs` is synthetic regression
+coverage, not an independently sourced expansion of this recall corpus.
 
 Persistence and lifecycle hijack (`PI070`–`PI079`, #35) is no longer in that list
 either, and its history is a correction worth keeping. It opened with six prose
