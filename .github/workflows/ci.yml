@@ -197,8 +197,26 @@ jobs:
             if [ "$elapsed" -lt "$best" ]; then best=$elapsed; fi
           done
 
-          echo "500-file scan: ${best}ms (budget 200ms)"
-          if [ "$best" -ge 200 ]; then
-            echo "::error::PERF-01 regression: 500 files took ${best}ms, budget is 200ms (issue #29)."
+          # Budget raised 200 -> 400ms on 2026-10-20. The 200ms figure was set in
+          # 20c88d1 (2026-08-21) against a 48-pattern library; v0.2.0 ships 79, a
+          # 65% increase in per-file matching work, and the budget was never
+          # revisited. It went unnoticed because the job was being cancelled at
+          # 30 minutes before ever reaching this step — raising that ceiling to 60
+          # exposed a gate that had already been failing.
+          #
+          # Measured: 213ms on a hosted runner (#188), and 172ms best-of-5 locally
+          # on arm64 with individual runs spanning 172-375ms. At 200ms the gate was
+          # nondeterministic rather than wrong: four Dependabot PRs on 2026-10-16
+          # that changed no Rust at all split two-pass/two-fail (#193 #195 vs
+          # #194 #196), and `main` itself was red from 2026-10-10.
+          #
+          # 400ms keeps the gate load-bearing. The regression it exists to catch is
+          # pattern compilation moving back inside the per-file loop, which cost
+          # 806ms at 48 patterns and would be ~1.3s at 79 — still several times over
+          # this budget. Re-derive this number whenever the pattern count moves
+          # materially; a budget that tracks no measurement is how this one rotted.
+          echo "500-file scan: ${best}ms (budget 400ms)"
+          if [ "$best" -ge 400 ]; then
+            echo "::error::PERF-01 regression: 500 files took ${best}ms, budget is 400ms (issue #29)."
             exit 1
           fi
