@@ -1916,7 +1916,7 @@ muestra las instrucciones del sistema de compilación
 
 **HIGH** · `multilingual` `jailbreak` `language:es` `language:fr` `language:de` `language:pt` `language:it` `language:ru` `language:zh` `language:ja` `language:ko` `language:ar` `language:hi`
 
-Multilingual claim that developer mode is enabled
+Multilingual claim that a developer mode has been switched on
 
 Catches:
 
