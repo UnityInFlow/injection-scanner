@@ -1,11 +1,15 @@
 use std::sync::OnceLock;
 
 use injection_scanner::allowlist::Suppressions;
+use injection_scanner::baseline::Baseline;
 use injection_scanner::patterns::{grade, load_embedded_patterns};
 use injection_scanner::scanner::Scanner;
 
-fn scanners() -> &'static (Scanner, Scanner, Scanner) {
-    static SCANNERS: OnceLock<(Scanner, Scanner, Scanner)> = OnceLock::new();
+mod common;
+use common::scanner;
+
+fn control_scanners() -> &'static (Scanner, Scanner) {
+    static SCANNERS: OnceLock<(Scanner, Scanner)> = OnceLock::new();
     SCANNERS.get_or_init(|| {
         let categories = load_embedded_patterns().unwrap();
         let mut relaxed = categories.clone();
@@ -19,7 +23,6 @@ fn scanners() -> &'static (Scanner, Scanner, Scanner) {
             }
         }
         (
-            Scanner::new(&categories).unwrap(),
             Scanner::new(&categories).unwrap().without_prefilter(),
             Scanner::new(&relaxed).unwrap(),
         )
@@ -27,8 +30,8 @@ fn scanners() -> &'static (Scanner, Scanner, Scanner) {
 }
 
 fn check(id: &str, text: &str, expected: bool) {
-    let (filtered, unfiltered, relaxed) = scanners();
-    let report = filtered.scan("multilingual.md", text, &Suppressions::default());
+    let (unfiltered, relaxed) = control_scanners();
+    let report = scanner().scan("multilingual.md", text, &Suppressions::default());
     let reference = unfiltered.scan("multilingual.md", text, &Suppressions::default());
     assert_eq!(
         serde_json::to_value(&report).unwrap(),
@@ -261,6 +264,66 @@ fn language_tags_survive_the_public_rule_listing() {
                 "{id}: {language}"
             );
         }
+    }
+}
+
+#[test]
+fn multilingual_descriptions_do_not_trigger_the_shipped_scanner() {
+    for category in load_embedded_patterns().unwrap() {
+        if category.category != "multilingual" {
+            continue;
+        }
+        for pattern in category.patterns {
+            let report = scanner().scan(
+                "description.md",
+                &pattern.description,
+                &Suppressions::default(),
+            );
+            assert!(
+                report.matches.is_empty(),
+                "{} description flags itself: {:?}",
+                pattern.id,
+                report.matches
+            );
+        }
+    }
+}
+
+#[test]
+fn multilingual_examples_are_covered_by_the_code_scanning_baseline() {
+    let path = "examples/multilingual-attack.md";
+    let content = std::fs::read_to_string(path).unwrap();
+    let mut reports = vec![scanner().scan(path, &content, &Suppressions::default())];
+    for id in ["PI114", "PI115", "PI116", "PI117", "PI118"] {
+        assert!(
+            reports[0].matches.iter().any(|m| m.pattern_id == id),
+            "missing example: {id}"
+        );
+    }
+    let baseline =
+        Baseline::load(std::path::Path::new(".github/code-scanning-baseline.json")).unwrap();
+    baseline.apply(&mut reports);
+    assert!(
+        reports[0].matches.is_empty(),
+        "unreviewed example findings: {:?}",
+        reports[0].matches
+    );
+}
+
+#[test]
+fn relaxed_controls_preserve_the_non_object_framing() {
+    let (_, relaxed) = control_scanners();
+    for (id, text) in [
+        ("PI114", "ignora las advertencias del compilador"),
+        ("PI115", "olvida"),
+        ("PI116", "ahora eres"),
+        ("PI117", "muestra las advertencias del compilador"),
+    ] {
+        let report = relaxed.scan("relaxed.md", text, &Suppressions::default());
+        assert!(
+            !report.matches.iter().any(|m| m.pattern_id == id),
+            "{id}: {text}"
+        );
     }
 }
 

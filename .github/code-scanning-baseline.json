@@ -430,6 +430,41 @@
       "first_seen_line": 9
     },
     {
+      "file": "examples/multilingual-attack.md",
+      "pattern_id": "PI114",
+      "digest": "sha256:2dda924599f43854d19756588144cbe9f88ec7bd7dd04968f3a41267194c4e55",
+      "count": 1,
+      "first_seen_line": 11
+    },
+    {
+      "file": "examples/multilingual-attack.md",
+      "pattern_id": "PI115",
+      "digest": "sha256:97bc7289724f1040ad2d8cc33b70ee21b51b7d9f0459ed20cdac3c9a706760cc",
+      "count": 1,
+      "first_seen_line": 13
+    },
+    {
+      "file": "examples/multilingual-attack.md",
+      "pattern_id": "PI116",
+      "digest": "sha256:8a5681e6e30347eff35b94f51104d3496b82e55c192748c190d3560b01589312",
+      "count": 1,
+      "first_seen_line": 15
+    },
+    {
+      "file": "examples/multilingual-attack.md",
+      "pattern_id": "PI117",
+      "digest": "sha256:b9cf0d7ae17b9ce92dbad3d8e5dfc1602af90625cae28ea32237cdde600dcd86",
+      "count": 1,
+      "first_seen_line": 17
+    },
+    {
+      "file": "examples/multilingual-attack.md",
+      "pattern_id": "PI118",
+      "digest": "sha256:55990c94b953dede6c31708858f4060c7f784a0d77893732499a7c6621b85285",
+      "count": 1,
+      "first_seen_line": 19
+    },
+    {
       "file": "examples/persistence-lifecycle-hijack-attack.md",
       "pattern_id": "PI070",
       "digest": "sha256:5f51ca84c4c6d1abd6202f901d631437e452fcf439f9256de1a52fc01bdeb2dc",
@@ -1135,6 +1170,69 @@
       "digest": "sha256:c1146cad236513a2bc601a55da0299d6b84fdb87915637423cd970411be37ca9",
       "count": 1,
       "first_seen_line": 22
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI114",
+      "digest": "sha256:2dda924599f43854d19756588144cbe9f88ec7bd7dd04968f3a41267194c4e55",
+      "count": 1,
+      "first_seen_line": 136
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI115",
+      "digest": "sha256:0fa31ed677537e7f7d62f7f5cc93f79165a29b320e181a31d292c75f662fe507",
+      "count": 1,
+      "first_seen_line": 165
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI115",
+      "digest": "sha256:158166fb2a6b1317e83d8680c25c12e5735e2aaedbd1dc6adfa6b1ced23c0ed4",
+      "count": 1,
+      "first_seen_line": 155
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI115",
+      "digest": "sha256:87218af757c27177eea1b655e47e5a058bd8f310aefaca4ec2bfd6c7b39910f1",
+      "count": 1,
+      "first_seen_line": 154
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI116",
+      "digest": "sha256:955088da69900066e269d0a9ae92c4fcc4f4760b61dbcaaec45d9cabdf37004e",
+      "count": 1,
+      "first_seen_line": 201
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI117",
+      "digest": "sha256:3aaf490fce63a3b04d49f70fa9fa99d0cb340b1705d0a77e18ddcf9ab7187ea0",
+      "count": 1,
+      "first_seen_line": 237
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI118",
+      "digest": "sha256:55990c94b953dede6c31708858f4060c7f784a0d77893732499a7c6621b85285",
+      "count": 1,
+      "first_seen_line": 257
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI118",
+      "digest": "sha256:99b73bf3d57d3a68e72045c64ca58e71c37f2e8a8acb61b48046e7776605e2a3",
+      "count": 1,
+      "first_seen_line": 256
+    },
+    {
+      "file": "patterns/core/multilingual.yaml",
+      "pattern_id": "PI118",
+      "digest": "sha256:d128868359413a42d6b61e69d8d3434797239a04fdac105343f4ca09fffc2c4f",
+      "count": 1,
+      "first_seen_line": 260
     },
     {
       "file": "patterns/core/persistence-lifecycle-hijack.yaml",
@@ -1961,6 +2059,20 @@
       "digest": "sha256:02ecf61da93efcf3868adcb3d0dd63a77f9aa39689f77602ae77cb3824d762eb",
       "count": 1,
       "first_seen_line": 15
+    },
+    {
+      "file": "tests/corpus/attack/multilingual.md",
+      "pattern_id": "PI114",
+      "digest": "sha256:e5e19e6a6a6931ea1c6d8dda61a6802ab53ca238acfefabfc7d91d41b4ce8709",
+      "count": 1,
+      "first_seen_line": 20
+    },
+    {
+      "file": "tests/corpus/attack/multilingual.md",
+      "pattern_id": "PI117",
+      "digest": "sha256:824d96da7dfe037f37a1fbf12cc145ba17a78ce6a3627df8aedc5800567ecfde",
+      "count": 1,
+      "first_seen_line": 21
     },
     {
       "file": "tests/corpus/attack/persistence-lifecycle-hijack-heldout.md",
