@@ -1,6 +1,31 @@
 #!/bin/bash
 cd "$CLAUDE_PROJECT_DIR" || exit 0
 
+# 0. Skip the whole gate when none of its inputs changed.
+#
+# This hook runs after EVERY turn. Before #191 landed, `cargo test` took longer
+# than this hook's own 900s timeout (11m02s locally, 18.1 min on CI), so a
+# session that never touched Rust spent fifteen minutes stalling and was then
+# killed without reporting anything. #191 cut that to 3m01s locally by caching
+# the Scanner per test binary, so the gate now completes -- but three minutes
+# of recompiling after a turn that edited a Markdown file is still three
+# minutes spent to learn nothing.
+#
+# So gate on whether anything fmt, clippy or the tests actually read has
+# changed: the working tree first, then commits not yet on origin/main, so a
+# feature branch is still checked after its work is committed.
+WATCHED=('*.rs' 'patterns/' 'tests/' 'Cargo.toml' 'Cargo.lock' 'build.rs' 'rust-toolchain.toml')
+
+DIRTY=$(git status --porcelain -- "${WATCHED[@]}" 2>/dev/null)
+UNMERGED=""
+if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
+  UNMERGED=$(git diff --name-only origin/main...HEAD -- "${WATCHED[@]}" 2>/dev/null)
+fi
+
+if [ -z "$DIRTY" ] && [ -z "$UNMERGED" ]; then
+  exit 0
+fi
+
 # 1. Run tests silently — surface errors only
 TEST_OUTPUT=$(cargo test 2>&1)
 if [ $? -ne 0 ]; then
