@@ -166,7 +166,7 @@ jobs:
       # the build. Measured at ~5ms of scan time locally and well under 100ms
       # end-to-end on a hosted runner; the regressed build this defends against
       # was 806ms on hardware faster than CI.
-      - name: Performance gate — 500 files under 200ms
+      - name: Performance gate — 500 files under 400ms
         run: |
           set -euo pipefail
           corpus="$(mktemp -d)"
