@@ -18,10 +18,12 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+mod common;
+use common::scanner;
+
 use injection_scanner::allowlist::Suppressions;
 use injection_scanner::frontmatter;
 use injection_scanner::pattern::PatternCategory;
-use injection_scanner::patterns::load_embedded_patterns;
 use injection_scanner::scanner::Scanner;
 
 /// Name of CAT-01's structural `EXPECTED` row (D-02). A single combined row
@@ -434,11 +436,6 @@ const HELDOUT_MARKER: &str = "-heldout";
 /// development corpus?
 fn is_heldout(row_name: &str) -> bool {
     row_name.contains(HELDOUT_MARKER)
-}
-
-fn scanner() -> Scanner {
-    Scanner::new(&load_embedded_patterns().expect("embedded patterns must load"))
-        .expect("patterns must compile")
 }
 
 fn attack_dir() -> PathBuf {

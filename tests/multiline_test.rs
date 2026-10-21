@@ -10,17 +10,15 @@
 use injection_scanner::allowlist::{parse_suppressions, Suppressions};
 use injection_scanner::context::MatchContext;
 use injection_scanner::pattern::ScanReport;
-use injection_scanner::patterns::load_embedded_patterns;
-use injection_scanner::scanner::Scanner;
+mod common;
+use common::scanner;
 
 fn scan(content: &str) -> ScanReport {
-    let scanner = Scanner::new(&load_embedded_patterns().expect("patterns")).expect("compile");
-    scanner.scan("doc.md", content, &Suppressions::default())
+    scanner().scan("doc.md", content, &Suppressions::default())
 }
 
 fn scan_respecting_directives(content: &str) -> ScanReport {
-    let scanner = Scanner::new(&load_embedded_patterns().expect("patterns")).expect("compile");
-    scanner.scan("doc.md", content, &parse_suppressions(content))
+    scanner().scan("doc.md", content, &parse_suppressions(content))
 }
 
 fn ids(report: &ScanReport) -> Vec<(usize, String)> {

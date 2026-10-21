@@ -48,24 +48,10 @@ jobs:
   test:
     name: fmt · clippy · test · build
     runs-on: ubuntu-latest
-    # Raised 15 -> 30 when the coverage gate landed (llvm-cov rebuilds the whole
-    # tree with instrumentation, roughly doubling the compile leg), then 30 -> 60
-    # on 2026-10-09 after three consecutive runs were cancelled at exactly 30m
-    # (PRs #186 x2 and #187), with fmt, clippy and `cargo test` all already green.
-    #
-    # Measured breakdown of the run that was cut (#186, attempt 2):
-    #   cargo fmt + clippy          ~0.5 min
-    #   cargo test                  18.1 min   <- dominates
-    #   benchmarks                   0.8 min
-    #   coverage gate               10.5 min and still unfinished at the cut
-    # so the job needs roughly 40 min of work, not 30.
-    #
-    # This is extra TIME, not a fix. The suite is slow because the slowest test
-    # binaries construct a Scanner per case, recompiling all 79 patterns each
-    # time (locally: report_roundtrip ~156s, perf_regression ~155s, recall ~98s,
-    # pattern_relaxed_control ~80s). The real fix is to cache it in a OnceLock,
-    # which would cut the test leg AND the coverage leg, since coverage re-runs
-    # the tests. Tracked as #188; revisit this ceiling once that lands.
+    # #188 caches embedded test scanners once per binary, reducing both test
+    # runs (ordinary and coverage). Keep the 60-minute cold-build allowance
+    # until a complete hosted coverage run measures the new end-to-end cost;
+    # local warm test timings alone do not establish a safe CI ceiling.
     #
     # Do NOT "fix" a timeout by touching `runs-on` -- see the CI policy in
     # CLAUDE.md; a self-hosted label on this public repo queues forever.
@@ -107,6 +93,9 @@ jobs:
       - name: cargo test
         run: cargo test --locked
 
+      - name: Sweep helper regression check
+        run: bash tests/gate03_sweep_test.sh
+
       # TEST-02 (issue #29). The criterion benches in `benches/scan.rs` cover the
       # four shapes that matter — pattern-set compile, one large file, 500 small
       # files, and a pathological line — but nothing ran them, so they could rot
@@ -136,7 +125,7 @@ jobs:
       # guards that now, and running coverage in CI re-exercises the guard under
       # the alternate target directory that exposed it.
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@83ac0ad63c0167e6f06796fab0fce28db1bf3db0 # v2.87.22
+        uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2.87.29
         with:
           tool: cargo-llvm-cov
 
@@ -166,7 +155,7 @@ jobs:
       # the build. Measured at ~5ms of scan time locally and well under 100ms
       # end-to-end on a hosted runner; the regressed build this defends against
       # was 806ms on hardware faster than CI.
-      - name: Performance gate — 500 files under 200ms
+      - name: Performance gate — 500 files under 400ms
         run: |
           set -euo pipefail
           corpus="$(mktemp -d)"
@@ -197,8 +186,26 @@ jobs:
             if [ "$elapsed" -lt "$best" ]; then best=$elapsed; fi
           done
 
-          echo "500-file scan: ${best}ms (budget 200ms)"
-          if [ "$best" -ge 200 ]; then
-            echo "::error::PERF-01 regression: 500 files took ${best}ms, budget is 200ms (issue #29)."
+          # Budget raised 200 -> 400ms on 2026-10-20. The 200ms figure was set in
+          # 20c88d1 (2026-08-21) against a 48-pattern library; v0.2.0 ships 79, a
+          # 65% increase in per-file matching work, and the budget was never
+          # revisited. It went unnoticed because the job was being cancelled at
+          # 30 minutes before ever reaching this step — raising that ceiling to 60
+          # exposed a gate that had already been failing.
+          #
+          # Measured: 213ms on a hosted runner (#188), and 172ms best-of-5 locally
+          # on arm64 with individual runs spanning 172-375ms. At 200ms the gate was
+          # nondeterministic rather than wrong: four Dependabot PRs on 2026-10-16
+          # that changed no Rust at all split two-pass/two-fail (#193 #195 vs
+          # #194 #196), and `main` itself was red from 2026-10-10.
+          #
+          # 400ms keeps the gate load-bearing. The regression it exists to catch is
+          # pattern compilation moving back inside the per-file loop, which cost
+          # 806ms at 48 patterns and would be ~1.3s at 79 — still several times over
+          # this budget. Re-derive this number whenever the pattern count moves
+          # materially; a budget that tracks no measurement is how this one rotted.
+          echo "500-file scan: ${best}ms (budget 400ms)"
+          if [ "$best" -ge 400 ]; then
+            echo "::error::PERF-01 regression: 500 files took ${best}ms, budget is 400ms (issue #29)."
             exit 1
           fi

@@ -26,12 +26,8 @@ use std::path::{Path, PathBuf};
 
 use injection_scanner::allowlist::Suppressions;
 use injection_scanner::patterns::load_embedded_patterns;
-use injection_scanner::scanner::Scanner;
-
-fn scanner() -> Scanner {
-    Scanner::new(&load_embedded_patterns().expect("embedded patterns must load"))
-        .expect("patterns must compile")
-}
+mod common;
+use common::scanner;
 
 fn corpus(name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))

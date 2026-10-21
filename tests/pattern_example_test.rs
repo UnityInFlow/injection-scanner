@@ -7,14 +7,13 @@
 
 use injection_scanner::allowlist::Suppressions;
 use injection_scanner::patterns::load_embedded_patterns;
-use injection_scanner::scanner::Scanner;
+mod common;
+use common::scanner;
 
 /// Does `id` fire on `text`? Uses the full scanner, not a bare regex, so the
 /// example is checked against the behaviour a user actually gets.
 fn fires(id: &str, text: &str) -> bool {
-    let categories = load_embedded_patterns().expect("patterns must load");
-    let scanner = Scanner::new(&categories).expect("patterns must compile");
-    let report = scanner.scan("example.md", text, &Suppressions::default());
+    let report = scanner().scan("example.md", text, &Suppressions::default());
     report
         .matches
         .iter()

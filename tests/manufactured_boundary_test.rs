@@ -12,12 +12,8 @@
 
 use injection_scanner::allowlist::Suppressions;
 use injection_scanner::pattern::{ScanMatch, ScanReport, Severity};
-use injection_scanner::patterns::load_embedded_patterns;
-use injection_scanner::scanner::Scanner;
-
-fn scanner() -> Scanner {
-    Scanner::new(&load_embedded_patterns().expect("patterns must load")).expect("must compile")
-}
+mod common;
+use common::scanner;
 
 fn scan(content: &str) -> ScanReport {
     scanner().scan("doc.md", content, &Suppressions::default())

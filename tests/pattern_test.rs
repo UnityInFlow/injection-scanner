@@ -1,11 +1,7 @@
 use injection_scanner::allowlist::Suppressions;
 use injection_scanner::pattern::Severity;
-use injection_scanner::scanner::Scanner;
-
-fn scanner() -> Scanner {
-    let categories = injection_scanner::patterns::load_embedded_patterns().unwrap();
-    Scanner::new(&categories).expect("patterns must compile")
-}
+mod common;
+use common::scanner;
 
 fn matches_id(text: &str, id: &str) -> bool {
     scanner()

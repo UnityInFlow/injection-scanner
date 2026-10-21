@@ -24,6 +24,9 @@ use injection_scanner::allowlist::Suppressions;
 use injection_scanner::patterns::load_embedded_patterns;
 use injection_scanner::scanner::Scanner;
 
+mod common;
+use common::scanner;
+
 const FILE_COUNT: usize = 500;
 
 /// How many times the cost of a single pattern-set compile a full 500-file scan
@@ -81,7 +84,7 @@ fn pattern_set_is_compiled_once_not_per_file() {
         })
     });
 
-    let scanner = Scanner::new(&categories).expect("patterns must compile");
+    let scanner = scanner();
     let scan_all = median_of_three(|| {
         time(|| {
             for (i, content) in files.iter().enumerate() {
@@ -102,8 +105,7 @@ fn pattern_set_is_compiled_once_not_per_file() {
 
 #[test]
 fn scan_cost_tracks_content_not_file_count() {
-    let categories = load_embedded_patterns().expect("embedded patterns must load");
-    let scanner = Scanner::new(&categories).expect("patterns must compile");
+    let scanner = scanner();
 
     // Same total content, split two ways: FILE_COUNT sections as one document,
     // versus SPLIT_FILES documents of SECTIONS_PER_FILE sections each. A

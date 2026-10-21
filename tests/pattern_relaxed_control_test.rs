@@ -26,6 +26,10 @@
 //! that passes by iterating an empty collection.
 
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
+
+mod common;
+use common::scanner as shipped_scanner;
 
 use injection_scanner::allowlist::Suppressions;
 use injection_scanner::pattern::PatternCategory;
@@ -44,12 +48,6 @@ fn fires(scanner: &Scanner, id: &str, text: &str) -> bool {
         .any(|m| m.pattern_id == id)
 }
 
-/// Builds the shipped scanner, straight from the embedded pattern set.
-fn shipped_scanner() -> Scanner {
-    Scanner::new(&load_embedded_patterns().expect("embedded patterns must load"))
-        .expect("embedded patterns must compile")
-}
-
 /// Builds a scanner over the **relaxed** variant of every pattern that
 /// carries one, leaving every other pattern untouched.
 ///
@@ -59,16 +57,19 @@ fn shipped_scanner() -> Scanner {
 /// normalization/decode passes the shipped pattern gets. A hand-compiled
 /// regex would not carry any of that, and the pairing would be comparing two
 /// different things.
-fn relaxed_scanner() -> Scanner {
-    let mut categories = load_embedded_patterns().expect("embedded patterns must load");
-    for category in &mut categories {
-        for pattern in &mut category.patterns {
-            if let Some(relaxed) = pattern.relaxed_pattern.clone() {
-                pattern.pattern = relaxed;
+fn relaxed_scanner() -> &'static Scanner {
+    static RELAXED: OnceLock<Scanner> = OnceLock::new();
+    RELAXED.get_or_init(|| {
+        let mut categories = load_embedded_patterns().expect("embedded patterns must load");
+        for category in &mut categories {
+            for pattern in &mut category.patterns {
+                if let Some(relaxed) = pattern.relaxed_pattern.clone() {
+                    pattern.pattern = relaxed;
+                }
             }
         }
-    }
-    Scanner::new(&categories).expect("relaxed pattern set must still compile")
+        Scanner::new(&categories).expect("relaxed pattern set must still compile")
+    })
 }
 
 /// Every pattern across the embedded set that carries a `relaxed_pattern`.
@@ -190,14 +191,14 @@ fn shipped_pattern_misses_counter_example_but_relaxed_form_catches_it() {
             ));
             continue;
         };
-        if fires(&shipped, &pattern.id, counter) {
+        if fires(shipped, &pattern.id, counter) {
             failures.push(format!(
                 "{}: the SHIPPED pattern already matches its own counter_example \
                  {counter:?} — the narrowing is not doing anything",
                 pattern.id
             ));
         }
-        if !fires(&relaxed, &pattern.id, counter) {
+        if !fires(relaxed, &pattern.id, counter) {
             failures.push(format!(
                 "{}: the RELAXED form does not match counter_example {counter:?} — \
                  the relaxation is not actually wider than the shipped pattern",

@@ -8,12 +8,11 @@ use injection_scanner::normalize::{
     is_compound_separator, is_separator, normalize, span_edge_is_manufactured,
 };
 use injection_scanner::pattern::ScanReport;
-use injection_scanner::patterns::load_embedded_patterns;
-use injection_scanner::scanner::Scanner;
+mod common;
+use common::scanner;
 
 fn scan(content: &str) -> ScanReport {
-    let scanner = Scanner::new(&load_embedded_patterns().expect("patterns")).expect("compile");
-    scanner.scan("doc.md", content, &Suppressions::default())
+    scanner().scan("doc.md", content, &Suppressions::default())
 }
 
 fn fires(content: &str) -> bool {
