@@ -5,7 +5,7 @@ milestone_name: maintenance-only
 status: maintenance
 stopped_at: "v0.2.0 released 2026-10-10 and archived 2026-10-23 to .planning/archive/milestone-v0.2.0/. No active milestone: injection-scanner is maintenance-only by the scope freeze, and the ecosystem focus is agent-memory v0.1.0."
 last_updated: "2026-10-23T00:00:00.000Z"
-state_head: 6df7a7b
+state_head: 2f672c8
 progress:
   total_phases: 0
   completed_phases: 0
@@ -37,6 +37,9 @@ tool-description poisoning (#34), persistence & lifecycle hijack (#35). 79 patte
 - **#197 merged 2026-10-23** (community, BasilZafar11): `PI114`-`PI118` multilingual evasion.
   Library is **84 patterns / 9 categories**. Development recall **105/115 (91.3%)**, up from
   103/115. The CAT-03 held-out number is unchanged at **2/12** and is still the published one.
+- **#200 merged 2026-10-23** (community, BasilZafar11): independent evidence and a threshold
+  sensitivity test for `PI079` (closes #180). Regex and MEDIUM grade unchanged; remediation now asks
+  the reviewer to confirm the user authorized the key. See `docs/PI079-EVIDENCE.md`.
 - CI upkeep: scanner caching in tests, PERF-01 budget 200 → 400 ms for the larger library (#188).
 
 ## Open work
@@ -47,5 +50,5 @@ tool-description poisoning (#34), persistence & lifecycle hijack (#35). 79 patte
 
 ## Session Continuity
 
-Last session: 2026-10-23 — merged #197, reviewed #200 (PI079 evidence, #180), archived v0.2.0.
+Last session: 2026-10-23 — merged #197 and #200, archived v0.2.0.
 Resume with: `gh pr list` for contributor PRs; otherwise no planned work in this repo.

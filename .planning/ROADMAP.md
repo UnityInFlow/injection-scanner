@@ -15,7 +15,8 @@ v0.2.0 was planned: ship v0.2.0, release it, then move the ecosystem's focus to 
 ## What maintenance-only means here
 
 - **Merged:** bug fixes, false-positive fixes, CI and dependency upkeep, and community pattern PRs
-  that pass every gate. Merged after the release: #197 (`PI114`-`PI118`, multilingual, 84 patterns).
+  that pass every gate. Merged after the release: #197 (`PI114`-`PI118`, multilingual, 84 patterns)
+  and #200 (`PI079` threshold evidence, #180).
 - **Not started:** new detection categories or engines. The detection gaps filed at the v0.2.0
   close-out (#164-#184) sit on the GitHub milestone **v0.3.0**, which has no plan and no date.
 - **Backlog:** `docs/DETECTION-BACKLOG.md`. The next milestone opens with `/gsd-new-milestone`,
