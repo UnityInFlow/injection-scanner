@@ -8,26 +8,26 @@ Catch prompt injection attacks before they reach production — in skill files, 
 
 ## Requirements
 
-> Current requirements live in `.planning/REQUIREMENTS.md` (milestone: **v0.2.0 — Agent-shaped
-> attacks**, opened 2026-08-30). The list below is the **original v0.0.1 set, retained for
-> history**.
+> Requirements live in each milestone's archived `REQUIREMENTS.md` under `.planning/archive/`.
+> There is no active milestone: maintenance-only since 2026-10-23. The list further below is
+> the **original v0.0.1 set, retained for history**.
 
 ### Validated — shipped and confirmed
 
-- ✓ **Production Readiness (v0.0.3 + v0.1.0)** — shipped 2026-08-29. Detection recall went
-  **10/60 → 56/60**, measured against a corpus written from the threat model and published in the
-  README. CI restored, SARIF output, `install-hook`, `--baseline`, `--fail-on`, Unicode
-  normalization, multi-line matching, markdown context awareness, 48 patterns, SLSA provenance
-  over six target-triple binaries. Consumed by `spec-ci-plugin` v1.1.1 via the moving `@v1` tag.
-  Archived at `.planning/archive/milestone-v0.1.0/`.
+- ✓ **Production Readiness (v0.0.3 + v0.1.0)** — shipped 2026-08-29. Recall **10/60 → 56/60**
+  on a corpus written from the threat model. CI restored, SARIF output, `install-hook`,
+  `--baseline`, `--fail-on`, Unicode normalization, multi-line matching, 48 patterns, SLSA
+  provenance over six target-triple binaries. `.planning/archive/milestone-v0.1.0/`.
+- ✓ **v0.2.0 — Agent-shaped attacks** — released 2026-10-10. The scanner reads agent
+  configuration, not just prose: structural frontmatter engine, recursive decoder, and three
+  agentic categories (tool & permission abuse, MCP tool-description poisoning, persistence &
+  lifecycle hijack). 48 → 79 patterns. CAT-03 held-out recall **2/12** is the published number;
+  development recall 103/115. `.planning/archive/milestone-v0.2.0/`.
 
-### Active — v0.2.0
+### Active
 
-The scanner learns to read agent **configuration**, not just agent **prose**. All 48 existing
-patterns target payloads aimed at a chat model reading text; none target a wildcard permission
-grant in frontmatter, an instruction hidden in an MCP tool `description`, or a lifecycle hook that
-reinstalls the attacker's instructions. See `.planning/REQUIREMENTS.md`.
-
+None — maintenance-only. Since release: #197 added `PI114`-`PI118` (84 patterns, development
+recall 105/115). Close-out gaps (#164-#184) wait on the unplanned GitHub milestone v0.3.0.
 
 ### Original v0.0.1 set (historical)
 - [ ] **SCAN-01**: 30+ patterns across 5 categories (role override, instruction injection, exfiltration, jailbreaks, encoding)
@@ -63,17 +63,20 @@ reinstalls the attacker's instructions. See `.planning/REQUIREMENTS.md`.
 - anyhow for binary error handling, thiserror for library errors
 - cargo fmt + cargo clippy -- -D warnings before every commit
 - No unwrap() in production code
-- Self-hosted CI runners (arc-runner-unityinflow + orangepi)
+- CI and release run on GitHub-hosted runners (public repo; the org runner group refuses self-hosted jobs on it — see CLAUDE.md)
 
 ## Key Decisions
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Rust over TypeScript | <200ms performance requirement for pre-commit hook | ✅ Held — matching is fast; the perf problem was per-file regex compilation, not the language |
 | YAML patterns over embedded | Community contributions via PR, no recompilation needed | ✅ Held — embedded core + external overlay works |
-| SARIF output | GitHub Advanced Security integration, industry standard | ⏳ Never built — carried to Phase 4 |
-| regex over Aho-Corasick | Simpler for v0.0.1, Aho-Corasick for v0.1.0 if perf needed | ⏳ Carried to Phase 4; compile-once (Phase 2) matters more |
-| Public/fork CI on a GitHub-hosted runner (2026-08-21) | Org runner group blocks all self-hosted jobs on public repos; the private-window alternative denies CI to fork PRs and kills community pattern contributions. Scoped exception mirroring the spec-ci-plugin D-02 split. | ⏳ Phase 1 |
-| "Production ready" = v0.0.3 + v0.1.0 (2026-08-21) | Correctness and signal quality before differentiation. Agentic categories deferred to v0.2.0. | ⏳ In progress |
+| SARIF output | GitHub Advanced Security integration, industry standard | ✅ Shipped in v0.1.0 |
+| regex over Aho-Corasick | Simpler for v0.0.1, Aho-Corasick for v0.1.0 if perf needed | ✅ Held — compile-once mattered more; the PERF-01 budget moved 200 → 400 ms for the 79-pattern library (#188) |
+| Public/fork CI on a GitHub-hosted runner (2026-08-21) | Org runner group blocks all self-hosted jobs on public repos; the private-window alternative denies CI to fork PRs and kills community pattern contributions. Scoped exception mirroring the spec-ci-plugin D-02 split. | ✅ Held — fork PRs (#197, #200) received CI and #197 merged |
+| "Production ready" = v0.0.3 + v0.1.0 (2026-08-21) | Correctness and signal quality before differentiation. Agentic categories deferred to v0.2.0. | ✅ Shipped 2026-08-29 |
+| v0.2.0: engines before categories, three categories not eight (2026-08-30) | #32 is a stated prerequisite for `PI050`-`PI069`; three categories kept each PR reviewable (GATE-04) | ✅ Shipped 2026-10-10 |
+| Publish the held-out CAT-03 number, not the development one (2026-10-09) | A development corpus restated to the pattern authors overstates a detector; only a sealed blind set is independent | ✅ Held — 2/12 published beside 7/12 development |
+| Scope freeze after v0.2.0 (2026-10) | Ecosystem focus moves to agent-memory v0.1.0 | ✅ Maintenance-only from 2026-10-23 |
 
 ---
-*Last updated: 2026-08-21*
+*Last updated: 2026-10-23 after v0.2.0 milestone archive*

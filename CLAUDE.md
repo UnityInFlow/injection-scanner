@@ -10,16 +10,16 @@ Static scanner for prompt injection attacks in skill files, CLAUDE.md, RAG docum
 
 ## Status
 
-**v0.1.0 is the latest release** (2026-08-29). Earlier tags — v0.0.1, v0.0.2 (2026-06-24, 6
-target-triple binaries, consumed by `spec-ci-plugin`), v0.0.3 (2026-08-22) — are history, not the
-current shipped state.
+**v0.2.0 is the latest release** (2026-10-10, "Agent-shaped attacks"). Earlier tags — v0.0.1,
+v0.0.2 (2026-06-24, 6 target-triple binaries, consumed by `spec-ci-plugin`), v0.0.3 (2026-08-22),
+v0.1.0 (2026-08-29) — are history, not the current shipped state.
 
-**Current milestone: v0.2.0 — Agent-shaped attacks** (opened 2026-08-30). Phases 1-3 are complete —
-structural frontmatter engine (ENG-01, #32), recursive decoder (ENG-02, #30), tool & permission
-abuse (CAT-01, #33). Phase 4 — MCP & tool-description poisoning (CAT-02, #34) — is in flight. Live
-planning: `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`. Backlog beyond
-this milestone: `docs/DETECTION-BACKLOG.md`. Checklist: `TODO.md`. The superseded milestone's
-artifacts moved to `.planning/archive/milestone-v0.1.0/`; its audit remains at `docs/AUDIT-2026-08.md`.
+**No active milestone — maintenance-only** (since 2026-10-23, by the scope freeze; the ecosystem
+focus is agent-memory). v0.2.0's planning is archived at `.planning/archive/milestone-v0.2.0/`;
+`.planning/ROADMAP.md` and `.planning/STATE.md` say what maintenance-only covers. `main` carries 84
+patterns / 9 categories after the post-release community PR #197. Close-out detection gaps sit on
+the unplanned GitHub milestone v0.3.0; backlog: `docs/DETECTION-BACKLOG.md`. Earlier milestones are
+under `.planning/archive/`; the 2026-08 audit remains at `docs/AUDIT-2026-08.md`.
 
 **CI is green** and is the merge gate every PR goes through. It runs on a GitHub-hosted runner by
 deliberate choice, not the org's self-hosted fleet — see `## CI / Self-Hosted Runners` below for the
@@ -28,7 +28,7 @@ binding policy before touching any workflow.
 > **Verify status before planning from it.** This block has drifted before — it once named a
 > release two versions stale as current and presented an archived milestone as live. The live
 > answer is `gh release list --repo UnityInFlow/injection-scanner` and `gh run list --branch main`,
-> and it beats this file whenever the two disagree. Last verified: 2026-09-23.
+> and it beats this file whenever the two disagree. Last verified: 2026-10-23.
 
 ## Reference Documents
 
@@ -68,8 +68,9 @@ Read these before making architectural or scope decisions.
 
 > **These are the ORIGINAL v0.0.1 criteria, retained for history.** Three of them — SARIF output,
 > `install-hook`, and the <200ms budget — were never delivered, while `.planning/REQUIREMENTS.md`
-> assigned them to Phase 2. That contradiction is resolved in `.planning/REQUIREMENTS.md`; the live
-> requirement set for the current milestone lives there, not here.
+> assigned them to Phase 2. That contradiction was resolved in the v0.1.0 milestone's requirements,
+> archived at `.planning/archive/milestone-v0.1.0/REQUIREMENTS.md`; requirements live per milestone
+> under `.planning/archive/`, not here.
 
 ### v0.0.1 (historical)
 

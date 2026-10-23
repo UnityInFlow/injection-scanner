@@ -261,7 +261,7 @@ three pattern categories, taking the library from the 48 patterns across 5 categ
   LANGUAGE only — they cannot and do not mitigate the rug-pull class itself, since a single
   static scan cannot prove a server will not silently republish a different, poisoned
   description once a gating condition is met. Both limitations are measured and recorded, not
-  discovered in review; see `.planning/phases/04-mcp-tool-description-poisoning-cat-02-34/deferred-items.md`
+  discovered in review; see `.planning/archive/milestone-v0.2.0/phases/04-mcp-tool-description-poisoning-cat-02-34/deferred-items.md`
   for the full accounting, including two engine-capability gaps found during this work and filed
   as follow-up issues: a JSONC-commented `mcp.json` silently skips the structural pass with no
   diagnostic (#129), and the decoded-layer pass does not re-run structural (`scope: frontmatter`)
