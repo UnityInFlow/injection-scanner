@@ -160,6 +160,13 @@ scanned exactly as its uncommented form would be. A config block that still
 cannot be parsed after that is reported on stderr rather than skipped
 silently: `warning: structural config pass skipped for <file> — <reason>`.
 
+Structural findings track the source key or sequence item through its full
+configuration path, so repeated hook commands and URLs report their own lines.
+Line-specific suppression applies to that occurrence; an ignore on an earlier
+key no longer suppresses later keys with the same name (#165). Baseline identity
+still uses matched text and occurrence counts, not line numbers. YAML aliases
+are attributed to the alias reference. See [ADR-007](docs/adr/ADR-007-config-source-positions.md).
+
 ### Controlling what gets walked
 
 `check .` honours `.gitignore` and never descends into build output — `.git`,
