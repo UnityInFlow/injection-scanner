@@ -8,6 +8,38 @@ repository = "https://github.com/UnityInFlow/injection-scanner"
 authors = ["Jiri Hermann"]
 keywords = ["prompt-injection", "security", "ai", "scanner", "claude"]
 categories = ["command-line-utilities", "development-tools"]
+readme = "README.md"
+# Verified 2026-10-25: `cargo +1.88.0 check --locked` passes, `cargo +1.87.0` does not
+# (a dependency in Cargo.lock needs 1.88). Bump only with a matching CI job.
+rust-version = "1.88"
+# The crate carries the source, the pattern library, the test corpus (the
+# evidence behind the README's recall numbers) and the docs the tests read
+# (docs/PATTERN-CATALOGUE.md, docs/DETECTION-BACKLOG.md). Planning artefacts,
+# reviews, ADRs, the demo recording, integrations and CI do not belong in a
+# `cargo install` download.
+exclude = [
+    ".planning/",
+    ".github/",
+    ".claude/",
+    "docs/superpowers/",
+    "docs/reviews/",
+    "docs/adr/",
+    "docs/demo/",
+    "tools/",
+    "integrations/",
+    "CLAUDE.md",
+    "TODO.md",
+    "03-injection-scanner.md",
+    "claude-code-harness-engineering-guide-v2.md",
+]
+
+# `cargo binstall injection-scanner` resolves the raw target-triple binaries that
+# release.yml already publishes (asset names are a cross-repo contract, see
+# tests/release_contract_test.rs). No tarball, so pkg-fmt is "bin".
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }"
+pkg-fmt = "bin"
+bin-dir = "{ bin }"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }

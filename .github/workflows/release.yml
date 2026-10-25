@@ -66,8 +66,8 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   # JOB 1: test
   # Full test gate: cargo test + clippy + fmt check. Build does not start until
-  # this passes. injection-scanner ships binaries only -- there is NO crates.io
-  # publish job and NO Windows target.
+  # this passes. injection-scanner ships raw binaries plus a crates.io publish
+  # (JOB 5, trusted publishing, after the Release exists). NO Windows target.
   # ──────────────────────────────────────────────────────────────────────────
   test:
     name: Test gate (test + clippy + fmt)
@@ -504,3 +504,60 @@ jobs:
           printf '# doc\n\nordinary prose\n' > sample.md
           ./injection-scanner-x86_64-unknown-linux-musl check sample.md
           echo "Published asset contract verified at ${TAG}."
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # JOB 5: publish-crate (#204)
+  # Publishes the same tag to crates.io AFTER the GitHub Release exists, so a
+  # failed binary build never leaves a crate version without binaries behind.
+  # Auth is crates.io Trusted Publishing (OIDC): no API token lives in this
+  # repository or the org, which is the binding rule in CLAUDE.md §CI.
+  #
+  # One-time setup, after the FIRST manual `cargo publish --locked` from a
+  # maintainer machine (trusted publishing can only be configured once the
+  # crate exists): crates.io -> injection-scanner -> Settings -> Trusted
+  # Publishing -> GitHub: owner UnityInFlow, repository injection-scanner,
+  # workflow release.yml, environment (leave empty).
+  #
+  # Org Actions policy: `rust-lang/crates-io-auth-action@*` must be on the
+  # org allowlist (Settings -> Actions -> Allowed actions) or this job fails at
+  # startup. SHA pinning is required org-wide and honoured here.
+  # ──────────────────────────────────────────────────────────────────────────
+  publish-crate:
+    name: Publish to crates.io (trusted publishing)
+    needs: [release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write    # OIDC token exchanged for a short-lived crates.io token
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
+
+      - name: Tag must match Cargo.toml
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          CRATE_VERSION="$(cargo metadata --no-deps --format-version 1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["packages"][0]["version"])')"
+          test "v${CRATE_VERSION}" = "${TAG}" || { echo "::error::tag ${TAG} != Cargo.toml ${CRATE_VERSION}"; exit 1; }
+
+      - name: Package check (no planning files, no uncommitted changes)
+        run: |
+          set -euo pipefail
+          cargo package --list --locked > /tmp/crate-files.txt
+          if grep -E '^(\.planning|\.github|\.claude|docs/superpowers|docs/reviews|docs/adr|docs/demo)/' /tmp/crate-files.txt; then
+            echo "::error::excluded paths leaked into the crate; fix [package] exclude"; exit 1
+          fi
+          echo "$(wc -l < /tmp/crate-files.txt) files in the crate"
+
+      - name: Authenticate with crates.io
+        id: auth
+        uses: rust-lang/crates-io-auth-action@e919bc7605cde86df457cf5b93c5e103838bd879 # v1.0.1
+
+      - name: Publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+        run: cargo publish --locked --no-verify

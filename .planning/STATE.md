@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: none
 milestone_name: maintenance-only
 status: maintenance
-stopped_at: "v0.2.0 released 2026-10-10 and archived 2026-10-23 to .planning/archive/milestone-v0.2.0/. No active milestone: injection-scanner is maintenance-only by the scope freeze, and the ecosystem focus is agent-memory v0.1.0."
-last_updated: "2026-10-23T00:00:00.000Z"
+stopped_at: "v0.2.0 released 2026-10-10 and archived 2026-10-23 to .planning/archive/milestone-v0.2.0/. No active detection milestone: injection-scanner is maintenance-only by the scope freeze. Exception since 2026-10-25: packaging and docs for the v0.3.0 distribution release (crates.io, tap, binstall, README, demo), tracked in GitHub issue #211 and planned in docs/reviews/2026-10-24-launch-plan.md, outside GSD."
+last_updated: "2026-10-25T00:00:00.000Z"
 state_head: 2f672c8
 progress:
   total_phases: 0

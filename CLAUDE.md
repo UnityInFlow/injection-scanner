@@ -14,12 +14,16 @@ Static scanner for prompt injection attacks in skill files, CLAUDE.md, RAG docum
 v0.0.2 (2026-06-24, 6 target-triple binaries, consumed by `spec-ci-plugin`), v0.0.3 (2026-08-22),
 v0.1.0 (2026-08-29) — are history, not the current shipped state.
 
-**No active milestone — maintenance-only** (since 2026-10-23, by the scope freeze; the ecosystem
-focus is agent-memory). v0.2.0's planning is archived at `.planning/archive/milestone-v0.2.0/`;
-`.planning/ROADMAP.md` and `.planning/STATE.md` say what maintenance-only covers. `main` carries 84
-patterns / 9 categories after the post-release community PR #197. Close-out detection gaps sit on
-the unplanned GitHub milestone v0.3.0; backlog: `docs/DETECTION-BACKLOG.md`. Earlier milestones are
-under `.planning/archive/`; the 2026-08 audit remains at `docs/AUDIT-2026-08.md`.
+**Maintenance-only for detection, lifted for packaging and docs** (freeze since 2026-10-23; the
+packaging exception since 2026-10-25, tracking issue #211, plan
+`docs/reviews/2026-10-24-launch-plan.md`). The v0.3.0 release is a distribution release: crates.io,
+Homebrew tap, `cargo binstall`, README top, demo. No new detection category or engine ships in it.
+v0.2.0's planning is archived at `.planning/archive/milestone-v0.2.0/`; `.planning/ROADMAP.md` and
+`.planning/STATE.md` say what maintenance-only covers. `main` carries 84 patterns / 9 categories
+after the post-release community PR #197. Close-out detection gaps sit on the unplanned GitHub
+milestone `v0.4.0: detection gaps` (renamed from v0.3.0 on 2026-10-25); backlog:
+`docs/DETECTION-BACKLOG.md`. Earlier milestones are under `.planning/archive/`; the 2026-08 audit
+remains at `docs/AUDIT-2026-08.md`.
 
 **CI is green** and is the merge gate every PR goes through. It runs on a GitHub-hosted runner by
 deliberate choice, not the org's self-hosted fleet — see `## CI / Self-Hosted Runners` below for the

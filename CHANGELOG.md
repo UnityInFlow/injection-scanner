@@ -12,6 +12,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Multilingual rules PI114-PI118 for five attack shapes across eleven languages
   (#39), with language tags, Unicode case-folding checks and near-miss controls.
 
+### Distribution
+
+- Published on crates.io as `injection-scanner`: `cargo install injection-scanner` (#203, #204).
+  The crate excludes the planning folder and reference documents; the test corpus ships with it so
+  `cargo test` reproduces the published recall numbers.
+- `[package.metadata.binstall]` so `cargo binstall injection-scanner` fetches the raw release
+  binary for the current target instead of compiling (#203).
+- Homebrew formula in `UnityInFlow/homebrew-tap`: `brew install unityinflow/tap/injection-scanner`
+  (#10).
+- README leads with the one-line installs, the measured numbers and a recorded demo (#205, #206);
+  the pre-commit example pins the current tag instead of v0.0.3.
+
 ## [0.2.0] - 2026-10-09
 
 This release is about **agent-shaped attacks**: injection aimed at an agent's configuration,

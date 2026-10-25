@@ -1,27 +1,49 @@
 # injection-scanner
 
-Prompt injection is the SQL injection of the AI era. As AI agents process untrusted text -- skill files, RAG documents, user inputs, CLAUDE.md specs -- a single injected instruction can hijack agent behavior, exfiltrate data, or bypass safety controls.
+[![CI](https://github.com/UnityInFlow/injection-scanner/actions/workflows/ci.yml/badge.svg)](https://github.com/UnityInFlow/injection-scanner/actions/workflows/ci.yml) [![CodeQL](https://github.com/UnityInFlow/injection-scanner/actions/workflows/code-scanning.yml/badge.svg)](https://github.com/UnityInFlow/injection-scanner/actions/workflows/code-scanning.yml) [![crates.io](https://img.shields.io/crates/v/injection-scanner.svg)](https://crates.io/crates/injection-scanner) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**injection-scanner** is a static analysis tool that catches prompt injection patterns before they reach your AI agent. It scans files for role overrides, instruction injection, data exfiltration, jailbreaks, and encoding attacks using a maintained YAML pattern library.
+Static scanner for prompt injection in the files your AI agent reads: `CLAUDE.md`, skill files,
+MCP tool descriptions, RAG documents. Rust, one binary, no network, 60 ms on a 40-file repository.
+
+**84 patterns, 9 categories. Measured, not claimed:** 105/115 (91%) on the development corpus and
+**2/12 (17%) on a sealed held-out set** for the newest category. Both numbers are pinned in CI and
+reported side by side: [how they are measured](#how-much-does-it-actually-catch).
+
+```bash
+cargo install injection-scanner        # or: brew install unityinflow/tap/injection-scanner
+injection-scanner check .              # exit 1 on findings; --format sarif for code scanning
+injection-scanner install-hook         # pre-commit hook: scans staged files, blocks HIGH and above
+```
+
+![demo: a planted role-override line in a skill file is caught, explained and blocked at commit](https://raw.githubusercontent.com/UnityInFlow/injection-scanner/main/docs/demo/demo.gif)
+
+What it is: a pattern-and-structure linter with a maintained library, baselines and inline
+suppression. What it is not: a classifier, a runtime guard or a guarantee. A determined attacker can
+phrase around a regex. For runtime detection look at promptfoo, llm-guard or rebuff.
 
 ## Installation
 
-Download the pre-built binary for your platform from [GitHub Releases](https://github.com/UnityInFlow/injection-scanner/releases).
+One line, from source or pre-built:
 
 ```bash
-# macOS / Linux
-chmod +x injection-scanner
-sudo mv injection-scanner /usr/local/bin/
+cargo install injection-scanner                      # compiles from crates.io, Rust 1.88 or newer
+brew install unityinflow/tap/injection-scanner       # macOS and Linux, pre-built binary
+cargo binstall injection-scanner                     # the same release binary, no compile
+```
 
-# Verify
+Every [GitHub Release](https://github.com/UnityInFlow/injection-scanner/releases) also carries raw
+binaries for six targets (Linux gnu and musl, macOS, both x86_64 and aarch64), `SHA256SUMS.txt` and
+a signed SLSA build-provenance attestation:
+
+```bash
+curl -fsSLO https://github.com/UnityInFlow/injection-scanner/releases/latest/download/injection-scanner-aarch64-apple-darwin
+chmod +x injection-scanner-aarch64-apple-darwin
+sudo mv injection-scanner-aarch64-apple-darwin /usr/local/bin/injection-scanner
+gh attestation verify /usr/local/bin/injection-scanner --repo UnityInFlow/injection-scanner
 injection-scanner --version
 ```
 
-Or build from source:
-
-```bash
-cargo install --path .
-```
+Or from a checkout: `cargo install --path .`
 
 ## Usage
 
@@ -903,7 +925,7 @@ above:
 ```yaml
 repos:
   - repo: https://github.com/UnityInFlow/injection-scanner
-    rev: v0.0.3
+    rev: v0.2.0  # use the latest tag from the Releases page
     hooks:
       - id: injection-scanner
 ```
