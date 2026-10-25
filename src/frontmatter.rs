@@ -54,6 +54,8 @@
 
 use serde_json::Value;
 
+mod source;
+
 /// Maximum nesting depth walked when projecting. Deeper nodes are dropped.
 ///
 /// Real agent configuration is shallow: `mcpServers.<name>.args[0]` is depth 4.
@@ -100,12 +102,9 @@ pub struct ConfigBlock {
 pub struct ProjectedLine {
     pub path: String,
     pub value: String,
-    /// Best-effort 1-based line in the ORIGINAL document.
-    ///
-    /// Parsers do not preserve source spans through `serde_json::Value`, so
-    /// this is resolved by searching the block for the leaf key. When the key
-    /// cannot be found the block's own start line is used — a slightly wrong
-    /// line is far better than a finding that cannot be located at all.
+    /// 1-based source key (or sequence item) line in the ORIGINAL document.
+    /// Source positions follow the full tree path, independently of map order.
+    /// If the auxiliary source map is unavailable, use the block's start line.
     pub line: usize,
 }
 
@@ -136,7 +135,11 @@ pub fn extract(content: &str) -> Option<ConfigBlock> {
     let trimmed = content.trim_start();
     if trimmed.starts_with('{') {
         let leading_blank = content.len() - trimmed.len();
-        let start_line = content[..leading_blank].lines().count().max(1);
+        let start_line = content[..leading_blank]
+            .bytes()
+            .filter(|&b| b == b'\n')
+            .count()
+            + 1;
         return Some(ConfigBlock {
             syntax: ConfigSyntax::Json,
             body: trimmed.to_string(),
@@ -167,10 +170,8 @@ pub fn extract(content: &str) -> Option<ConfigBlock> {
                 .count();
             return Some(ConfigBlock {
                 syntax: ConfigSyntax::Json,
-                // The ORIGINAL text from the `{` onward, comments intact —
-                // `locate` searches this raw body for a leaf key, and a
-                // relaxed (space-blanked) body would just make every key
-                // search fail.
+                // Keep the original body so source positions and diagnostics
+                // refer to the document the user actually supplied.
                 body: content[brace_offset..].to_string(),
                 start_line,
             });
@@ -185,8 +186,8 @@ pub fn extract(content: &str) -> Option<ConfigBlock> {
 /// Returns a string of the SAME byte length and the SAME number of line
 /// breaks as `body`, with comment bytes and trailing-comma bytes overwritten
 /// by ASCII spaces, and nothing inside a string literal touched. That
-/// invariant is what lets [`locate`]'s `block.body.lines()` arithmetic,
-/// `block.start_line`, and every reported line number stay valid against the
+/// invariant is what lets source marks, `block.start_line`, and every reported
+/// line number stay valid against the
 /// ORIGINAL document rather than the relaxed one.
 ///
 /// A single forward pass over `body.as_bytes()`, tracking whether the cursor
@@ -408,7 +409,15 @@ pub fn parse(block: &ConfigBlock) -> Result<Value, String> {
 /// Project a parsed tree into canonical `path = value` lines.
 pub fn project(value: &Value, block: &ConfigBlock) -> Vec<ProjectedLine> {
     let mut out = Vec::new();
-    walk(value, &mut String::new(), 0, block, &mut out);
+    let positions = source::positions(block);
+    walk(
+        value,
+        &mut String::new(),
+        0,
+        block,
+        positions.as_ref(),
+        &mut out,
+    );
     out
 }
 
@@ -417,6 +426,7 @@ fn walk(
     path: &mut String,
     depth: usize,
     block: &ConfigBlock,
+    source: Option<&source::Source>,
     out: &mut Vec<ProjectedLine>,
 ) {
     if depth > MAX_DEPTH || out.len() >= MAX_NODES {
@@ -430,7 +440,14 @@ fn walk(
                     path.push('.');
                 }
                 path.push_str(key);
-                walk(child, path, depth + 1, block, out);
+                walk(
+                    child,
+                    path,
+                    depth + 1,
+                    block,
+                    source.and_then(|s| s.key(key)),
+                    out,
+                );
                 path.truncate(saved);
             }
         }
@@ -438,7 +455,14 @@ fn walk(
             for (index, child) in items.iter().enumerate() {
                 let saved = path.len();
                 path.push_str(&format!("[{index}]"));
-                walk(child, path, depth + 1, block, out);
+                walk(
+                    child,
+                    path,
+                    depth + 1,
+                    block,
+                    source.and_then(|s| s.index(index)),
+                    out,
+                );
                 path.truncate(saved);
             }
         }
@@ -461,7 +485,9 @@ fn walk(
                 rendered.truncate(end);
             }
             out.push(ProjectedLine {
-                line: locate(path, block),
+                line: source.map_or(block.start_line, |s| {
+                    block.start_line + s.line.saturating_sub(1)
+                }),
                 path: path.clone(),
                 value: rendered,
             });
@@ -479,35 +505,6 @@ fn render_scalar(value: &Value) -> String {
         Value::Null => "null".to_string(),
         other => other.to_string(),
     }
-}
-
-/// Best-effort mapping from a projected path back to an original line.
-///
-/// Searches the block body for the leaf key. Exact source spans would need a
-/// span-preserving parser for all three syntaxes; a near-right line is worth far
-/// more than the complexity, because the finding still points a reader at the
-/// correct region.
-fn locate(path: &str, block: &ConfigBlock) -> usize {
-    let leaf = path
-        .rsplit('.')
-        .next()
-        .unwrap_or(path)
-        .trim_end_matches(|c: char| c == ']' || c.is_ascii_digit())
-        .trim_end_matches('[');
-    if leaf.is_empty() {
-        return block.start_line;
-    }
-    for (offset, line) in block.body.lines().enumerate() {
-        let trimmed = line.trim_start().trim_start_matches("- ");
-        let key_end = trimmed.find([':', '=']).unwrap_or(0);
-        if key_end > 0 {
-            let key = trimmed[..key_end].trim().trim_matches('"');
-            if key == leaf {
-                return block.start_line + offset;
-            }
-        }
-    }
-    block.start_line
 }
 
 /// Extract, parse and project in one step.
