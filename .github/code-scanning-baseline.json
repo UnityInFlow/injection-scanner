@@ -17,6 +17,13 @@
       "first_seen_line": 890
     },
     {
+      "file": "docs/demo/skill.md",
+      "pattern_id": "PI001",
+      "digest": "sha256:a86c9dcb705a57a5b3d64bd578bd71a81dc80d24aa9666bf258781b6ea9c961e",
+      "count": 1,
+      "first_seen_line": 17
+    },
+    {
       "file": "examples/encoding-attack.md",
       "pattern_id": "PI001",
       "digest": "sha256:d976a420b08268253406e9960ba593d7944ab21aa9f66bfecae528bd4b4c9e64",

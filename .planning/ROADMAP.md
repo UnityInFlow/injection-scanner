@@ -18,6 +18,11 @@ v0.2.0 was planned: ship v0.2.0, release it, then move the ecosystem's focus to 
   that pass every gate. Merged after the release: #197 (`PI114`-`PI118`, multilingual, 84 patterns)
   and #200 (`PI079` threshold evidence, #180).
 - **Not started:** new detection categories or engines. The detection gaps filed at the v0.2.0
-  close-out (#164-#184) sit on the GitHub milestone **v0.3.0**, which has no plan and no date.
-- **Backlog:** `docs/DETECTION-BACKLOG.md`. The next milestone opens with `/gsd-new-milestone`,
-  only when the freeze is lifted.
+  close-out (#164-#184) sit on the GitHub milestone **v0.4.0: detection gaps** (renamed from
+  v0.3.0 on 2026-10-25), which has no plan and no date.
+- **Exception, 2026-10-25:** the freeze is lifted for **packaging and docs only**. v0.3.0 is a
+  distribution release (crates.io, Homebrew tap, `cargo binstall`, README top, demo), tracked in
+  #211 and planned in `docs/reviews/2026-10-24-launch-plan.md`. It changes no pattern and no
+  engine. The detection freeze stays until the launch stop rule in #211 has been evaluated.
+- **Backlog:** `docs/DETECTION-BACKLOG.md`. The next detection milestone opens with
+  `/gsd-new-milestone`, only when the freeze is lifted.
