@@ -315,7 +315,7 @@
       "pattern_id": "PI060",
       "digest": "sha256:f50a2555fa562bf13fb99143666c9852bd2939baaff1a3747e5904ef70edb028",
       "count": 1,
-      "first_seen_line": 5
+      "first_seen_line": 7
     },
     {
       "file": "examples/mcp-tool-poisoning-attack.md",
@@ -329,7 +329,7 @@
       "pattern_id": "PI062",
       "digest": "sha256:c4a1149fe99bd7fe6f006329a57fea0842b0a97542da130e944a4a555be6e094",
       "count": 1,
-      "first_seen_line": 5
+      "first_seen_line": 15
     },
     {
       "file": "examples/mixed-attack.md",
@@ -602,7 +602,7 @@
       "pattern_id": "PI051",
       "digest": "sha256:7de3d557b90e82691c253f55e7d1a14dd7c5842f028bc93a55d828523244f9fc",
       "count": 1,
-      "first_seen_line": 6
+      "first_seen_line": 7
     },
     {
       "file": "examples/tool-permission-abuse-attack.md",
@@ -2366,7 +2366,7 @@
       "pattern_id": "PI050",
       "digest": "sha256:50667d8e792a1b186182a00df8a299fbfb4ee697ed42208f25f454f27c9ca753",
       "count": 1,
-      "first_seen_line": 4
+      "first_seen_line": 7
     },
     {
       "file": "tests/corpus/attack/structural/tool-permission-abuse/02-scalar-wildcard-tools-grant.md",
