@@ -7,6 +7,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- PI072 detects AI-subject modal self-propagation and explicitly quoted instruction/directive
+  objects (#177), with licence/header controls and prohibition checks. The exposed CAT-03
+  set now scores 4/12 as a regression set; the original independent v0.2.0 score remains 2/12.
+
 ### Added
 
 - Multilingual rules PI114-PI118 for five attack shapes across eleven languages

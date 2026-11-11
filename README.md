@@ -454,6 +454,12 @@ detection is from a pattern this phase wrote (they are `PI025` and `PI070`), and
 was missed, including all four lifecycle-hook files. Misses were reported rather than tuned away, and
 each is a backlog item in [`docs/DETECTION-BACKLOG.md`](docs/DETECTION-BACKLOG.md).
 
+**Unreleased follow-up (#177):** PI072 now catches the exposed H11/H12 self-propagation
+forms. Re-running the original set gives **4/12** (prose **4/8**, structural **0/4**).
+This is now a regression score because the examples informed the fix, not a new
+independent recall measurement. The frozen v0.2.0 result above remains **2/12**;
+development recall remains **105/115**. Licence-header controls remain silent.
+
 *Table as of 2026-10-09. The Tool & Permission Abuse row's first 12
 threat-model payloads (7 prose, 5 structural) landed first with a measured 0/12 pre-pattern
 baseline (D-04), before any `PI050`–`PI059` pattern existed. Plan 05 shipped the structural half

@@ -418,7 +418,10 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     // which `detected()` does not count), H11 (self-propagation addressed to
     // "AI agents maintaining this project") and H12 (a directive to be copied
     // into other assistants' guidance).
-    ("persistence-lifecycle-hijack-heldout", 2, 8),
+    // Unreleased #177 uses the already exposed H11/H12 to extend PI072.
+    // Current 4/8 is a regression score, not a new independent measurement.
+    // Keep the frozen v0.2.0 2/12 result in README alongside this result.
+    ("persistence-lifecycle-hijack-heldout", 4, 8),
     // structural 0/4. All four are lifecycle hooks (Claude Code, Cursor,
     // Copilot, Gemini CLI) that download a remote program to a hidden path,
     // `chmod` it and run it as three separate steps. PI077's fetch arm requires
@@ -703,7 +706,7 @@ fn recall_matches_the_recorded_numbers() {
     if heldout_total > 0 {
         report.push_str(&format!(
             "  {:<22} {heldout_detected:>2}/{heldout_total:<2}  {:5.1}%\n",
-            "TOTAL (held-out)",
+            "TOTAL (exposed CAT-03)",
             100.0 * heldout_detected as f64 / heldout_total as f64
         ));
     }
